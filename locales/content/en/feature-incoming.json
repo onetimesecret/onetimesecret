@@ -158,5 +158,17 @@
   "incoming.validation_form_errors": {
     "text": "Please check the form for errors",
     "content_hash": "9056e064"
+  },
+  "incoming.required_passphrase": {
+    "text": "Passphrase (required)",
+    "content_hash": "00006ae8"
+  },
+  "incoming.share_passphrase_separately": {
+    "text": "Share this passphrase with your recipient separately.",
+    "content_hash": "e357a729"
+  },
+  "incoming.expires_after_seconds": {
+    "text": "This secret expires after {seconds} seconds.",
+    "content_hash": "6046b4ce"
   }
 }

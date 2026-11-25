@@ -1308,8 +1308,8 @@
     "content_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
-    "text": "Are you sure you want to remove all recipients? External users will no longer be able to send secrets to this domain.",
-    "content_hash": "06f9e551"
+    "text": "Delete this domain’s Incoming Secrets settings and recipients? Senders will lose access to the form.",
+    "content_hash": "7718ff75"
   },
   "web.domains.incoming.max_recipients_reached": {
     "text": "Maximum number of recipients reached",
@@ -1324,8 +1324,8 @@
     "content_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
-    "text": "Delete All Recipients",
-    "content_hash": "207d0dbe"
+    "text": "Delete Incoming Secrets configuration",
+    "content_hash": "1b1d67de"
   },
   "web.domains.unsaved_changes_confirmation": {
     "text": "You have unsaved changes. Are you sure you want to leave?",
@@ -1904,5 +1904,9 @@
   "web.domains.sso.enforce_moved_notice": {
     "text": "To require SSO for all sign-ins on this domain, configure it in the domain's sign-in settings. SSO-only mode restricts the login page to the SSO provider configured here.",
     "content_hash": "d26627a5"
+  },
+  "web.domains.incoming.max_ttl": {
+    "text": "Maximum lifetime in seconds (optional, at least 60)",
+    "content_hash": "69b071c4"
   }
 }

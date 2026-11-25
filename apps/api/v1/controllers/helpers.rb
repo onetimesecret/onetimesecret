@@ -44,6 +44,9 @@ module V1
     rescue OT::Unauthorized => ex
       OT.info ex.message
       not_authorized_error
+    rescue OT::EntitlementRequired => ex
+      res['X-OTS-Intended-Status'] = '403'
+      not_found_response ex.message
     rescue OT::FormError => ex
       OT.ld "[carefully] FormError: #{ex.message} (#{req.path})"
 

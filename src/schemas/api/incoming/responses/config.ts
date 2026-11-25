@@ -22,6 +22,7 @@ export const incomingConfigSchema = z.object({
   secret_max_length: z.number().int().positive().default(10000),
   recipients: z.array(incomingRecipientSchema).default([]),
   default_ttl: z.number().int().positive().optional(),
+  passphrase_input_required: z.boolean().optional(),
 });
 
 export type IncomingConfig = z.infer<typeof incomingConfigSchema>;

@@ -88,5 +88,9 @@
     "text": "Not a valid domain: %{domains}. Enter a registrable domain name, for example example.com",
     "context": "Returned by PUT /api/colonel/domains/:extid/configs/signup (field allowed_signup_domains) when an entry is not a domain with a valid public suffix. %{domains} is the refused entry as typed",
     "content_hash": "2d93472c"
+  },
+  "api.domains.errors.invalid_incoming_setting": {
+    "text": "Invalid Incoming Secrets setting.",
+    "content_hash": "4e0140b5"
   }
 }

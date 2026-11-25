@@ -184,6 +184,48 @@ RSpec.describe Core::Views::ConfigSerializer do
         expect(default_ceiling).to be < Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
       end
 
+      context 'when middleware supplied a tenant domain' do
+        let(:domain) { instance_double(Onetime::CustomDomain, objid: 'domain-id', org_id: 'host-org') }
+        let(:saved_policy) do
+          { 'max_ttl' => 600, 'passphrase_required' => true,
+            'recipient_email_mode' => 'restricted', 'recipient_email_domains' => ['example.test'] }
+        end
+        let(:owner_org) do
+          instance_double(Onetime::Organization, objid: 'host-org', extid: 'on-host', sharing_policy: saved_policy)
+        end
+
+        before do
+          allow(Onetime::Organization).to receive(:load).with('host-org').and_return(owner_org)
+          allow(owner_org).to receive(:limit_for).with('secret_lifetime').and_return(86_400)
+          allow(Onetime::SecretLifetimePolicy).to receive(:guest_ceiling).and_return(86_400)
+          ttl_view_vars.merge!('custom_domain' => domain, 'domain_strategy' => :custom)
+        end
+
+        it 'shows the enforced passphrase and lifetime to a guest' do
+          expect(secret_options.fetch('host_sharing_policy')).to eq(
+            'max_ttl' => 600, 'passphrase_required' => true,
+          )
+        end
+
+        it 'keeps the page and explicit host restrictions available when the billing plan is missing' do
+          require_relative '../../../../billing/errors'
+          allow(owner_org).to receive(:limit_for).and_raise(::Billing::PlanCacheMissError.new(plan_id: 'retired'))
+          expect(secret_options.fetch('host_sharing_policy')).to eq(
+            'max_ttl' => 600, 'passphrase_required' => true,
+          )
+        end
+
+        it 'shows allowed recipient domains to an authenticated host organization member' do
+          ttl_view_vars.merge!('authenticated' => true, 'cust' => customer)
+          allow(owner_org).to receive(:member?).with(customer).and_return(true)
+          brand = instance_double(Onetime::CustomDomain::BrandSettings, passphrase_required?: false)
+          allow(domain).to receive(:brand_settings).and_return(brand)
+          expect(secret_options.fetch('host_sharing_policy')).to eq(
+            saved_policy.merge('organization_extid' => 'on-host', 'domain_passphrase_required' => false),
+          )
+        end
+      end
+
       context 'when billing is enabled' do
         before do
           allow(OT.billing_config).to receive(:enabled?).and_return(true)

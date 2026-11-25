@@ -35,6 +35,7 @@ module DomainsAPI
             domain_id: config.domain_id,
             enabled: config.enabled?,
             recipients: config.recipients,
+            **config.settings,
             max_recipients: Onetime::CustomDomain::IncomingConfig::MAX_RECIPIENTS,
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,

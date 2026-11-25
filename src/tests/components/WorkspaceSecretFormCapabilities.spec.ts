@@ -89,7 +89,7 @@ describe('WorkspaceSecretForm - recipient capability gating', () => {
 
   it('shows the recipient field when ui.capabilities.recipient is true', () => {
     const wrapper = mountForm(true);
-    expect(wrapper.find(RECIPIENT_SELECTOR).exists()).toBe(true);
+    expect(wrapper.get<HTMLInputElement>(RECIPIENT_SELECTOR).element.multiple).toBe(false);
   });
 
   it('shows the recipient field when the capability flag is unset (default enabled)', () => {

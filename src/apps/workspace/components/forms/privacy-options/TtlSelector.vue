@@ -37,7 +37,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: number): void;
 }>();
 
-const { formatDuration, lifetimeOptions } = usePrivacyOptions();
+const { formatDuration, lifetimeOptions } = usePrivacyOptions(undefined, () => props.modelValue);
 
 /** Find selected option object from current value */
 const selectedOption = computed(() => (

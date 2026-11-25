@@ -20,6 +20,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import TtlSelector from './privacy-options/TtlSelector.vue';
+  import { useSharingControls } from '@/shared/composables/useSharingControls';
   import PassphraseInput from './privacy-options/PassphraseInput.vue';
   import PrivacyOptionsSheet from './privacy-options/PrivacyOptionsSheet.vue';
 
@@ -63,7 +64,7 @@
 
   const hasPassphrase = computed(() => !!props.currentPassphrase);
 
-  const defaultTtl = computed(() => secret_options.value?.default_ttl ?? 604800);
+  const { defaultTtl } = useSharingControls();
   const ttlChanged = computed(() => props.currentTtl !== defaultTtl.value);
 </script>
 

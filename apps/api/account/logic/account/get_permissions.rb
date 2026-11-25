@@ -223,6 +223,7 @@ module AccountAPI::Logic
           extid: domain.extid,
           display_domain: domain.display_domain,
           served: domain.served_as_tenant?,
+          passphrase_required: domain.brand_settings.passphrase_required?,
           permissions: permissions,
         }
         result[:verified] = domain.ownership_verified == true if permissions[:can_manage_sso]

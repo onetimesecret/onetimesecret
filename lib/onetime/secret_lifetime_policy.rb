@@ -36,6 +36,52 @@ module Onetime
         end
       end
 
+      # A guest on a branded host is subject to its owner's plan entitlements.
+      # The caller has already resolved and authorized this organization.
+      #
+      # When the owner's plan cannot be resolved (for example a retired plan
+      # raising Billing::PlanCacheMissError), fall back to the canonical guest
+      # ceiling, as guest_ceiling does. The fallback never widens the lifetime.
+      def organization_guest_ceiling(config_max:, organization:)
+        config_max = normalize_config_max(config_max)
+        plan_limit = organization.limit_for('secret_lifetime')
+        return config_max if unlimited?(plan_limit)
+        return canonical_guest_ceiling(config_max) unless finite_positive?(plan_limit)
+
+        plan_limit = plan_limit.to_i
+        if billing_enabled? &&
+           plan_limit > Entitlements::DEFAULT_FREE_TTL &&
+           !organization.can?('extended_default_expiration')
+          plan_limit = Entitlements::DEFAULT_FREE_TTL
+        end
+
+        [plan_limit, config_max].min
+      rescue StandardError => ex
+        OT.le '[SecretLifetimePolicy] Organization guest TTL resolution failed; ' \
+              'using canonical guest ceiling',
+          { org_id: organization&.objid, exception: ex }
+        canonical_guest_ceiling(config_max)
+      end
+
+      # The ceiling for platform guest traffic, also the fallback whenever a
+      # tenant plan cannot be resolved.
+      def canonical_guest_ceiling(config_max)
+        config_max = normalize_config_max(config_max)
+        ceilings   = [Entitlements.configured_anonymous_max_ttl, config_max]
+
+        if billing_enabled?
+          free_tier_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
+          ceilings << free_tier_max if free_tier_max.positive?
+        end
+
+        ceilings.min
+      rescue StandardError => ex
+        configured = Entitlements.configured_anonymous_max_ttl
+        OT.le '[SecretLifetimePolicy] Canonical guest TTL resolution failed; using configured ceiling',
+          { exception: ex, ceiling: configured }
+        [configured, config_max].min
+      end
+
       private
 
       # A custom-domain guest consumes storage owned by the domain's
@@ -51,18 +97,7 @@ module Onetime
         organization = Onetime::Organization.load(domain.org_id)
         return unresolved_custom_domain_ceiling(config_max, display_domain) unless organization
 
-        plan_limit = organization.limit_for('secret_lifetime')
-        return config_max if unlimited?(plan_limit)
-        return unresolved_custom_domain_ceiling(config_max, display_domain) unless finite_positive?(plan_limit)
-
-        plan_limit = plan_limit.to_i
-        if billing_enabled? &&
-           plan_limit > Entitlements::DEFAULT_FREE_TTL &&
-           !organization.can?('extended_default_expiration')
-          plan_limit = Entitlements::DEFAULT_FREE_TTL
-        end
-
-        [plan_limit, config_max].min
+        organization_guest_ceiling(config_max: config_max, organization: organization)
       rescue StandardError => ex
         OT.le '[SecretLifetimePolicy] Custom-domain guest TTL resolution failed; ' \
               'using canonical guest ceiling',
@@ -77,22 +112,6 @@ module Onetime
         OT.le '[SecretLifetimePolicy] Custom-domain owner unavailable; using canonical guest ceiling',
           { display_domain: display_domain }
         canonical_guest_ceiling(config_max)
-      end
-
-      def canonical_guest_ceiling(config_max)
-        ceilings = [Entitlements.configured_anonymous_max_ttl, config_max]
-
-        if billing_enabled?
-          free_tier_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
-          ceilings << free_tier_max if free_tier_max.positive?
-        end
-
-        ceilings.min
-      rescue StandardError => ex
-        configured = Entitlements.configured_anonymous_max_ttl
-        OT.le '[SecretLifetimePolicy] Canonical guest TTL resolution failed; using configured ceiling',
-          { exception: ex, ceiling: configured }
-        [configured, config_max].min
       end
 
       def billing_enabled?

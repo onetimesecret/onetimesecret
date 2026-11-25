@@ -50,6 +50,7 @@ secret.generate_id
 }
 @strategy_result_with_cust = MockStrategyResult.new(session: @session, user: @cust)
 logic = Logic::Secrets::ConcealSecret.new @strategy_result_with_cust, {'secret' => @secret_payload}
+logic.send(:process_ttl)
 [
   logic.secret_value,
   logic.passphrase,

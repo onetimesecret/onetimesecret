@@ -18,6 +18,9 @@ module DomainsAPI
       # Request body:
       # - enabled: Boolean (optional, default false)
       # - recipients: Array of {email, name} objects
+      # - passphrase_required: Require passphrase protection for Incoming submissions.
+      # - max_ttl: Optional lifetime ceiling in seconds, at least 60. Null clears it.
+      # - email_disabled: Reserved delivery setting. Delivery continues by email.
       #
       # Response includes:
       # - domain_id: The domain identifier
@@ -62,6 +65,7 @@ module DomainsAPI
 
           # Load domain and organization, verify ownership and entitlement
           authorize_domain_incoming!(@domain_id)
+          @settings = validate_settings
 
           # Validate recipients
           max = Onetime::CustomDomain::IncomingConfig::MAX_RECIPIENTS
@@ -110,13 +114,16 @@ module DomainsAPI
               # omitted recipients keep a concurrent writer's list.
               model.update_for_domain!(@custom_domain.identifier) do |config|
                 config.created  ||= Familia.now.to_i # repair missing created from legacy records
-                config.enabled    = @enabled.to_s
+                # A request editing only the new settings leaves delivery as
+                # configured. Older recipient-only PUTs retain their semantics.
+                config.enabled    = @enabled.to_s if params.key?('enabled') || @settings.empty?
                 # Only update recipients if explicitly provided in the request.
                 # This allows toggling enabled state without wiping recipients.
                 # The admin frontend always sends the full recipients list, so the
                 # provided branch is the standard path; the omitted branch supports
                 # toggle-only callers (e.g. future PATCH).
                 config.recipients = @recipients if @recipients_provided
+                config.apply_settings(@settings)
                 config.updated    = Familia.now.to_i
               end.first
             else
@@ -125,6 +132,7 @@ module DomainsAPI
                 domain_id: @custom_domain.identifier,
                 enabled: @enabled,
                 recipients: @recipients,
+                **@settings,
               )
             end
           end
@@ -142,6 +150,19 @@ module DomainsAPI
         end
 
         private
+
+        def validate_settings
+          model       = Onetime::CustomDomain::IncomingConfig
+          keys        = model::SETTING_DEFAULTS.keys
+          settings    = params.slice(*keys.map(&:to_s)).transform_keys(&:to_sym)
+          if (invalid = model.invalid_setting(settings))
+            raise_form_error 'Invalid Incoming Secrets setting',
+              error_key: 'api.domains.errors.invalid_incoming_setting',
+              field: invalid,
+              error_type: :invalid
+          end
+          settings
+        end
 
         # This write left the config unready (disabled or zero recipients)
         # while the domain's homepage points at the incoming form.

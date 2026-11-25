@@ -53,6 +53,7 @@ export const domainPermissionsSchema = z.object({
   extid: z.string(),
   display_domain: z.string(),
   served: z.boolean(),
+  passphrase_required: z.boolean().optional(),
   verified: z.boolean().optional(),
   permissions: domainActionsSchema,
 });

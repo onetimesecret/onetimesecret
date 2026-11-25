@@ -117,6 +117,8 @@ describe('useIncomingConfig (single-state, plaintext)', () => {
 
       expect(composable.formState.value).toEqual({
         enabled: false,
+        passphrase_required: false,
+        max_ttl: null,
         recipients: [],
       });
       expect(composable.isConfigured.value).toBe(false);
@@ -315,6 +317,8 @@ describe('useIncomingConfig (single-state, plaintext)', () => {
       expect(composable.hasUnsavedChanges.value).toBe(false);
       expect(composable.formState.value).toEqual({
         enabled: true,
+        passphrase_required: false,
+        max_ttl: null,
         recipients: [{ email: 'security@acme.com', name: 'Security Team' }],
       });
     });
@@ -325,6 +329,29 @@ describe('useIncomingConfig (single-state, plaintext)', () => {
   // -------------------------------------------------------------------------
 
   describe('saveConfig()', () => {
+    it('persists creation controls and can remove an existing lifetime ceiling', async () => {
+      mockGetConfig.mockResolvedValue({
+        record: { ...mockSingleRecipientConfigResponse.record, max_ttl: 604800 },
+      });
+      mockPutConfig.mockResolvedValue({
+        record: { ...mockSingleRecipientConfigResponse.record, max_ttl: null, passphrase_required: true },
+      });
+      const composable = useIncomingConfig('dom_test_123');
+      await composable.initialize();
+      expect(composable.formState.value.max_ttl).toBe(604800);
+      composable.formState.value.max_ttl = null;
+      composable.formState.value.passphrase_required = true;
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+      await composable.saveConfig();
+      expect(mockPutConfig).toHaveBeenCalledWith('dom_test_123', {
+        enabled: true,
+        recipients: mockSingleRecipientConfigResponse.record.recipients,
+        max_ttl: null,
+        passphrase_required: true,
+      });
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
     it('PUTs the full intended state (enabled + recipients)', async () => {
       mockGetConfig.mockResolvedValue(mockSingleRecipientConfigResponse);
       mockPutConfig.mockResolvedValue(mockMultipleRecipientsConfigResponse);
@@ -442,6 +469,8 @@ describe('useIncomingConfig (single-state, plaintext)', () => {
       expect(mockDeleteConfig).toHaveBeenCalledWith('dom_test_123');
       expect(composable.formState.value).toEqual({
         enabled: false,
+        passphrase_required: false,
+        max_ttl: null,
         recipients: [],
       });
       expect(composable.hasUnsavedChanges.value).toBe(false);

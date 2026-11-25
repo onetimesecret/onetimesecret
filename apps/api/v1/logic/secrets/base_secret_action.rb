@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/secret_lifetime_policy'
+require 'onetime/logic/creation_sharing_policy'
 
 module V1::Logic
   module Secrets
@@ -35,6 +36,8 @@ module V1::Logic
     # The metadata_ttl = 2 * secret_ttl ratio is unchanged from v0.23.x.
     #
     class BaseSecretAction < V1::Logic::Base
+      include Onetime::Logic::CreationSharingPolicy
+
       # V1-specific validation boundaries [#2621]
       #
       # These constants preserve v0.23.4 behavior for backward compatibility.
@@ -42,7 +45,7 @@ module V1::Logic
       #
       # TTL: v0.23.4 allowed 60s minimum; v0.24 raised it to 1800s.
       # V1 preserves the old 60s floor so existing integrations don't break.
-      V1_MIN_TTL = 60        # 1 minute, matching v0.23.4
+      V1_MIN_TTL = Onetime::SecretSharingPolicy::MIN_TTL        # 1 minute, matching v0.23.4
       V1_MAX_TTL = 2_592_000 # 30 days (30 * 86400)
 
       # Passphrase minimum length: config-driven [#2758]
@@ -65,6 +68,9 @@ module V1::Logic
       # multibyte content, so the byte measure is what actually bounds storage.
       V1_MAX_SECRET_SIZE = 10_000
 
+      attr_accessor :auth_org
+      attr_writer :custom_domain_lookup
+
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted, :receipt, :secret, :share_domain, :custom_domain, :payload, :default_expiration
 
       # Process methods populate instance variables with the values. The
@@ -75,7 +81,6 @@ module V1::Logic
         # (V2/V3 use a nested 'secret' namespace; V1 does not.)
         @payload = params || {}
         raise_form_error 'Incorrect payload format' if payload.is_a?(String)
-        process_ttl
         process_secret
         process_passphrase
         process_recipient
@@ -85,12 +90,11 @@ module V1::Logic
       def raise_concerns
         raise_form_error 'Unknown type of secret' if kind.nil?
         validate_secret_size
-        validate_recipient
-        validate_share_domain
-        validate_passphrase
+        validate_sharing_controls
       end
 
       def process
+        validate_sharing_controls unless @sharing_controls_checked
         create_secret_pair
         handle_success
       end
@@ -127,7 +131,7 @@ module V1::Logic
 
       protected
 
-      def process_ttl
+      def process_ttl(policy = Onetime::SecretSharingPolicy.new)
         @ttl = payload.fetch('ttl', nil)
 
         # Config resolution chain:
@@ -146,19 +150,9 @@ module V1::Logic
 
         # V1 uses its own TTL bounds, not the config's ttl_options min/max.
         # This preserves v0.23.4 behavior where 60s was the minimum.
-        min_ttl = V1_MIN_TTL
         max_ttl = V1_MAX_TTL
 
-        # TTL ceiling dispatch — mirrors V2's three-way structure (#4172).
-        #
-        # 1. auth_org present (V1 specs that inject one): plan limit
-        # 2. guest caller: request-host policy (canonical 7d default; custom 14/30d)
-        # 3. authenticated without OrganizationContext: resolve via billing/org lookup
-        #
-        # Before #4172 the anonymous case fell through to resolve_ttl_limit,
-        # which returned the bare V1_MAX_TTL (30 days) when billing was
-        # disabled — 4× wider than the configured anonymous ceiling.
-        caller_max = if respond_to?(:auth_org) && auth_org.respond_to?(:limit_for)
+        caller_max = if auth_org
                        org_limit = auth_org.limit_for('secret_lifetime')
                        org_limit.positive? ? org_limit : max_ttl
                      elsif cust.nil? || cust.anonymous?
@@ -180,7 +174,7 @@ module V1::Logic
         # 30 days rather than rejected for missing entitlements.
         # caller_max may be lower than max_ttl, so use the stricter ceiling.
         effective_max_ttl = [max_ttl, caller_max].min
-        @ttl              = ttl.clamp(min_ttl, effective_max_ttl)
+        @ttl              = policy.clamp_ttl(ttl, ceiling: effective_max_ttl)
 
         # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
         # Checked after clamping so the effective (clamped) value is evaluated.
@@ -188,7 +182,7 @@ module V1::Logic
         # membership context for the ADR-012 membership check), so raise directly
         # with the same upgrade-path shape the shared helper produces.
         free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
-        if ttl > free_ttl && respond_to?(:auth_org) && auth_org && !auth_org.can?('extended_default_expiration')
+        if ttl > free_ttl && auth_org && !auth_org.can?('extended_default_expiration')
           current_plan = auth_org.planid
           upgrade_to   = if defined?(Billing::PlanHelpers)
                            Billing::PlanHelpers.upgrade_path_for('extended_default_expiration', current_plan)
@@ -211,17 +205,25 @@ module V1::Logic
       end
 
       def process_passphrase
+        unless payload['passphrase'].nil? || payload['passphrase'].is_a?(String) || payload['passphrase'].is_a?(Numeric)
+          raise_form_error 'Incorrect payload format', field: :passphrase
+        end
         @passphrase = payload['passphrase'].to_s
       end
 
       # Sanitizes but does not validate as an email address.
       def process_recipient
         payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
+        # One recipient per request. A legacy list contributes its first
+        # non-empty sanitized address; the rest are ignored.
         @recipient           = payload['recipient'].collect do |email_address|
           next if email_address.to_s.empty?
 
-          sanitize_email(email_address)
-        end.compact.uniq
+          # Skip entries that are empty only after sanitizing (whitespace,
+          # markup) so they cannot become the chosen first recipient.
+          sanitized = sanitize_email(email_address)
+          sanitized unless sanitized.to_s.empty?
+        end.compact.uniq.first(1)
         @recipient_safe      = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
 
@@ -270,6 +272,7 @@ module V1::Logic
         return if recipient.empty?
 
         raise_form_error 'An account is required to send emails.' if cust.nil? || cust.anonymous?
+        validate_recipient_policy
         recipient.each do |recip|
           # Use Truemail validation (same as rest of application) rather
           # than regex-only v1_valid_email?. This is a security improvement
@@ -359,8 +362,9 @@ module V1::Logic
         # V1 enforces the configured minimum_length: 4 unless the operator
         # changes it, and 0 turns the check off. See passphrase_min_length.
         # Check if passphrase is required (defaults to false for V1 compat)
-        if OT.conf.get('site.secret_options.passphrase.required', nil) && passphrase.to_s.empty?
-          raise_form_error 'A passphrase is required for all secrets'
+        if (@sharing_policy || Onetime::SecretSharingPolicy.new).passphrase_required? && passphrase.to_s.match?(/\A[[:space:]]*\z/)
+          raise_form_error 'A passphrase is required for all secrets', field: 'passphrase',
+            error_key: 'api.secrets.errors.passphrase_required'
         end
 
         # Skip further validation if no passphrase provided
@@ -384,66 +388,12 @@ module V1::Logic
 
       private
 
-      # Resolve max TTL for an authenticated caller without OrganizationContext.
-      #
-      # Only reached for authenticated users — anonymous callers are dispatched
-      # to anonymous_max_ttl by the three-way split in process_ttl (#4172).
-      #
-      # Looks up the customer's organization to check plan-based limits.
-      # Billing-disabled (self-hosted) deployments get config_max (30 days).
-      #
-      # Codeflow for organization_instances (Familia participates_in):
-      #   1. Customer.participates_in :Organization, :members (customer.rb:116)
-      #      generates cust.organization_instances, organization_ids, organization?, etc.
-      #   2. organization_instances calls participating_ids_for_target(Organization)
-      #      which scans the customer's `participations` Redis set (all relationship
-      #      types: orgs, domains, etc.), filtering by the "organization" key prefix.
-      #   3. Matching IDs are passed to Organization.load_multi(ids) — one HGETALL
-      #      per org — and the result is already an Array (compact'd).
-      #   4. .to_a is therefore a no-op (load_multi returns Array). Kept for
-      #      defensive clarity but has zero cost.
-      #   5. .first picks the first org. Typical customer has exactly 1 org
-      #      (created on signup), so the scan + load is ~1 set read + 1 HGETALL.
-      #
-      # Lighter alternative if needed: Organization.load(cust.organization_ids.first)
-      # skips loading all org objects. Not worth the change at current scale.
-      #
-      # @param config_max [Integer] Fallback from config ttl_options.max
-      # @return [Integer] Maximum TTL in seconds
+      # An authenticated API v1 account can predate organization workspaces.
       def resolve_ttl_limit(config_max)
-        billing_enabled = begin
-          Onetime::BillingConfig.instance.enabled?
-        rescue StandardError
-          false
-        end
+        return config_max unless Onetime::BillingConfig.instance.enabled?
 
-        # Billing disabled (self-hosted): fail-open at config max
-        return config_max unless billing_enabled
-
-        # Authenticated: look up customer's org for plan-based limit
-        resolved_org = cust.organization_instances.to_a.first
-        if resolved_org.respond_to?(:limit_for)
-          org_limit = resolved_org.limit_for('secret_lifetime')
-          return org_limit.positive? ? [org_limit, config_max].min : config_max
-        end
-
-        # No org found (edge case): fall back to free tier limit
         free_max = Onetime::Organization.free_tier_limits['secret_lifetime.max']
-        free_max.positive? ? free_max : config_max
-      rescue StandardError => ex
-        OT.ld "[BaseSecretAction] TTL limit resolution failed: #{ex.message}"
-        config_max
-      end
-
-      # V1 keeps its frozen 30-day outer bound, but shares the request-boundary
-      # distinction with V2/V3: canonical guests use TTL_MAX_ANONYMOUS, while a
-      # guest on a custom host uses the domain owner's organization plan.
-      def anonymous_max_ttl(config_max)
-        Onetime::SecretLifetimePolicy.guest_ceiling(
-          config_max: config_max,
-          domain_strategy: domain_strategy,
-          display_domain: display_domain,
-        )
+        free_max.positive? ? [config_max, free_max].min : config_max
       end
 
       # Creates the receipt/secret pair using the modern Metadata.spawn_pair API.
@@ -506,7 +456,7 @@ module V1::Logic
 
         # e.g. dbkey -> customdomain:display_domain_index -> hash -> key: value
         # where key is the domain and value is the domainid
-        domain_record = Onetime::CustomDomain.from_display_domain(domain)
+        domain_record = sharing_domain_record(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
 
         # Resolve the anonymous-creation gate once and pass it to
@@ -531,6 +481,7 @@ module V1::Logic
 
         validate_domain_permissions(domain_record, allow_public)
         validate_domain_verification(domain_record)
+        @selected_sharing_domain = domain_record
       end
 
       # Whether the requested domain is a member of the operator link pool
@@ -607,6 +558,11 @@ module V1::Logic
         raise_form_error "Custom domain is not verified: #{share_domain}"
       end
 
+      def deny_authenticated_domain
+        OT.li "[validate_domain_perm]: #{share_domain} non-member [#{cust.custid}]"
+        raise_form_error "You do not have permission to use domain: #{share_domain}"
+      end
+
       # Validates domain permissions based on context and configuration.
       #
       # @param domain_record [CustomDomain] The domain record to validate
@@ -629,10 +585,7 @@ module V1::Logic
         return if domain_record.accessible_by?(@cust)
 
         # Authenticated non-member: permission denied regardless of toggle.
-        unless cust.nil? || cust.anonymous?
-          OT.li "[validate_domain_perm]: #{share_domain} non-member [#{cust.custid}]"
-          raise_form_error "You do not have permission to use domain: #{share_domain}"
-        end
+        deny_authenticated_domain unless cust.nil? || cust.anonymous?
 
         # Anonymous on a custom domain: gated by the Homepage Secrets toggle
         # AND the homepage secrets_mode — 'incoming' mode does not authorize

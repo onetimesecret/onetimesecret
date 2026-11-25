@@ -45,6 +45,7 @@ flat_params = {
   'ttl'    => '3600',
 }
 logic = V1::Logic::Secrets::ConcealSecret.new(@sess, @cust, flat_params, 'en')
+logic.raise_concerns
 logic.ttl
 #=> 3600
 

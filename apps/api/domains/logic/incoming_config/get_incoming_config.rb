@@ -78,6 +78,7 @@ module DomainsAPI
               record: {
                 domain_id: @custom_domain.identifier,
                 enabled: false,
+                **Onetime::CustomDomain::IncomingConfig::SETTING_DEFAULTS,
                 recipients: [],
                 max_recipients: Onetime::CustomDomain::IncomingConfig::MAX_RECIPIENTS,
                 created_at: nil,

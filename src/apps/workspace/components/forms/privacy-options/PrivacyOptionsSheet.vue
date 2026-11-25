@@ -9,6 +9,7 @@
    * Slides up from bottom with iOS safe area support.
    */
   import { computed, ref } from 'vue';
+  import { useSharingControls } from '@/shared/composables/useSharingControls';
   import { useI18n } from 'vue-i18n';
   import {
     Dialog,
@@ -23,6 +24,7 @@
   import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
+  const { passphraseRequired } = useSharingControls();
 
   interface Props {
     /** v-model for open state */
@@ -45,7 +47,7 @@
     (e: 'update:passphrase', value: string): void;
   }>();
 
-  const { lifetimeOptions } = usePrivacyOptions();
+  const { lifetimeOptions } = usePrivacyOptions(undefined, () => props.currentTtl);
 
   // Get passphrase config for validation hints
   const bootstrapStore = useBootstrapStore();
@@ -189,11 +191,12 @@
               <label
                 for="sheet-passphrase-input"
                 class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ t('web.COMMON.secret_passphrase') }}
+                {{ t('web.COMMON.secret_passphrase') }}<span v-if="passphraseRequired"> *</span>
               </label>
               <div class="relative">
                 <input
                   id="sheet-passphrase-input"
+                  :aria-required="passphraseRequired"
                   :type="passphraseVisible ? 'text' : 'password'"
                   :value="currentPassphrase"
                   :disabled="disabled"

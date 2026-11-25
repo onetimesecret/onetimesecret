@@ -197,5 +197,9 @@
     "text": "This is your only organization. Create another one before deleting this one.",
     "context": "Returned when an organization delete is refused because it is the owner's only organization",
     "content_hash": "7608a1d6"
+  },
+  "api.organizations.errors.invalid_sharing_policy": {
+    "text": "The sharing controls are invalid. Check the recipient domains and maximum lifetime.",
+    "content_hash": "307b172b"
   }
 }

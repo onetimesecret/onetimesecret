@@ -37,6 +37,13 @@ export const domainIncomingRecipientSchema = z.object({
 
 export type DomainIncomingRecipient = z.infer<typeof domainIncomingRecipientSchema>;
 
+const incomingSettings = {
+  passphrase_required: z.boolean().optional(),
+  max_ttl: z.number().int().min(60).max(Number.MAX_SAFE_INTEGER).nullable().optional(),
+  email_disabled: z.boolean().optional()
+    .describe('Reserved setting. Incoming delivery continues by email.'),
+};
+
 // ---------------------------------------------------------------------------
 // CustomDomain::IncomingConfig schema
 // ---------------------------------------------------------------------------
@@ -74,6 +81,7 @@ export type DomainIncomingRecipient = z.infer<typeof domainIncomingRecipientSche
  * ```
  */
 export const customDomainIncomingConfigSchema = z.object({
+  ...incomingSettings,
   domain_id: z.string(),
   enabled: z.boolean(),
   recipients: z.array(domainIncomingRecipientSchema).default([]),
@@ -94,15 +102,13 @@ export type CustomDomainIncomingConfig = z.infer<typeof customDomainIncomingConf
 /**
  * Request body for PUT of incoming configuration.
  *
- * Carries the full intended state: enabled flag plus the complete
- * recipients list. PUT semantics — the request body IS the new state.
- * The backend's `params.key?('recipients')` guard preserves existing
- * recipients when the key is omitted, but the frontend always sends
- * the full list, so this payload is the standard path.
+ * A settings-only update preserves the enabled flag and recipients. Supplying
+ * recipients replaces the entire list. Null clears the lifetime.
  */
 export const putIncomingConfigPayloadSchema = z.object({
-  enabled: z.boolean(),
-  recipients: z.array(domainIncomingRecipientSchema),
+  ...incomingSettings,
+  enabled: z.boolean().optional(),
+  recipients: z.array(domainIncomingRecipientSchema).optional(),
 });
 
 export type PutIncomingConfigPayload = z.infer<typeof putIncomingConfigPayloadSchema>;

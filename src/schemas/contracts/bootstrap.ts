@@ -29,6 +29,7 @@ import {
   homepageConfigCanonical,
 } from '@/schemas/contracts/custom-domain';
 import { customerCanonical } from '@/schemas/contracts/customer';
+import { sharingPolicySchema } from '@/schemas/contracts/sharing-policy';
 import {
   disabledHomepageConfigSchema,
   disabledHomepageVariantSchema,
@@ -448,6 +449,14 @@ export const secretOptionsSchema = z.object({
    * @sync lib/onetime/secret_lifetime_policy.rb — SecretLifetimePolicy.guest_ceiling
    */
   ttl_max_anonymous: z.number().int().positive().nullish(),
+  host_sharing_policy: z.object({
+    max_ttl: z.number().int().positive(),
+    passphrase_required: z.boolean(),
+    organization_extid: z.string().optional(),
+    domain_passphrase_required: z.boolean().optional(),
+    recipient_email_mode: z.enum(['unrestricted', 'disabled', 'restricted']).optional(),
+    recipient_email_domains: z.array(z.string()).optional(),
+  }).optional(),
   passphrase: passphraseSchema.optional(),
   password_generation: passwordGenerationSchema.optional(),
 });
@@ -514,6 +523,8 @@ export const organizationSchema = z
     is_current_user_default: z.boolean().nullish(),
     planid: CanonicalPlanIdSchema.nullish(),
     current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
+    sharing_policy: sharingPolicySchema.optional(),
+    sharing_policy_invalid: z.boolean().optional(),
     entitlements: z.array(z.string()).nullish(),
     plan_entitlements: z.array(z.string()).optional(),
     /** Plan limits per resource; -1 means unlimited. */

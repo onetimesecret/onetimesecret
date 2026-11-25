@@ -9,11 +9,13 @@
    * and visual feedback for passphrase state.
    */
   import { computed, nextTick, ref } from 'vue';
+  import { useSharingControls } from '@/shared/composables/useSharingControls';
   import { useI18n } from 'vue-i18n';
   import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
 
   const { t } = useI18n();
+  const { passphraseRequired } = useSharingControls();
 
   interface Props {
     /** Current passphrase value (v-model) */
@@ -146,7 +148,7 @@
         :name="hasPassphrase ? 'key' : 'key-outline'"
         class="size-3.5"
         aria-hidden="true" />
-      <span>{{ t('web.COMMON.secret_passphrase') }}</span>
+      <span>{{ t('web.COMMON.secret_passphrase') }}<span v-if="passphraseRequired"> *</span></span>
       <OIcon
         v-if="validationError"
         collection="heroicons"
@@ -177,11 +179,12 @@
         <label
           for="passphrase-input"
           class="sr-only">
-          {{ t('web.COMMON.secret_passphrase') }}
+          {{ t('web.COMMON.secret_passphrase') }}<span v-if="passphraseRequired"> *</span>
         </label>
         <div class="relative">
           <input
             id="passphrase-input"
+            :aria-required="passphraseRequired"
             ref="inputRef"
             :type="passphraseVisible ? 'text' : 'password'"
             :value="modelValue"
