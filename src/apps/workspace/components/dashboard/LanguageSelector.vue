@@ -83,12 +83,12 @@ watch(isOpen, (newValue) => {
     <button
       type="button"
       @click="toggleOpen"
-      class="group relative inline-flex h-10.5 items-center sm:h-9.5 gap-2
-             rounded-md bg-white px-3
-             shadow-sm ring-1 ring-gray-300
-             transition-all
-             duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2
-             focus:ring-brand-500 dark:bg-gray-700
+      class="group relative inline-flex h-10.5 items-center gap-2 rounded-md
+             bg-white px-3 shadow-sm
+             ring-1 ring-gray-300 transition-all
+             duration-200
+             hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none
+             sm:h-9.5 dark:bg-gray-700
              dark:ring-gray-600 dark:hover:bg-gray-600"
       :aria-expanded="isOpen"
       :aria-label="t('web.COMMON.language')"
@@ -98,7 +98,7 @@ watch(isOpen, (newValue) => {
         name="language"
         class="size-5 shrink-0"
         aria-hidden="true" />
-      <span class="min-w-0 flex-1 truncate text-left text-base font-normal sm:text-sm text-gray-900 dark:text-gray-100">
+      <span class="min-w-0 flex-1 truncate text-left text-base font-normal text-gray-900 sm:text-sm dark:text-gray-100">
         {{ modelValue ? (supportedLocalesWithNames[modelValue] || modelValue) : t('web.COMMON.language') }}
       </span>
       <OIcon

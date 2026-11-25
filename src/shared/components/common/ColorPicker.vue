@@ -182,7 +182,7 @@ const pickerProps = computed(() => {
 
     <div
       ref="triggerRef"
-      class="group flex items-center gap-3 rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm sm:py-1.5 transition-all duration-200 focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500 dark:border-gray-600 dark:bg-gray-700">
+      class="group flex items-center gap-3 rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm transition-all duration-200 focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500 sm:py-1.5 dark:border-gray-600 dark:bg-gray-700">
       <!-- Color Preview Circle (acts as picker trigger) -->
       <button
         type="button"
