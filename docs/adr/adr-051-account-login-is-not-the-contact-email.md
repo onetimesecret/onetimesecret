@@ -117,8 +117,9 @@ requirements. This ADR records the proposed architectural decision.
    For owner notifications, the owner (Delano) decided on 2026-11-26 that
    an IdP-asserted address is sufficient for delivering owner notifications
    and is never proof of authority; authority gates require mailbox proof
-   (`mailbox_verified?`). The broader IdP mailbox-proof policy stays with
-   #4735.
+   (`mailbox_verified?`). The decision is recorded on
+   [!5009](https://gitlab.com/onetimesecret/onetimesecret/-/merge_requests/5009).
+   The broader IdP mailbox-proof policy stays with #4735.
 7. **Do not widen access policy.**
    This change does not relax tenant allowlists, trusted-email linking,
    authenticated identity-linking (Connect) gates, or the recipient-email
