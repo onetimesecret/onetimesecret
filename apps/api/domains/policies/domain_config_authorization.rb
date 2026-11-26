@@ -86,7 +86,7 @@ module DomainsAPI
       # Uses organization.can? (org plan capabilities) rather than
       # membership.can? (per-member entitlements). This is intentional:
       # authorize_domain_config! already verifies the user is an active
-      # member with manage_org via require_entitlement_in!, so this
+      # member with manage_org via require_capability_in!, so this
       # step answers "does the org's plan include this feature?" — not
       # "does this individual member have the feature?"
       #
@@ -151,11 +151,11 @@ module DomainsAPI
         @custom_domain = load_custom_domain(domain_id)
         @organization  = load_organization_for_domain(@custom_domain)
 
-        require_entitlement_in!(@organization, 'manage_org')
+        require_capability_in!(@organization, 'manage_org')
         verify_config_entitlement(@organization)
 
         # Domain-scope enforcement: deny cross-domain config access (#3384)
-        membership = Onetime::OrganizationMembership.find_by_org_customer(@organization.objid, cust.objid)
+        membership = membership_in(@organization)
         if membership && !membership.can_access_domain?(@custom_domain)
           raise_not_found 'Domain not found'
         end

@@ -54,6 +54,7 @@ import {
 } from '@/schemas/api/incoming';
 import { responseSchemas as incomingResponseSchemas } from '@/schemas/api/incoming/responses/registry';
 import { responseSchemas as internalResponseSchemas } from '@/schemas/api/internal/responses/registry';
+import { createRequestSchema, generateRequestSchema, shareRequestSchema } from '@/schemas/api/v1/requests';
 import { responseSchemas as v1ResponseSchemas } from '@/schemas/api/v1/responses/registry';
 import { responseSchemas as v2ResponseSchemas } from '@/schemas/api/v2/responses/registry';
 import {
@@ -147,6 +148,9 @@ const handlerSchemaMap = buildHandlerSchemaMap(scanResult.entries);
  * falls back to convention-based lookup using the handler's leaf class name.
  */
 const REQUEST_SCHEMA_REGISTRY: Record<string, z.ZodType> = {
+  v1Create: createRequestSchema,
+  v1Generate: generateRequestSchema,
+  v1Share: shareRequestSchema,
   // Secrets
   burnSecret: burnSecretRequestSchema,
   concealSecret: concealSecretRequestSchema,

@@ -468,6 +468,7 @@ const validModelKeys = new Set(Object.keys(shapeSchemas));
 // Request keys must match the generator's REQUEST_SCHEMA_REGISTRY.
 // Defined here as a static set to avoid importing from the generator.
 const validRequestKeys = new Set([
+  'v1Create', 'v1Generate', 'v1Share',
   'burnSecret',
   'concealSecret',
   'createIncomingSecret',

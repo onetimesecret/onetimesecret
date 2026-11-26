@@ -1,10 +1,8 @@
 ##
 # DOCKER COMPOSE - ONETIME SECRET
 #
-# Default: Simple deployment (App + Valkey). Just run:
-#
-#     $ [ -f .env ] || cp -p .env.example .env
-#     $ docker compose up
+# Default: Simple deployment (App + Valkey). Follow the Quick Start in
+# docker/README.md to set up .env and start the stack.
 #
 # For the full production stack (Caddy TLS, RabbitMQ, workers,
 # scheduler), comment out the simple include and uncomment full:

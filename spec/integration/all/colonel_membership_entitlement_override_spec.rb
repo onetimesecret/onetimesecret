@@ -117,6 +117,18 @@ RSpec.describe 'Colonel membership entitlement overrides', type: :integration do
   end
 
   describe 'revoke' do
+    it 'accepts a registered capability without a subscription catalog entry', :aggregate_failures do
+      allow(Onetime::Operations::Memberships::EntitlementOverride).to receive(:known_entitlement?).and_return(false)
+      allow(OT).to receive(:info).and_call_original
+      data = run_logic(
+        { 'org_id' => org.extid, 'member_id' => owner.extid, 'kind' => 'capability',
+          'entitlement' => 'manage_domains', 'action' => 'revoke' },
+      )
+      expect(data[:record][:revokes]).to include('manage_domains')
+      expect(membership.has_capability?('manage_domains')).to be(false)
+      expect(OT).not_to have_received(:info).with(/unknown entitlement 'manage_domains'/)
+    end
+
     it 'moves the entitlement into revokes and out of the effective set' do
       data = run_logic(
         { 'org_id' => org.extid, 'member_id' => owner.extid,

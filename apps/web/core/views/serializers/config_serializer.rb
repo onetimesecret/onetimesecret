@@ -5,6 +5,7 @@
 require 'onetime/models/custom_domain/signin_config'
 require 'onetime/models/custom_domain/sso_config'
 require 'onetime/models/custom_domain'
+require 'onetime/secret_sharing_policy'
 require 'onetime/secret_lifetime_policy'
 require 'onetime/tenant_sso_resolution'
 
@@ -183,7 +184,35 @@ module Core
             display_domain: view_vars['display_domain'],
           )
 
-          secret_options.merge('ttl_max_anonymous' => ceiling)
+          options = secret_options.merge('ttl_max_anonymous' => ceiling)
+          domain  = view_vars['custom_domain']
+          if view_vars['domain_strategy'].to_s == 'custom' && domain
+            options['host_sharing_policy'] = host_sharing_policy(domain, view_vars, ceiling)
+          end
+          options
+        end
+
+        def host_sharing_policy(domain, view_vars, guest_ceiling)
+          org    = Onetime::Organization.load(domain.org_id)
+          policy = Onetime::SecretSharingPolicy.new(organizations: [org].compact, domains: [domain])
+          fields = { 'max_ttl' => host_policy_ttl(policy, guest_ceiling), 'passphrase_required' => policy.passphrase_required? }
+          if view_vars['authenticated'] && org&.member?(view_vars['cust'])
+            fields['organization_extid']         = org.extid
+            fields['domain_passphrase_required'] = domain.brand_settings.passphrase_required?
+            fields['recipient_email_mode']       = policy.recipient_email_mode
+            fields['recipient_email_domains']    = policy.recipient_email_domains
+          end
+          fields
+        end
+
+        # A retired plan can prevent new creation. Existing links still need
+        # the page shell, including the domain's explicit sharing controls.
+        def host_policy_ttl(policy, guest_ceiling)
+          policy.max_ttl
+        rescue StandardError => ex
+          raise unless defined?(::Billing::PlanCacheMissError) && ex.is_a?(::Billing::PlanCacheMissError)
+
+          [guest_ceiling, policy.configured_max_ttl].compact.min
         end
 
         # Provides the base template for configuration serializer output

@@ -58,8 +58,7 @@ module OrganizationAPI::Logic
         # Load organization
         @organization = load_organization(@extid)
 
-        # Verify user has manage_org entitlement in this organization
-        require_entitlement_in!(@organization, 'manage_org')
+        require_org_wide_capability!(@organization, 'manage_org')
 
         # Validate display_name if provided — update accepts exactly what
         # create accepts, so the limits come from CreateOrganization's shared

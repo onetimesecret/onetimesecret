@@ -74,13 +74,13 @@ RSpec.describe "Onetime global state after boot", type: :integration do
 
       expect(Onetime.conf).to be_a(Hash)
       expect(Onetime.conf).not_to be_frozen  # test mode skips freeze for config isolation
-      expect(Onetime.conf['site']['host']).to eq('127.0.0.1:3000')
+      expect(Onetime.conf.get('site.host')).to eq('127.0.0.1:3000')
     end
 
     it "sets OT.d9s_enabled based on configuration" do
       Onetime.boot!(:test)
-      diagnostics_enabled =  Onetime.conf.dig('diagnostics', 'enabled')
-      diagnostics_dsn = Onetime.conf.dig('diagnostics', 'sentry', 'backend', 'dsn') || ''
+      diagnostics_enabled =  Onetime.conf.get('diagnostics.enabled')
+      diagnostics_dsn = Onetime.conf.get('diagnostics.sentry.backend.dsn') || ''
       if diagnostics_enabled && !diagnostics_dsn.to_s.strip.empty?
         expect(Onetime.d9s_enabled).to be true
       else
@@ -141,10 +141,10 @@ RSpec.describe "Onetime global state after boot", type: :integration do
 
       it "initializes i18n settings from config" do
         Onetime.boot!(:test)
-        expect(Onetime.conf['internationalization']['enabled']).to be(true)
-        expect(Onetime.conf['internationalization']['fallback_locale']).to be_a(Hash)
+        expect(Onetime.conf.get('internationalization.enabled')).to be(true)
+        expect(Onetime.conf.get('internationalization.fallback_locale')).to be_a(Hash)
 
-        expect(Onetime.supported_locales).to match_array(Onetime.conf['internationalization']['locales'])
+        expect(Onetime.supported_locales).to match_array(Onetime.conf.get('internationalization.locales'))
         expect(Onetime.supported_locales).to include(Onetime.default_locale)
         expect(Onetime.i18n_enabled).to be(true)
         expect(Onetime.fallback_locale).to be_a(Hash)

@@ -40,7 +40,8 @@ module AccountAPI::Logic
     #         can_view: true,
     #         can_edit: true,
     #         can_delete: false,
-    #         can_manage_settings: false
+    #         can_manage_settings: false,
+    #         can_manage_invitations: true
     #       },
     #       domains: [
     #         {
@@ -51,7 +52,8 @@ module AccountAPI::Logic
     #             can_view: true,
     #             can_edit: true,
     #             can_delete: false,
-    #             can_manage_settings: false
+    #             can_manage_settings: false,
+    #             can_manage_sso: false
     #           }
     #         }
     #       ]
@@ -77,6 +79,7 @@ module AccountAPI::Logic
     #     extid: "org456",
     #     display_name: "Acme Corp"
     #   },
+    #   domain: { display_domain: "example.com", verified: true }, # when can_manage_sso
     #   membership: { ... },
     #   permissions: { ... }
     # }
@@ -91,14 +94,17 @@ module AccountAPI::Logic
     # Domain resources:
     # - can_view: user has 'custom_domains' entitlement
     # - can_edit: user has 'custom_domains' entitlement
-    # - can_delete: user has 'manage_org' entitlement (owner only)
-    # - can_manage_settings: user has 'manage_org' entitlement (owner only)
+    # - can_delete: user has 'custom_domains' entitlement
+    # - can_manage_settings: user has 'manage_org' capability
+    # - can_manage_sso: tenant SSO is enabled and its config policy permits access
     #
     # Organization resources:
     # - can_view: user is member of the org (any role)
-    # - can_edit: user has 'admin' or 'owner' role
-    # - can_delete: user is owner and org is not default
-    # - can_manage_settings: user has 'manage_org' entitlement
+    # - can_edit: user has organization-wide 'manage_org'
+    # - can_delete: user has organization-wide 'manage_org' and org is not default
+    # - can_manage_settings: user has organization-wide 'manage_org'
+    # - can_manage_invitations: organization-wide membership and 'manage_members'
+    #   capability or the existing site-operator bypass
     #
     # ## Error Responses (single-resource mode only)
     #
@@ -162,13 +168,20 @@ module AccountAPI::Logic
 
       # Single-resource mode: return permissions for one resource
       def process_single
-        {
+        capabilities = membership.role_capabilities
+        features     = organization.plan_entitlements
+        permissions  = calculate_permissions(capabilities, features)
+        result       = {
           resource_type: resource_type,
           resource_id: resource_id,
-          organization: serialize_organization_brief,
-          membership: serialize_membership,
-          permissions: calculate_permissions,
+          organization: serialize_organization_brief(features),
+          membership: serialize_membership_for(membership, capabilities),
+          permissions: permissions,
         }
+        if permissions[:can_manage_sso]
+          result[:domain] = { display_domain: resource.display_domain, verified: resource.ownership_verified == true }
+        end
+        result
       end
 
       def load_user_organizations_with_memberships
@@ -188,29 +201,36 @@ module AccountAPI::Logic
 
       def serialize_org_with_domains(org, mem)
         # Domain-scope enforcement: filter by membership scope (#3384)
-        domains = org.list_domains.select { |d| mem.can_access_domain?(d) }
+        domains            = org.list_domains.select { |d| mem.can_access_domain?(d) }
+        capabilities       = mem.role_capabilities
+        features           = org.plan_entitlements
+        domain_permissions = domain_permissions_for(org, mem, capabilities, features) if domains.any?
 
         {
           extid: org.extid,
           display_name: org.display_name,
+          plan_entitlements: features,
           is_default: org.is_default || false,
-          membership: serialize_membership_for(mem),
-          permissions: organization_permissions_for(org, mem),
+          membership: serialize_membership_for(mem, capabilities),
+          permissions: organization_permissions_for(org, mem, capabilities),
           assignable_roles: compute_assignable_roles(org, mem),
-          domains: domains.map { |d| serialize_domain_with_permissions(d, mem) },
+          domains: domains.map { |domain| serialize_domain_with_permissions(domain, domain_permissions) },
         }
       end
 
-      def serialize_domain_with_permissions(domain, mem)
-        {
+      def serialize_domain_with_permissions(domain, permissions)
+        result            = {
           extid: domain.extid,
           display_domain: domain.display_domain,
           served: domain.served_as_tenant?,
-          permissions: domain_permissions_for(mem),
+          passphrase_required: domain.brand_settings.passphrase_required?,
+          permissions: permissions,
         }
+        result[:verified] = domain.ownership_verified == true if permissions[:can_manage_sso]
+        result
       end
 
-      def serialize_membership_for(mem)
+      def serialize_membership_for(mem, capabilities)
         {
           role: mem.role,
           status: mem.status,
@@ -218,32 +238,43 @@ module AccountAPI::Logic
           invited_at: mem.invited_at,
           joined_at: mem.joined_at,
           entitlements: mem.entitlements,
+          role_capabilities: capabilities,
         }
       end
 
-      def serialize_membership
-        serialize_membership_for(membership)
-      end
-
-      def domain_permissions_for(mem)
+      def domain_permissions_for(org, mem, capabilities, features)
+        custom_domains   = mem.can?('custom_domains')
+        manage_incoming  = capabilities.include?('manage_org') || has_system_role?('colonel')
+        incoming_feature = features.include?('incoming_secrets')
         {
-          can_view: mem.can?('custom_domains'),
-          can_edit: mem.can?('custom_domains'),
-          can_delete: mem.can?('manage_org'),
-          can_manage_settings: mem.can?('manage_org'),
+          can_view: custom_domains,
+          can_edit: custom_domains,
+          can_delete: custom_domains,
+          can_manage_settings: capabilities.include?('manage_org'),
+          can_manage_sso: can_manage_domain_sso?(org, capabilities),
+          can_manage_incoming: manage_incoming && incoming_feature,
+          incoming_feature_required: manage_incoming && !incoming_feature,
         }
       end
 
-      def organization_permissions_for(org, mem)
-        role              = mem.role
-        is_owner          = role == 'owner'
-        is_admin_or_owner = %w[owner admin].include?(role)
+      # Domain lookups and bulk listing already enforce active membership and
+      # domain scope. Mirror the remaining SsoConfig::Base gates for those domains.
+      def can_manage_domain_sso?(org, capabilities)
+        return false unless OT.conf.get('features.organizations.sso_enabled', nil)
+        return org.can?('manage_sso') if has_system_role?('colonel')
 
+        capabilities.include?('manage_org') && capabilities.include?('manage_sso')
+      end
+
+      def organization_permissions_for(org, mem, capabilities)
+        org_scoped = mem.org_scoped?
+        manage_org = org_scoped && capabilities.include?('manage_org')
         {
           can_view: true,
-          can_edit: is_admin_or_owner,
-          can_delete: is_owner && !org.is_default,
-          can_manage_settings: mem.can?('manage_org'),
+          can_edit: manage_org,
+          can_delete: manage_org && !org.is_default,
+          can_manage_settings: manage_org,
+          can_manage_invitations: org_scoped && (capabilities.include?('manage_members') || has_system_role?('colonel')),
         }
       end
 
@@ -305,19 +336,20 @@ module AccountAPI::Logic
         end
       end
 
-      def serialize_organization_brief
+      def serialize_organization_brief(features)
         {
           extid: organization.extid,
           display_name: organization.display_name,
+          plan_entitlements: features,
         }
       end
 
-      def calculate_permissions
+      def calculate_permissions(capabilities, features)
         case resource_type
         when 'domain'
-          domain_permissions_for(membership)
+          domain_permissions_for(organization, membership, capabilities, features)
         when 'organization'
-          organization_permissions_for(organization, membership)
+          organization_permissions_for(organization, membership, capabilities)
         end
       end
 

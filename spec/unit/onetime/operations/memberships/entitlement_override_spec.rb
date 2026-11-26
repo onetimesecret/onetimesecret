@@ -553,6 +553,24 @@ RSpec.describe Onetime::Operations::Memberships::EntitlementOverride do
       ).call
     end
 
+    it 'previews and audits typed grants, no-change attempts and scoped clears' do
+      run_typed = lambda do |action, dry_run: false, name: 'manage_domains'|
+        described_class.new(org: org_side, customer: real_customer, actor: actor,
+          kind: 'capability', action: action, entitlement: name, dry_run: dry_run).call
+      end
+      real_membership.grant_entitlement('custom_domains')
+      expect(run_typed.call('grant', name: 'custom_domains').status).to eq(:invalid_kind)
+      expect(run_typed.call('grant', dry_run: true).effective).to include('manage_domains')
+      expect(real_membership.has_capability?('manage_domains')).to be(false)
+      expect(run_typed.call('grant').status).to eq(:granted)
+      expect(run_typed.call('grant').status).to eq(:no_change)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(hash_including(
+        verb: 'membership.capability.grant', detail: hash_including(outcome: 'no_change')
+      )).once
+      expect(run_typed.call('clear').effective).to eq([])
+      expect(real_membership.entitlements_grants.to_a).to include('custom_domains')
+    end
+
     it 'flips can?(custom_branding) false -> true on grant, back on revoke' do
       expect(real_membership.can?('custom_branding')).to be false
 

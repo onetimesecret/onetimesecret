@@ -21,21 +21,19 @@ OT.boot! :test, false
 
 require 'onetime/mail'
 
-# Swap Mailer.emailer_config for one block, then put the original back, so
+# Swap the emailer section for one block, then put the suite's back, so
 # later tryout files in the same process see the state they expect.
-@emailer_config_private = Onetime::Mail::Mailer.singleton_class.private_method_defined?(:emailer_config)
-@with_emailer_config    = ->(conf, &blk) do
-  mailer      = Onetime::Mail::Mailer
-  original    = mailer.singleton_class.instance_method(:emailer_config)
-  was_private = mailer.singleton_class.private_method_defined?(:emailer_config)
-  saved_host  = ENV.delete('SMTP_HOST')
-  mailer.singleton_class.send(:define_method, :emailer_config) { conf }
+@saved_emailer       = OT.conf.get('emailer')
+@with_emailer_config = ->(conf, &blk) do
+  mailer     = Onetime::Mail::Mailer
+  saved      = OT.conf.get('emailer')
+  saved_host = ENV.delete('SMTP_HOST')
+  OT.conf['emailer'] = conf
   mailer.reset!
   blk.call
 ensure
-  mailer.singleton_class.send(:define_method, :emailer_config, original)
-  mailer.singleton_class.send(:private, :emailer_config) if was_private
-  ENV['SMTP_HOST'] = saved_host if saved_host
+  OT.conf['emailer'] = saved
+  ENV['SMTP_HOST']   = saved_host if saved_host
   mailer.reset!
 end
 
@@ -120,6 +118,6 @@ end
 result
 #=> ['smtp', nil]
 
-## The mailer's emailer_config keeps its visibility after the swap
-Onetime::Mail::Mailer.singleton_class.private_method_defined?(:emailer_config) == @emailer_config_private
+## The emailer section is the suite's again after the swap
+OT.conf.get('emailer').equal?(@saved_emailer)
 #=> true

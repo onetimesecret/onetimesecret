@@ -159,16 +159,16 @@ describe('usePrivacyOptions', () => {
   });
 
   describe('lifetimeOptions — degenerate configurations', () => {
-    it('never returns an empty list: keeps the shortest option below the ceiling', () => {
+    it('offers no duration when the ceiling is below the creation floor', () => {
       setupStore({ ttl_max_anonymous: 30 }); // below every configured option
 
-      expect(values()).toEqual([MINUTE]);
+      expect(values()).toEqual([]);
     });
 
-    it('finds the shortest option even when ttl_options is unsorted', () => {
-      setupStore({ ttl_options: [DAY, HOUR, WEEK], ttl_max_anonymous: 30 });
+    it('offers the 60-second floor when all presets exceed the effective limit', () => {
+      setupStore({ ttl_options: [DAY, HOUR, WEEK], ttl_max_anonymous: 60 });
 
-      expect(values()).toEqual([HOUR]);
+      expect(values()).toEqual([MINUTE]);
     });
 
     it('returns an empty list when there are no configured options at all', () => {
@@ -227,10 +227,10 @@ describe('usePrivacyOptions', () => {
     });
 
     /** TtlSelector falls back to lifetimeOptions[0] for an unknown value. */
-    it('always leaves TtlSelector a first option to fall back to', () => {
-      setupStore({ ttl_max_anonymous: 1 });
+    it('offers the exact non-preset maximum to TtlSelector', () => {
+      setupStore({ ttl_max_anonymous: 90 });
 
-      expect(usePrivacyOptions().lifetimeOptions.value[0]).toBeDefined();
+      expect(values()).toEqual([MINUTE, 90]);
     });
   });
 
@@ -260,7 +260,7 @@ describe('usePrivacyOptions', () => {
       const { formatDuration } = usePrivacyOptions();
 
       expect(formatDuration(DAY)).toBe('1:web.UNITS.ttl.duration');
-      expect(formatDuration(90)).toBe('1:web.UNITS.ttl.duration');
+      expect(formatDuration(90)).toBe('90:web.UNITS.ttl.duration');
     });
   });
 });

@@ -28,8 +28,8 @@
 #
 # ## What is checked, in order
 #
-# 1. The token parses as v4.public and its footer names a key this
-#    deployment holds (current SECRET, or a SECRET_PREVIOUS entry).
+# 1. The token parses as v4.public and its footer names the key derived
+#    from this deployment's current SECRET.
 # 2. The Ed25519 signature verifies under that key.
 # 3. The claims: `exp` in the future, `nbf`/`iat` not in the future, `aud`
 #    is the v3 API, `iss` is this deployment, `scope` is `["*"]`.

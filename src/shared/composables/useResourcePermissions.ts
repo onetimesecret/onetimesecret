@@ -14,7 +14,7 @@
  * @see apps/api/account/logic/account/get_permissions.rb
  */
 
-import { ref, type Ref } from 'vue';
+import { computed, onScopeDispose, ref, shallowRef, watch, type Ref } from 'vue';
 import { useApi } from '@/shared/composables/useApi';
 import {
   bulkPermissionsResponseSchema,
@@ -147,4 +147,61 @@ export function useResourcePermissions(): UseResourcePermissionsReturn {
     isLoading, error, fetchAllPermissions, fetchResourcePermissions,
     allPermissions, getOrgPermissions, getDomainPermissions, canAccess, canEdit,
   };
+}
+
+/** Only return permissions for the organization named by the caller. */
+export function useOrganizationPermissionLookup() {
+  const { fetchResourcePermissions } = useResourcePermissions();
+  return async (orgExtid: string) => {
+    const record = await fetchResourcePermissions('organization', orgExtid);
+    if (record?.resource_type !== 'organization' || record.resource_id !== orgExtid) return null;
+    return record.organization.extid === orgExtid ? record : null;
+  };
+}
+
+/** Check both IDs so a permission cannot be reused under another organization. */
+export function useDomainPermissionLookup() {
+  const { fetchResourcePermissions } = useResourcePermissions();
+  return async (orgId: string, domainId: string) => {
+    const record = await fetchResourcePermissions('domain', domainId);
+    if (record?.resource_type !== 'domain' || record.resource_id !== domainId ||
+        record.organization.extid !== orgId) return undefined;
+    return record;
+  };
+}
+
+export function useDomainSsoPermissionLookup() {
+  const lookup = useDomainPermissionLookup();
+  return async (orgId: string, domainId: string) => {
+    const record = await lookup(orgId, domainId);
+    return record && { allowed: record.permissions.can_manage_sso, role: record.membership.role };
+  };
+}
+
+export function useTargetDomainPermissions(orgId: () => string, domainId: () => string) {
+  const lookup = useDomainPermissionLookup();
+  const permission = shallowRef<Awaited<ReturnType<typeof lookup>>>();
+  const isLoading = ref(false);
+  let request = 0;
+  async function refresh() {
+    const current = ++request;
+    permission.value = undefined;
+    isLoading.value = true;
+    const record = orgId() && domainId() ? await lookup(orgId(), domainId()) : undefined;
+    if (request === current) {
+      permission.value = record;
+      isLoading.value = false;
+    }
+  }
+  watch([orgId, domainId], refresh, { immediate: true, flush: 'sync' });
+  onScopeDispose(() => { request++; });
+  return { permission, isLoading, refresh };
+}
+
+export function useTenantSsoPermissions(orgId: () => string, domainId: () => string) {
+  const { permission, isLoading, refresh } = useTargetDomainPermissions(orgId, domainId);
+  const canManageSso = computed(() => permission.value?.permissions.can_manage_sso);
+  const canViewDomain = computed(() => permission.value?.permissions.can_view === true);
+  const domain = computed(() => canManageSso.value ? permission.value?.domain : undefined);
+  return { canManageSso, canViewDomain, domain, isLoading, refresh };
 }

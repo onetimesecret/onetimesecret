@@ -313,15 +313,11 @@ module Onetime
         }
       end
 
-      def create_account_rate_limit_config
-        OT.conf.get('site.authentication.create_account_rate_limit', {})
-      end
-
       # Enabled unless config explicitly sets enabled:false. Absent config keeps
       # the protective default on; the test config disables it so suite signups
       # are not throttled.
       def create_account_rate_limit_enabled?
-        create_account_rate_limit_config.fetch('enabled', true) != false
+        OT.conf.get('site.authentication.create_account_rate_limit.enabled', true) != false
       end
 
       def create_account_max_per_ip
@@ -342,7 +338,7 @@ module Onetime
       # zero cap locks on the first request and a non-positive lockout makes the
       # Lua SETEX fail, turning every signup into a 500 instead of a throttle.
       def positive_create_account_setting(key, default)
-        value = create_account_rate_limit_config[key].to_i
+        value = OT.conf.get(['site', 'authentication', 'create_account_rate_limit', key], nil).to_i
         value.positive? ? value : default
       end
 

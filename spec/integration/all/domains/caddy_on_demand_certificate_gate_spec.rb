@@ -174,7 +174,7 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
   end
 
   it 'builds the configured strategy and declares no pacing for it' do
-    strategy = Onetime::DomainValidation::Strategy.for_config(OT.conf)
+    strategy = Onetime::DomainValidation::Strategy.for_config
 
     expect(strategy).to be_a(Onetime::DomainValidation::CaddyOnDemandStrategy)
     expect(strategy.bulk_rate_limit).to eq(0)
@@ -347,7 +347,7 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
   # caddy_on_demand finds the domain in the state of the context above.
   context 'with a domain verified under the passthrough strategy before the cutover' do
     before do
-      passthrough                                 = Onetime::DomainValidation::PassthroughStrategy.new(OT.conf)
+      passthrough                                 = Onetime::DomainValidation::PassthroughStrategy.new
       Onetime::Operations::VerifyDomain.new(domain: stored, strategy: passthrough, persist: true).call
       resolver.failures[domain.validation_record] = Resolv::DNS::RCode::ServFail
     end
@@ -377,7 +377,7 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
     expect(stored.verified).to be(false)
     expect(stored.verified_confirmed_at).to eq(prior_confirmation)
 
-    passthrough = Onetime::DomainValidation::PassthroughStrategy.new(OT.conf)
+    passthrough = Onetime::DomainValidation::PassthroughStrategy.new
     Onetime::Operations::VerifyDomain.new(domain: stored, strategy: passthrough, persist: true).call
     expect(stored.verified).to be(true)
     expect(stored.verified_confirmed_at).to be_nil

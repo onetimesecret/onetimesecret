@@ -168,11 +168,11 @@ RSpec.describe 'V3 mounted producer schema captures', type: :integration do
   end
 
   it 'captures Incoming config, recipient validation and nested creation' do
-    old_incoming = OT.conf['features']['incoming']
+    old_incoming = OT.conf.get('features.incoming')
     old_public = OT.incoming_public_recipients
     old_lookup = OT.incoming_recipient_lookup
     begin
-      OT.conf['features']['incoming'] = old_incoming.merge('enabled' => true,
+      OT.conf.get('features')['incoming'] = old_incoming.merge('enabled' => true,
         'recipients' => [{ 'email' => 'schema-incoming@example.com', 'display_name' => 'Schema' }])
       Onetime::Initializers::SetupIncomingRecipients.new.execute(nil)
       config = observe('incoming-config', :get, '/api/incoming/config', response_schema: 'incomingConfig')
@@ -187,7 +187,7 @@ RSpec.describe 'V3 mounted producer schema captures', type: :integration do
       observe('incoming-create-actual', :post, '/api/incoming/secret', payload: { secret: content },
         response_schema: 'incomingSecret', request_schema: 'createIncomingSecret')
     ensure
-      OT.conf['features']['incoming'] = old_incoming
+      OT.conf.get('features')['incoming'] = old_incoming
       OT.instance_variable_set(:@incoming_public_recipients, old_public)
       OT.instance_variable_set(:@incoming_recipient_lookup, old_lookup)
     end

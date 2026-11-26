@@ -41,7 +41,6 @@ module V2::Logic
 
         # Merge the payload over the config. Config keys are Strings on every
         # load path; the payload's may not be.
-        maxlen_config            = password_config.fetch('maximum_length', nil)
         payload_with_string_keys = payload.transform_keys(&:to_s)
         merged_options           = password_config.merge(payload_with_string_keys)
 
@@ -60,7 +59,7 @@ module V2::Logic
         # would be too late, the oversized string is already built. Read the
         # ceiling from CONFIG (not merged_options) so a payload key like
         # secret[maximum_length] cannot raise the guard. Mirrors the frontend Zod max.
-        max_length = (maxlen_config || 128).to_i
+        max_length = OT.conf.get('site.secret_options.password_generation.maximum_length', 128).to_i
         if length > max_length
           emsg = "Generated password length must be no more than #{max_length} characters"
           raise_form_error emsg, field: :length

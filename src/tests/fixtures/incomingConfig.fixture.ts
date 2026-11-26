@@ -43,15 +43,19 @@ export const validEmailInputs = [
 
 export const emptyFormState: IncomingConfigFormState = {
   enabled: false,
+  passphrase_required: false,
+  max_ttl: null,
   recipients: [],
 };
 
 export const singleRecipientFormState: IncomingConfigFormState = {
+  ...emptyFormState,
   enabled: true,
   recipients: [{ email: 'security@acme.com', name: 'Security Team' }],
 };
 
 export const multipleRecipientsFormState: IncomingConfigFormState = {
+  ...emptyFormState,
   enabled: true,
   recipients: [
     { email: 'security@acme.com', name: 'Security Team' },
@@ -61,6 +65,7 @@ export const multipleRecipientsFormState: IncomingConfigFormState = {
 };
 
 export const maxRecipientsFormState: IncomingConfigFormState = {
+  ...emptyFormState,
   enabled: true,
   recipients: Array.from({ length: 20 }, (_, i) => ({
     email: `recipient${i + 1}@acme.com`,
@@ -69,6 +74,7 @@ export const maxRecipientsFormState: IncomingConfigFormState = {
 };
 
 export const nearLimitFormState: IncomingConfigFormState = {
+  ...emptyFormState,
   enabled: true,
   recipients: Array.from({ length: 19 }, (_, i) => ({
     email: `recipient${i + 1}@acme.com`,

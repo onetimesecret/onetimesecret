@@ -58,13 +58,6 @@ vi.mock('@/apps/workspace/components/members/MembersTable.vue', () => ({
     props: ['members', 'orgExtid', 'isLoading', 'compact'],
   },
 }));
-vi.mock('@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue', () => ({
-  default: {
-    name: 'EntitlementUpgradePrompt',
-    template: '<div class="entitlement-upgrade-prompt" />',
-    props: ['error', 'resourceType'],
-  },
-}));
 vi.mock('@/apps/workspace/components/domains/DomainsTable.vue', () => ({
   default: {
     name: 'DomainsTable',
@@ -139,6 +132,7 @@ vi.mock('@/services/billing.service', () => ({
 vi.mock('@/schemas/errors', () => ({
   classifyError: (err: unknown) => ({
     message: err instanceof Error ? err.message : 'Unknown error',
+    code: (err as { response?: { status?: number } })?.response?.status,
   }),
 }));
 
@@ -163,7 +157,36 @@ const mockOrganization = {
 
 const mockFetchOrganization = vi.fn();
 const mockUpdateOrganization = vi.fn();
+const mockUpdateSharingPolicy = vi.fn();
 const mockFetchInvitations = vi.fn();
+const mockCreateInvitation = vi.fn();
+const mockRevokeInvitation = vi.fn();
+const mockGetPermissions = vi.fn();
+const mockSsoStatus = vi.fn().mockResolvedValue({ record: null });
+vi.mock('@/services/sso.service', () => ({
+  SsoService: { getConfigForDomain: (id: string) => mockSsoStatus(id) },
+}));
+
+function ssoDomain(extid: string, allowed?: boolean) {
+  return {
+    extid, display_domain: extid + '.example', served: true, verified: true,
+    permissions: { can_view: true, can_edit: false, can_delete: false, can_manage_settings: false, can_manage_sso: allowed },
+  };
+}
+
+
+function permissionRecord(allowed?: boolean, role = 'admin', extid = mockOrganization.extid) {
+  return {
+    extid, display_name: 'Test Organization', is_default: true,
+    membership: { role, status: 'active', provisioning_source: null, invited_at: null, joined_at: null, entitlements: [] },
+    permissions: {
+      can_view: true, can_edit: false, can_delete: false, can_manage_settings: false,
+      can_manage_invitations: allowed,
+    },
+    domains: [], assignable_roles: ['member'],
+  };
+}
+
 const mockDeleteOrganization = vi.fn();
 
 vi.mock('@/shared/stores/organizationStore', () => ({
@@ -172,11 +195,12 @@ vi.mock('@/shared/stores/organizationStore', () => ({
     setCurrentOrganization: vi.fn(),
     fetchOrganization: mockFetchOrganization,
     updateOrganization: mockUpdateOrganization,
+    updateSharingPolicy: mockUpdateSharingPolicy,
     deleteOrganization: mockDeleteOrganization,
     fetchInvitations: mockFetchInvitations,
-    createInvitation: vi.fn(),
+    createInvitation: mockCreateInvitation,
     resendInvitation: vi.fn(),
-    revokeInvitation: vi.fn(),
+    revokeInvitation: mockRevokeInvitation,
   }),
 }));
 
@@ -215,18 +239,6 @@ vi.mock('@/utils/features', () => ({
   isOrgsAuditLogsEnabled: () => mockOrgsAuditLogsEnabled.value,
 }));
 
-vi.mock('@/shared/composables/useAsyncHandler', () => ({
-  useAsyncHandler: () => ({
-    wrap: vi.fn((fn) => fn()),
-  }),
-}));
-
-vi.mock('@/shared/composables/useEntitlementError', () => ({
-  useEntitlementError: () => ({
-    isUpgradeRequired: ref(false),
-  }),
-}));
-
 // i18n setup (pass-through: keys render as-is, see ADR-014)
 const i18n = createTestI18n();
 
@@ -247,6 +259,7 @@ describe('OrganizationSettings', () => {
     mockUpdateOrganization.mockResolvedValue(mockOrganization);
     mockDeleteOrganization.mockResolvedValue(undefined);
     mockFetchInvitations.mockResolvedValue([]);
+    mockGetPermissions.mockResolvedValue({ data: { organizations: [permissionRecord(true)] } });
     mockEntitlements.value = ['manage_members'];
     mockDomainCount.value = 0;
     mockCanCreateDomain.value = true;
@@ -282,6 +295,7 @@ describe('OrganizationSettings', () => {
       attachTo: options.attachTo,
       global: {
         plugins: [i18n, pinia],
+        provide: { api: { get: mockGetPermissions } },
         stubs: {
           RouterLink: routerLinkStub,
         },
@@ -323,6 +337,221 @@ describe('OrganizationSettings', () => {
    * Helper to find the Edit link for billing email (navigates to billing overview)
    */
   const findEditLink = (w: VueWrapper) => w.find('[data-testid="org-billing-email-edit-link"]');
+
+  describe('invitation permissions', () => {
+    const pending = {
+      id: 'invitation-1', email: 'pending@example.com', token: 'pending-token',
+      status: 'pending', invited_at: 1700000000, expires_at: 2000000000,
+    };
+    const invite = 'web.organizations.invitations.invite_member';
+    const guidance = 'web.organizations.invitations.permission_required';
+    const unconfirmed = 'web.organizations.access_unconfirmed_notice';
+    const panel = () => wrapper.get('[data-testid="org-section-members"]');
+
+    beforeEach(() => {
+      mockRouteParams.tab = 'members';
+      mockFetchInvitations.mockResolvedValue([pending]);
+    });
+
+    describe.each([true, false])('with billing_enabled=%s', (billingEnabled) => {
+      it('lets a member with an organization-wide grant open the list and invite', async () => {
+        mockEntitlements.value = [];
+        mockFetchOrganization.mockRejectedValue(new Error('api_access required'));
+        mockGetPermissions.mockResolvedValue({
+          data: { organizations: [permissionRecord(true, 'member')] },
+        });
+        wrapper = await mountComponent({ billingEnabled });
+
+        expect(mockFetchOrganization).not.toHaveBeenCalled();
+        expect(mockFetchInvitations).toHaveBeenCalledWith(mockOrganization.extid);
+        expect(panel().text()).toContain(pending.email);
+        expect(panel().text()).toContain('web.organizations.members.pending_suffix');
+        expect(wrapper.findAll('[role="tab"]').map(tab => tab.attributes('id'))).toEqual(['org-tab-members']);
+        expect(wrapper.find('[data-testid="org-subscription-chip"]').exists()).toBe(false);
+        expect(panel().find('.members-table').exists()).toBe(false);
+        const button = panel().findAll('button').find(item => item.text() === invite)!;
+        await button.trigger('click');
+        await panel().get('#invite-email').setValue('new@example.com');
+        await panel().get('form').trigger('submit');
+        expect(mockCreateInvitation).toHaveBeenCalledWith(mockOrganization.extid, {
+          email: 'new@example.com', role: 'member',
+        });
+      });
+
+      it.each([
+        { description: 'revoked organization admin', provisioning: 'invited' },
+        { description: 'domain-scoped admin', provisioning: 'sso' },
+      ])('shows permission guidance and never requests invitations for a $description',
+        async ({ provisioning }) => {
+          const denied = permissionRecord(false);
+          mockGetPermissions.mockResolvedValue({ data: { organizations: [{
+            ...denied, membership: { ...denied.membership, provisioning_source: provisioning },
+          }] } });
+          wrapper = await mountComponent({ billingEnabled });
+
+          expect(mockFetchInvitations).not.toHaveBeenCalled();
+          expect(panel().text()).toContain(guidance);
+          expect(panel().text()).not.toContain(invite);
+          expect(panel().text()).not.toContain('web.organizations.members.pending_suffix');
+          expect(panel().text()).not.toContain(pending.email);
+          expect(panel().find('form, a[href*="/billing/"]').exists()).toBe(false);
+          expect(panel().text()).not.toContain('upgrade');
+        }
+      );
+    });
+
+    it('requires an explicit answer for the target organization during a mixed-version rollout', async () => {
+      mockGetPermissions.mockResolvedValue({
+        data: { organizations: [permissionRecord(true, 'owner', 'other-org'), permissionRecord()] },
+      });
+      wrapper = await mountComponent();
+      expect(mockFetchInvitations).not.toHaveBeenCalled();
+      expect(panel().text()).toContain(unconfirmed);
+      expect(panel().text()).not.toContain(guidance);
+    });
+
+    it('reports unconfirmed access on failed initial and subsequent permission lookups', async () => {
+      mockGetPermissions.mockRejectedValue({ response: { status: 503 } });
+      wrapper = await mountComponent();
+      expect(panel().text()).toContain(unconfirmed);
+      await wrapper.get('#org-tab-domains').trigger('click');
+      await wrapper.get('#org-tab-members').trigger('click');
+      await flushPromises();
+      expect(panel().text()).toContain(unconfirmed);
+      expect(panel().text()).not.toContain(guidance);
+      expect(panel().text()).not.toContain(invite);
+      expect(mockFetchInvitations).not.toHaveBeenCalled();
+    });
+
+    it('clears pending invitations and controls when the server reports a changed permission', async () => {
+      mockRevokeInvitation.mockRejectedValue({ response: { status: 403 } });
+      wrapper = await mountComponent();
+      expect(panel().text()).toContain(pending.email);
+      const revoke = panel().findAll('button').find(button => button.text() === 'web.organizations.invitations.revoke')!;
+      await revoke.trigger('click');
+      await flushPromises();
+
+      expect(panel().text()).toContain(guidance);
+      expect(panel().text()).not.toContain(pending.email);
+      expect(panel().text()).not.toContain('web.organizations.members.pending_suffix');
+      expect(panel().text()).not.toContain(invite);
+    });
+
+    const singlePermission = (allowed: boolean) => {
+      const { membership, permissions, extid, display_name } = permissionRecord(allowed);
+      return { data: {
+        resource_type: 'organization', resource_id: extid,
+        organization: { extid, display_name }, membership, permissions,
+      } };
+    };
+
+    it('rechecks a revoked permission when returning to Members and picks up a new grant', async () => {
+      mockRevokeInvitation.mockRejectedValueOnce({ response: { status: 403 } });
+      wrapper = await mountComponent();
+      await panel().findAll('button').find(button => button.text() === 'web.organizations.invitations.revoke')!.trigger('click');
+      await flushPromises();
+      expect(panel().text()).toContain(guidance);
+      await wrapper.get('#org-tab-domains').trigger('click');
+
+      mockGetPermissions.mockResolvedValueOnce(singlePermission(true));
+      await wrapper.get('#org-tab-members').trigger('click');
+      await flushPromises();
+
+      expect(mockGetPermissions).toHaveBeenLastCalledWith('/api/account/permissions', {
+        params: { resource_type: 'organization', resource_id: mockOrganization.extid },
+      });
+      expect(panel().text()).toContain(invite);
+      expect(panel().text()).toContain(pending.email);
+    });
+
+    it('withholds invitations and counts while rechecking a previously allowed org', async () => {
+      wrapper = await mountComponent();
+      expect(panel().text()).toContain(pending.email);
+      await wrapper.get('#org-tab-domains').trigger('click');
+      let resolvePermission!: (value: ReturnType<typeof singlePermission>) => void;
+      mockGetPermissions.mockReturnValueOnce(new Promise(resolve => { resolvePermission = resolve; }));
+
+      await wrapper.get('#org-tab-members').trigger('click');
+      expect(panel().text()).not.toContain(pending.email);
+      expect(panel().text()).not.toContain('web.organizations.members.pending_suffix');
+      expect(panel().text()).not.toContain(invite);
+      expect(mockFetchInvitations).toHaveBeenCalledTimes(1);
+      resolvePermission(singlePermission(false));
+      await flushPromises();
+      expect(panel().text()).toContain(guidance);
+      expect(mockFetchInvitations).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps an invitation action failure and retry on the delegated member’s panel', async () => {
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [permissionRecord(true, 'member')] } });
+      mockRevokeInvitation.mockRejectedValueOnce({ response: { status: 503 } }).mockResolvedValueOnce(undefined);
+      wrapper = await mountComponent();
+      const revoke = () => panel().findAll('button').find(button => button.text() === 'web.organizations.invitations.revoke')!;
+      await revoke().trigger('click');
+      await flushPromises();
+
+      expect(panel().text()).toContain('web.organizations.invitations.revoke_error');
+      expect(panel().text()).toContain(pending.email);
+      expect(wrapper.text()).not.toContain('web.organizations.load_error');
+      await revoke().trigger('click');
+      await flushPromises();
+      expect(panel().text()).toContain('web.organizations.invitations.revoke_success');
+      expect(panel().text()).not.toContain('web.organizations.invitations.revoke_error');
+    });
+
+    it.each(['invited', 'sso'])('shows invitation guidance for a denied %s admin without access to the roster', async (source) => {
+      const denied = permissionRecord(false);
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [{
+        ...denied, membership: { ...denied.membership, provisioning_source: source },
+      }] } });
+      mockFetchOrganization.mockRejectedValue({ response: { status: 403 } });
+      wrapper = await mountComponent();
+
+      expect(panel().text()).toContain(guidance);
+      expect(panel().find('.members-table').exists()).toBe(false);
+      expect(panel().text()).not.toContain(invite);
+      expect(panel().text()).not.toContain('web.organizations.members.pending_suffix');
+      expect(mockFetchInvitations).not.toHaveBeenCalled();
+    });
+
+    it('ignores permission results from a previous visit to Members', async () => {
+      wrapper = await mountComponent();
+      await wrapper.get('#org-tab-domains').trigger('click');
+      let resolveFirst!: (value: ReturnType<typeof singlePermission>) => void;
+      mockGetPermissions.mockReturnValueOnce(new Promise(resolve => { resolveFirst = resolve; }));
+      await wrapper.get('#org-tab-members').trigger('click');
+      await wrapper.get('#org-tab-domains').trigger('click');
+
+      mockGetPermissions.mockResolvedValueOnce(singlePermission(false));
+      await wrapper.get('#org-tab-members').trigger('click');
+      await flushPromises();
+      resolveFirst(singlePermission(true));
+      await flushPromises();
+
+      expect(panel().text()).toContain(guidance);
+      expect(panel().text()).not.toContain(pending.email);
+      expect(mockFetchInvitations).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not display a late invitation response after switching organizations', async () => {
+      let resolveInvitations!: (rows: typeof pending[]) => void;
+      mockFetchInvitations.mockReturnValue(new Promise(resolve => { resolveInvitations = resolve; }));
+      mockGetPermissions.mockResolvedValue({
+        data: { organizations: [permissionRecord(true), permissionRecord(false, 'admin', 'next-org')] },
+      });
+      mountComponentUnsettled();
+      await flushPromises();
+      expect(mockFetchInvitations).toHaveBeenCalledWith(mockOrganization.extid);
+      mockFetchOrganization.mockResolvedValue({ ...mockOrganization, extid: 'next-org' });
+      mockRouteParams.extid = 'next-org';
+      await flushPromises();
+      resolveInvitations([pending]);
+      await flushPromises();
+      expect(mockFetchInvitations).not.toHaveBeenCalledWith('next-org');
+      expect(panel().text()).toContain(guidance);
+      expect(panel().text()).not.toContain(pending.email);
+    });
+  });
 
   /**
    * Billing Email Display Tests
@@ -560,10 +789,10 @@ describe('OrganizationSettings', () => {
       await nextTick();
     };
 
-    // Enable SSO feature and entitlement for all tests in this block
+    // Enable tenant SSO at the instance level.
     const enableSso = () => {
       mockOrgsSsoEnabled.value = true;
-      mockEntitlements.value = ['manage_members', 'manage_sso'];
+
     };
 
     it('shows EmptyState CTA when user can create domains', async () => {
@@ -593,7 +822,9 @@ describe('OrganizationSettings', () => {
     it('does not show EmptyState when domains exist', async () => {
       enableSso();
       mockCanCreateDomain.value = true;
-      mockDomainCount.value = 2;
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [{
+        ...permissionRecord(true), domains: [ssoDomain('allowed', true)],
+      }] } });
       wrapper = await mountComponent();
       await switchToSsoTab(wrapper);
 
@@ -602,6 +833,266 @@ describe('OrganizationSettings', () => {
         '[data-testid="org-section-sso"] [data-testid="empty-state"]'
       );
       expect(emptyState.exists()).toBe(false);
+    });
+  });
+
+  describe('organization sharing controls', () => {
+    const initial = {
+      recipient_email_mode: 'unrestricted', recipient_email_domains: [],
+      passphrase_required: false, max_ttl: null,
+    };
+
+    const tabIds = (w: VueWrapper) => w.findAll('[role="tab"]').map((tab) => tab.attributes('id'));
+
+    function signInAs(role: 'owner' | 'admin') {
+      const org = { ...mockOrganization, current_user_role: role, sharing_policy: initial };
+      mockFetchOrganization.mockResolvedValue(org);
+      const permissions = permissionRecord(true, role);
+      permissions.permissions.can_manage_settings = true;
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [permissions] } });
+      return org;
+    }
+
+    it('gives the owner a Sharing tab before Settings, with the card as its panel', async () => {
+      signInAs('owner');
+      wrapper = await mountComponent();
+      expect(tabIds(wrapper).slice(-2)).toEqual(['org-tab-sharing', 'org-tab-general']);
+
+      await switchToSettingsTab(wrapper);
+      expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(false);
+
+      await wrapper.get('#org-tab-sharing').trigger('click');
+      await flushPromises();
+      expect(wrapper.get('#org-tab-sharing').attributes('aria-selected')).toBe('true');
+      expect(mockRouter.replace).toHaveBeenLastCalledWith({
+        params: { extid: 'on1abc123', orgid: 'on1abc123', tab: 'sharing' },
+      });
+      const panel = wrapper.get('[data-testid="org-section-sharing"]');
+      expect(panel.attributes()).toMatchObject({
+        id: 'org-panel-sharing', role: 'tabpanel', 'aria-labelledby': 'org-tab-sharing', tabindex: '0',
+      });
+      expect(wrapper.find('[data-testid="org-section-settings"]').exists()).toBe(false);
+    });
+
+    it('opens the Sharing tab for the owner from its URL', async () => {
+      signInAs('owner');
+      mockRouteParams.tab = 'sharing';
+      wrapper = await mountComponent();
+      expect(wrapper.get('#org-tab-sharing').attributes('aria-selected')).toBe('true');
+      expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(true);
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+    });
+
+    it('lets the owner save all controls for the displayed organization', async () => {
+      const org = signInAs('owner');
+      mockUpdateSharingPolicy.mockImplementation(async (_extid, value) => ({ ...org, sharing_policy: value }));
+      wrapper = await mountComponent();
+      await wrapper.get('#org-tab-sharing').trigger('click');
+      await flushPromises();
+      const form = wrapper.getComponent({ name: 'SharingPolicyForm' });
+      await form.get('select').setValue('restricted');
+      await form.get('textarea').setValue('example.com\nmail.example.com');
+      await form.get('input[type="checkbox"]').setValue(true);
+      await form.get('input[type="number"]').setValue(604800);
+      await form.get('form').trigger('submit');
+      await flushPromises();
+      expect(mockUpdateSharingPolicy).toHaveBeenCalledWith(org.extid, {
+        recipient_email_mode: 'restricted', recipient_email_domains: ['example.com', 'mail.example.com'],
+        passphrase_required: true, max_ttl: 604800,
+      });
+      expect(form.get('button').attributes('disabled')).toBeDefined();
+      await form.get('input[type="number"]').setValue('');
+      await form.get('form').trigger('submit');
+      expect(mockUpdateSharingPolicy.mock.lastCall?.[1].max_ttl).toBeNull();
+    });
+
+    // The tab and its panel share one condition, so a tab never opens onto
+    // nothing. The API always sends a policy; null stands in for none here.
+    it('offers the owner no Sharing tab when the organization carries no policy', async () => {
+      const org = signInAs('owner');
+      mockFetchOrganization.mockResolvedValue({ ...org, sharing_policy: null });
+      mockRouteParams.tab = 'sharing';
+      wrapper = await mountComponent();
+      expect(tabIds(wrapper)).not.toContain('org-tab-sharing');
+      expect(wrapper.get('#org-tab-domains').attributes('aria-selected')).toBe('true');
+    });
+
+    it('offers an admin neither the tab nor the editor', async () => {
+      signInAs('admin');
+      wrapper = await mountComponent();
+      expect(tabIds(wrapper)).not.toContain('org-tab-sharing');
+      await switchToSettingsTab(wrapper);
+      expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(false);
+    });
+
+    it('sends an admin who follows a link to the Sharing tab to Domains', async () => {
+      signInAs('admin');
+      mockRouteParams.tab = 'sharing';
+      wrapper = await mountComponent();
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        params: { extid: 'on1abc123', orgid: 'on1abc123', tab: 'domains' },
+      });
+      expect(wrapper.get('#org-tab-domains').attributes('aria-selected')).toBe('true');
+      expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(false);
+    });
+
+    // Back/Forward can change :tab while the organization is still loading,
+    // before the page knows whether the viewer is the owner.
+    async function followSharingLinkWhileLoading(role: 'owner' | 'admin') {
+      const org = signInAs(role);
+      let finishLoading!: () => void;
+      mockFetchOrganization.mockReturnValue(
+        new Promise((resolve) => { finishLoading = () => resolve(org); })
+      );
+      mockRouteParams.tab = 'activity';
+      mountComponentUnsettled();
+      await flushPromises();
+      mockRouteParams.tab = 'sharing';
+      await nextTick();
+      finishLoading();
+      await flushPromises();
+    }
+
+    it('opens the Sharing tab for the owner when the route names it before the page has loaded', async () => {
+      await followSharingLinkWhileLoading('owner');
+      expect(wrapper.get('#org-tab-sharing').attributes('aria-selected')).toBe('true');
+      expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(true);
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+    });
+
+    it('sends an admin to Domains when the route names the Sharing tab before the page has loaded', async () => {
+      await followSharingLinkWhileLoading('admin');
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        params: { extid: 'on1abc123', orgid: 'on1abc123', tab: 'domains' },
+      });
+      expect(wrapper.get('#org-tab-domains').attributes('aria-selected')).toBe('true');
+      expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(false);
+    });
+
+    it('follows a later route change to the Sharing tab for the owner only', async () => {
+      signInAs('owner');
+      mockRouteParams.tab = 'activity';
+      wrapper = await mountComponent();
+      mockRouteParams.tab = 'sharing';
+      await flushPromises();
+      expect(wrapper.get('#org-tab-sharing').attributes('aria-selected')).toBe('true');
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+      wrapper.unmount();
+
+      signInAs('admin');
+      mockRouteParams.tab = 'activity';
+      wrapper = await mountComponent();
+      mockRouteParams.tab = 'sharing';
+      await flushPromises();
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        params: { extid: 'on1abc123', orgid: 'on1abc123', tab: 'domains' },
+      });
+      expect(wrapper.get('#org-tab-domains').attributes('aria-selected')).toBe('true');
+    });
+
+    // Saving the organization's details reloads it. The organization on
+    // screen is already known then, so the gate applies during that reload.
+    it('sends an admin to Domains when the route names the Sharing tab while a save reloads the page', async () => {
+      const org = signInAs('admin');
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+      mockRouter.replace.mockClear();
+      let finishReload!: () => void;
+      mockFetchOrganization.mockReturnValue(
+        new Promise((resolve) => { finishReload = () => resolve(org); })
+      );
+      await wrapper.get('#display-name').setValue('Renamed');
+      const form = wrapper.findAll('form').find((candidate) => candidate.find('#display-name').exists());
+      await form!.trigger('submit');
+      await flushPromises();
+      expect(mockUpdateOrganization).toHaveBeenCalled();
+
+      mockRouteParams.tab = 'sharing';
+      await nextTick();
+      finishReload();
+      await flushPromises();
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        params: { extid: 'on1abc123', orgid: 'on1abc123', tab: 'domains' },
+      });
+      expect(wrapper.get('#org-tab-domains').attributes('aria-selected')).toBe('true');
+      expect(wrapper.findComponent({ name: 'SharingPolicyForm' }).exists()).toBe(false);
+    });
+
+    it('moves through the tabs with ArrowRight in the order they are drawn', async () => {
+      signInAs('owner');
+      wrapper = await mountComponent({ attachTo: document.body });
+      const drawn = tabIds(wrapper);
+      const selected = () => wrapper.get('[role="tab"][aria-selected="true"]');
+      const visited = [selected().attributes('id')];
+      for (let step = 1; step < drawn.length; step++) {
+        await selected().trigger('keydown', { key: 'ArrowRight' });
+        await flushPromises();
+        visited.push(selected().attributes('id'));
+      }
+      expect(drawn).toContain('org-tab-sharing');
+      expect(visited).toEqual(drawn);
+    });
+  });
+
+  describe.each([true, false])('tenant SSO permissions with billing enabled=%s', billingEnabled => {
+    beforeEach(() => { mockOrgsSsoEnabled.value = true; mockRouteParams.tab = 'sso'; });
+    const panel = () => wrapper.get('#org-panel-sso');
+    function permissions(role: string, ...domains: ReturnType<typeof ssoDomain>[]) {
+      mockGetPermissions.mockResolvedValue({ data: { organizations: [{
+        ...permissionRecord(false, role), domains,
+      }] } });
+    }
+
+    it('shows an owner only domains authorized by the API, even without the old plan token', async () => {
+      mockFetchOrganization.mockResolvedValue({ ...mockOrganization, current_user_role: 'owner' });
+      const domain = ssoDomain('allowed', true);
+      domain.permissions.can_view = false;
+      domain.verified = false;
+      permissions('owner', domain, ssoDomain('denied', false));
+      wrapper = await mountComponent({ billingEnabled });
+      expect(panel().text()).toContain('allowed.example');
+      expect(panel().text()).not.toContain('denied.example');
+      expect(panel().find('a[href$="/verify"]').exists()).toBe(false);
+      expect(mockSsoStatus.mock.calls).toEqual([['allowed']]);
+    });
+
+    it('honors an owner revoke even when the plan lists SSO', async () => {
+      mockEntitlements.value = ['manage_sso'];
+      mockFetchOrganization.mockResolvedValue({ ...mockOrganization, current_user_role: 'owner' });
+      permissions('owner', ssoDomain('revoked', false));
+      wrapper = await mountComponent({ billingEnabled });
+      expect(panel().text()).toContain('web.domains.sso.permission_required');
+      expect(panel().find('a').exists()).toBe(false);
+      expect(mockSsoStatus).not.toHaveBeenCalled();
+    });
+
+    it('allows a scoped delegate to reach only the permitted domain', async () => {
+      permissions('member', ssoDomain('delegated', true));
+      wrapper = await mountComponent({ billingEnabled });
+      expect(mockFetchOrganization).not.toHaveBeenCalled();
+      expect(mockFetchInvitations).not.toHaveBeenCalled();
+      expect(wrapper.findAll('[role="tab"]').map(tab => tab.attributes('id'))).toEqual(['org-tab-sso']);
+      expect(panel().get('a').attributes('href')).toBe('/org/on1abc123/domains/delegated/signin/sso');
+      expect(mockSsoStatus.mock.calls).toEqual([['delegated']]);
+    });
+
+    it('rechecks the action on tab re-entry and clears stale configure links', async () => {
+      permissions('owner', ssoDomain('allowed', true));
+      wrapper = await mountComponent({ billingEnabled });
+      await wrapper.get('#org-tab-domains').trigger('click');
+      permissions('owner', ssoDomain('allowed', false));
+      await wrapper.get('#org-tab-sso').trigger('click');
+      await flushPromises();
+      expect(panel().text()).toContain('web.domains.sso.permission_required');
+      expect(panel().text()).not.toContain('allowed.example');
+      expect(mockSsoStatus.mock.calls).toEqual([['allowed']]);
+    });
+
+    it('gives a neutral message when an older server omits the action', async () => {
+      permissions('owner', ssoDomain('legacy'));
+      wrapper = await mountComponent({ billingEnabled });
+      expect(panel().text()).toContain('web.organizations.access_unconfirmed_notice');
+      expect(mockSsoStatus).not.toHaveBeenCalled();
     });
   });
 
@@ -806,30 +1297,7 @@ describe('OrganizationSettings', () => {
       });
     });
 
-    describe('member role (entitled plan)', () => {
-      // Backend materializes membership entitlements as plan ∩ role and
-      // audit_logs is admin-tier, so a plain member is 403'd server-side even
-      // on an entitled plan. The UI must show the role notice — not the
-      // upgrade prompt, and never mount the table (whose fetch would 403).
-      beforeEach(() => {
-        mockEntitlements.value = ['manage_members', 'audit_logs'];
-        mockFetchOrganization.mockResolvedValue({
-          ...mockOrganization,
-          current_user_role: 'member',
-        });
-      });
 
-      it('shows the role notice instead of the table or upgrade prompt', async () => {
-        wrapper = await mountComponent();
-        await switchToActivityTab(wrapper);
-
-        const panel = findPanel(wrapper);
-        expect(panel.find('[data-testid="org-audit-role-notice"]').exists()).toBe(true);
-        expect(panel.text()).toContain('web.organizations.audit.role_required');
-        expect(panel.text()).not.toContain('web.organizations.audit.upgrade_prompt');
-        expect(findActivityTable(wrapper).exists()).toBe(false);
-      });
-    });
   });
   /**
    * Caution Zone — Delete Organization
@@ -1024,16 +1492,6 @@ describe('OrganizationSettings', () => {
       expect(mockRouter.replace).not.toHaveBeenCalled();
     });
 
-    it('bounces a deep link to a tab the user cannot open to Domains', async () => {
-      mockRouteParams.tab = 'members';
-      mockEntitlements.value = [];
-
-      wrapper = await mountComponent();
-
-      expect(selectedTabId(wrapper)).toBe('org-tab-domains');
-      expect(mockRouter.replace).toHaveBeenCalledWith(tabNavigation('domains'));
-    });
-
     it('follows a :tab change it did not make (Back/Forward, a link to a tab)', async () => {
       wrapper = await mountComponent();
 
@@ -1047,17 +1505,6 @@ describe('OrganizationSettings', () => {
       await settle();
       expect(selectedTabId(wrapper)).toBe('org-tab-domains');
       expect(mockRouter.replace).not.toHaveBeenCalled();
-    });
-
-    it('bounces a :tab change to a tab the user cannot open to Domains', async () => {
-      mockEntitlements.value = [];
-      wrapper = await mountComponent();
-
-      mockRouteParams.tab = 'members';
-      await settle();
-
-      expect(selectedTabId(wrapper)).toBe('org-tab-domains');
-      expect(mockRouter.replace).toHaveBeenCalledWith(tabNavigation('domains'));
     });
 
     it("never gates another org's :tab with this org's permissions", async () => {

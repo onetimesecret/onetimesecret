@@ -66,7 +66,8 @@ RSpec.describe Onetime::DomainValidation::Features do
     canonical_by_spelling.each do |spelling, canonical|
       it "builds the #{canonical} strategy for #{spelling.inspect}" do
         config = { 'features' => { 'domains' => { 'validation_strategy' => spelling } } }
-        expect(Onetime::DomainValidation::Strategy.for_config(config).class.name)
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap(config))
+        expect(Onetime::DomainValidation::Strategy.for_config.class.name)
           .to eq(strategy_classes.fetch(canonical))
       end
     end

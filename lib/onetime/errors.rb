@@ -498,6 +498,23 @@ module Onetime
     end
   end
 
+  class CapabilityRequired < Forbidden
+    attr_reader :capability
+
+    def initialize(capability)
+      @capability = capability.to_s
+      super(
+        "This action requires the #{@capability} permission.",
+        error_key: 'api.organizations.errors.capability_required',
+        args: { capability: @capability },
+      )
+    end
+
+    def to_h
+      super.merge(error_type: 'CapabilityRequired', capability: capability)
+    end
+  end
+
   # Raised when a user lacks the required entitlement for an action.
   # Contains upgrade path information for the API response.
   #

@@ -99,8 +99,7 @@ exc.to_h
 #=> {error: "Test message", error_type: "GuestRoutesDisabled", code: "TEST_CODE"}
 
 ## Default config has guest routes enabled
-config = OT.conf.dig('site', 'interface', 'api', 'guest_routes')
-[config['enabled'], config['conceal'], config['generate'], config['reveal'], config['burn']]
+%w[enabled conceal generate reveal burn].map { |key| OT.conf.get(['site', 'interface', 'api', 'guest_routes', key]) }
 #=> [true, true, true, true, true]
 
 ## Config defaults are provided by Onetime::Config::DEFAULTS

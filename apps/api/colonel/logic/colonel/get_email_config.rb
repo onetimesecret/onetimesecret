@@ -22,7 +22,7 @@ module ColonelAPI
       # summary the `bin/ots email config` CLI renders, so the two never drift.
       #
       # Security invariant (items 1 + 11): the summary carries ONLY booleans
-      # (has_credentials) and non-secret config. The raw Onetime.conf['emailer']
+      # (has_credentials) and non-secret config. The emailer config section
       # (which carries user/pass) is NEVER returned.
       class GetEmailConfig < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelEmailConfig' }.freeze

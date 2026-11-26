@@ -76,23 +76,13 @@ gem 'roda', '~> 3.0'
 # Every ref is a full commit SHA, so a mirror cannot serve different code
 # under the same pin.
 #
-# rodauth comes from the onetimesecret fork, pinned to a commit: upstream
-# master at 50e08b71 (2.50.0 and the four commits after it) plus two fixes
-# that are in no rodauth release (onetimesecret/rodauth#3). The verify route
-# deletes the verify account key again instead of rotating it (rotation since
-# 2.46). Recovery codes added while a passkey verifies an account go to that
-# account instead of a nil session id, which failed the verification with
-# AUTH_MFA_ENABLED and AUTH_WEBAUTHN_VERIFY_ACCOUNT both on.
-#
-# 2.50.0 fixes GHSA-26qw-xq5q-hv9w: an OTP code for a later time step,
-# accepted through otp_drift, was accepted again 30 seconds after its use.
-# The pin is past the 2.50.0 tag because the release refuses the code for the
-# time step right after the last use on PostgreSQL and MySQL (upstream
-# 82a25ce6 and 50e08b71). The fork's version reads 2.50.0; the GIT section in
-# Gemfile.lock is what distinguishes it from the release.
+# Rodauth 2.51.0 includes the WebAuthn fix for GHSA-jv3v-q542-9c26.
+# The fork retains the two changes from onetimesecret/rodauth#3: delete the
+# verification key after account verification, and use the account being
+# verified when adding recovery codes during passkey signup.
 gem 'rodauth',
   git: 'https://gitlab.com/onetimesecret/upstream-forks/rodauth.git',
-  ref: '4257c21b427eaacbbb3328329df9e5c7884ed3fb'
+  ref: 'a08f72421045306fc424ad59bf2d63f3d2b7d455'
 # Forked to add `oauth_mount_prefix`, which fixes the Rack::URLMap mount-prefix
 # mismatch (discovery URLs, issuer, and per-endpoint CSRF exemptions losing the
 # `/auth` mount point) at the gem level — see onetimesecret/onetimesecret#3465
@@ -135,10 +125,10 @@ gem 'rodauth-tools', '~> 0.4.0'
 # configures none of them never loads them. The cost of an entry is the
 # bundle, not the boot.
 #
-# omniauth-apple declares NO direct `omniauth` dependency (only
-# omniauth-oauth2 and json-jwt, both unversioned), so it would happily
-# resolve against OmniAuth 1.x. The floor is held by the other entries in
-# this block, all of which require `omniauth ~> 2.0`.
+# omniauth-apple declares no direct `omniauth` dependency (only
+# omniauth-oauth2 and json-jwt, both unversioned). Keep an explicit floor
+# for the host-header validation fix in OmniAuth 2.2.0.
+gem 'omniauth', '>= 2.2.0', '< 3.0'
 gem 'omniauth-apple', '~> 1.4'
 gem 'omniauth-entra-id', '~> 3.1'
 gem 'omniauth-github', '~> 2.0'
@@ -202,12 +192,12 @@ gem 'omniauth-saml', '~> 2.2'
 gem 'ruby-saml', '= 1.18.1'
 
 # Web server and middleware
-gem 'puma', '>= 6.0', '< 8.0'
+gem 'puma', '>= 7.2.3', '< 8.0'
 gem 'rack', '>= 3.2.8', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 # Mounted directly in MiddlewareStack (JSON/form body parsing); was transitive via otto < 2.10.
 gem 'rack-parser', '~> 0.7'
-gem 'rack-protection', '~> 4.1'
+gem 'rack-protection', '>= 4.2.2', '< 5.0'
 gem 'rack-session', '~> 2.1.2'
 gem 'rack-utf8_sanitizer', '~> 1.11'
 
@@ -218,13 +208,10 @@ gem 'rack-utf8_sanitizer', '~> 1.11'
 # HTTP client
 gem 'httparty'
 
-# DNS resolution. resolv is a default gem, so without this line the app runs
-# the copy bundled with Ruby: 0.7.1 in Ruby 3.4.10, which is affected by
-# CVE-2026-80212 (memory exhaustion from malicious DNS responses) and
-# CVE-2026-80213 (hostname validation bypass). Both are fixed in 0.7.2. The
-# SSO issuer SSRF check and the egress guard resolve tenant-supplied hosts.
-# Kept on the 0.7 line, which Ruby 3.4.11 and later bundle; drop this line
-# once .ruby-version is a Ruby that bundles resolv >= 0.7.2.
+# DNS resolution. The SSO issuer SSRF check and the egress guard resolve
+# tenant-supplied hosts. Keep resolv on the patched 0.7 line even if the
+# bundled default gem changes on a later Ruby update (CVE-2026-80212 and
+# CVE-2026-80213).
 gem 'resolv', '~> 0.7.2'
 
 # JSON and data validation
@@ -236,7 +223,7 @@ gem 'fastimage', '~> 2.4'
 gem 'i18n', '~> 1.14'
 gem 'mail'
 gem 'public_suffix', '~> 7.0'
-gem 'sanitize', '~> 7.0', '>= 7.0.1'
+gem 'sanitize', '~> 7.0', '>= 7.0.2'
 gem 'semantic_logger', '~> 4.17'
 gem 'simpleidn', '~> 0.2'
 gem 'tilt'

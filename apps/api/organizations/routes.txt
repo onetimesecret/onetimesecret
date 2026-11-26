@@ -13,6 +13,7 @@ GET    /                                    OrganizationAPI::Logic::Organization
 POST   /                                    OrganizationAPI::Logic::Organizations::CreateOrganization response=json auth=sessionauth
 GET    /:extid                              OrganizationAPI::Logic::Organizations::GetOrganization response=json auth=sessionauth
 PUT    /:extid                              OrganizationAPI::Logic::Organizations::UpdateOrganization response=json auth=sessionauth
+PUT    /:extid/sharing-policy               OrganizationAPI::Logic::Organizations::UpdateSharingPolicy response=json auth=sessionauth
 DELETE /:extid                              OrganizationAPI::Logic::Organizations::DeleteOrganization response=json auth=sessionauth
 
 # Organization Secret Activity

@@ -48,7 +48,7 @@ def enable_incoming_for_routes(recipient_email)
   OT.send(:conf=, new_conf)
 
   # Compute hash using the same method as setup_incoming_recipients
-  site_secret = OT.conf.dig('site', 'secret') || 'test-secret'
+  site_secret = OT.conf.get('site.secret') || 'test-secret'
   hash_key = Digest::SHA256.hexdigest("#{recipient_email}:#{site_secret}")[0..15]
 
   OT.instance_variable_set(:@incoming_recipient_lookup, {

@@ -82,11 +82,11 @@ end
 OT.conf = @test_config
 
 ## Verify authentication.required is configured
-OT.conf['site']['authentication']['required']
+OT.conf.get('site.authentication.required')
 #=> true
 
 ## Verify homepage mode is configured
-OT.conf['site']['interface']['ui']['homepage']['mode']
+OT.conf.get('site.interface.ui.homepage.mode')
 #=> 'protected'
 
 ## Request homepage with bypass header returns 200

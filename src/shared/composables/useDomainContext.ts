@@ -14,13 +14,15 @@
  */
 
 import { loggingService } from '@/services/logging.service';
+import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { normalizeDomainHost } from '@/shared/utils/domain-host';
 import type { AxiosInstance } from 'axios';
-import { computed, inject, ref, watch } from 'vue';
+import { computed, effectScope, inject, ref, watch, type EffectScope } from 'vue';
+
+import { confirmedOrganization, currentDomain } from './domainContextState';
 
 export interface DomainContext {
   /** The domain hostname (e.g., "acme.example.com" or "onetimesecret.com") */
@@ -34,24 +36,28 @@ export interface DomainContext {
 }
 
 // Shared state for domain context across components
-const currentDomain = ref('');
 const isInitialized = ref(false);
 const isLoadingDomains = ref(false);
 
-// AbortController for cancelling in-flight domain fetches during rapid org switches
-let currentFetchController: AbortController | null = null;
+let fetchGeneration = 0;
+let domainsOrganization: string | undefined;
 
 // Track whether module-level watcher has been set up (only do once)
-let watcherInitialized = false;
+let watcherScope: EffectScope | undefined;
 
 // Bootstrap store reference - initialized on first composable use
 let bootstrapStoreInstance: ReturnType<typeof useBootstrapStore> | null = null;
 
 // Domain data extracted from permissions API (replaces domainsStore for dropdown context).
 // Every registered domain of the current org, served or not; see buildAvailableDomains.
-type PermissionsDomain = { display_domain: string; extid: string; served: boolean };
-const permissionsDomains = ref<PermissionsDomain[]>([]);
+const permissionsDomains = computed(() => confirmedOrganization.value?.domains ?? []);
 let permissionsInstance: ReturnType<typeof useResourcePermissions> | null = null;
+
+function canViewDomain(orgId: string | undefined, id: string | undefined) {
+  const org = confirmedOrganization.value;
+  return !!org && !!id && org.extid === orgId &&
+    org.domains.some(domain => domain.extid === id && domain.permissions.can_view);
+}
 
 /** Get bootstrap store instance (lazy singleton) */
 function getBootstrapStore(): ReturnType<typeof useBootstrapStore> {
@@ -347,31 +353,33 @@ function createPermissionsFetcher(
   organizationStore: ReturnType<typeof useOrganizationStore>,
 ) {
   return async (): Promise<boolean> => {
-    const { domainsEnabled } = getConfig();
-    if (!domainsEnabled) return true;
+    const generation = ++fetchGeneration;
     const orgExtid = organizationStore.currentOrganization?.extid;
+    if (domainsOrganization !== orgExtid) {
+      domainsOrganization = orgExtid;
+      currentDomain.value = '';
+      confirmedOrganization.value = undefined;
+      isInitialized.value = false;
+    }
+    isLoadingDomains.value = false;
+    if (!getConfig().domainsEnabled) return true;
     if (!orgExtid) {
       loggingService.debug('[useDomainContext] Skipping fetch: no currentOrganization set yet');
       return false;
     }
 
-    if (currentFetchController) {
-      currentFetchController.abort();
-    }
-    const controller = new AbortController();
-    currentFetchController = controller;
-
     isLoadingDomains.value = true;
     try {
       const result = await permissionsInstance!.fetchAllPermissions();
-      if (controller.signal.aborted) return false;
+      if (generation !== fetchGeneration) return false;
       // useResourcePermissions swallows its own fetch error and resolves null.
       // That is a fetch that did not land, not an org with no domains: keep
       // the snapshot we have rather than emptying the picker.
       if (!result) return false;
 
       const orgPerms = result.organizations.find(o => o.extid === orgExtid);
-      permissionsDomains.value = orgPerms?.domains ?? [];
+      confirmedOrganization.value = orgPerms;
+      reconcileSelection(buildAvailableDomains(permissionsDomains.value));
       return true;
     } catch (error) {
       if (error instanceof Error && error.name !== 'AbortError') {
@@ -379,10 +387,7 @@ function createPermissionsFetcher(
       }
       return false;
     } finally {
-      if (currentFetchController === controller) {
-        isLoadingDomains.value = false;
-        currentFetchController = null;
-      }
+      if (generation === fetchGeneration) isLoadingDomains.value = false;
     }
   };
 }
@@ -434,8 +439,7 @@ let isInitializing = false;
 
 /** Initialize domain context on module load (runs once). Returns promise for awaiting. */
 async function initializeDomainContext(
-  fetchFn: () => Promise<boolean | void>,
-  getAvailable: () => string[]
+  fetchFn: () => Promise<boolean>
 ): Promise<void> {
   if (isInitialized.value || isInitializing) return;
 
@@ -444,13 +448,7 @@ async function initializeDomainContext(
 
   try {
     if (domainsEnabled) {
-      const fetchSucceeded = await fetchFn();
-      if (fetchSucceeded) {
-        // Only select domain if fetch succeeded (org was available)
-        currentDomain.value = selectBestDomain(getAvailable());
-        isInitialized.value = true;
-      }
-      // If fetch failed (no org yet), don't mark initialized - let watcher handle it
+      await fetchFn();
     } else {
       // Domains feature off: no permissions fetch, so the pool is the whole
       // of availableDomains. Land on a member of it, not on canonicalDomain.
@@ -482,18 +480,15 @@ export function useDomainContext() {
   const fetchDomainsForOrganization = createPermissionsFetcher(organizationStore);
 
   // Set up module-level watcher ONCE to prevent multiple watchers racing
-  if (!watcherInitialized) {
-    watcherInitialized = true;
-    watch(
-      () => organizationStore.currentOrganization?.objid,
-      async (newOrgId, oldOrgId) => {
-        if (newOrgId && newOrgId !== oldOrgId) {
-          const isCurrentRequest = await fetchDomainsForOrganization();
-          if (!isCurrentRequest) return;
-          reconcileSelection(availableDomains.value);
-        }
-      }
-    );
+  if (!watcherScope) {
+    // The snapshot is shared across route components. Its watcher must
+    // survive the unmount of the component that first initialized it.
+    watcherScope = effectScope(true);
+    watcherScope.run(() => watch(
+      () => organizationStore.currentOrganization?.extid,
+      () => { void fetchDomainsForOrganization(); },
+      { flush: 'sync' }
+    ));
   }
 
   /**
@@ -508,16 +503,8 @@ export function useDomainContext() {
    * when the fetch did not land (no organization yet, superseded by a newer
    * fetch, or failed); the selection is then left untouched.
    */
-  const refreshDomains = async (): Promise<boolean> => {
-    const fetched = await fetchDomainsForOrganization();
-    if (fetched) reconcileSelection(availableDomains.value);
-    return fetched;
-  };
-
-  const initPromise = initializeDomainContext(
-    fetchDomainsForOrganization,
-    () => availableDomains.value
-  );
+  const refreshDomains = fetchDomainsForOrganization;
+  const initPromise = initializeDomainContext(refreshDomains);
 
   const currentContext = computed<DomainContext>(buildCurrentContext);
 
@@ -554,6 +541,7 @@ export function useDomainContext() {
 
   return {
     currentContext,
+    canViewDomain: (id?: string) => canViewDomain(organizationStore.currentOrganization?.extid, id),
     isContextActive: computed<boolean>(() => getConfig().domainsEnabled),
     hasMultipleContexts: computed<boolean>(() => availableDomains.value.length > 1),
     availableDomains,
@@ -581,9 +569,11 @@ export function __resetDomainContextForTesting(): void {
   isInitialized.value = false;
   isLoadingDomains.value = false;
   isInitializing = false;
-  watcherInitialized = false;
-  currentFetchController = null;
+  watcherScope?.stop();
+  watcherScope = undefined;
+  ++fetchGeneration;
+  domainsOrganization = undefined;
   bootstrapStoreInstance = null;
-  permissionsDomains.value = [];
+  confirmedOrganization.value = undefined;
   permissionsInstance = null;
 }

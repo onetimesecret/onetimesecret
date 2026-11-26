@@ -2,16 +2,17 @@
 
 ## Overview
 
-`SECRET` is the root keying material for a Onetime Secret install. Every
-working key derives from it via HKDF (RFC 5869) in
+`SECRET` is the root keying material for a Onetime Secret install. The keys
+below derive from it via HKDF (RFC 5869) in
 `lib/onetime/key_derivation.rb`:
 
 ```
-SECRET (64 random bytes, operator-provided or generated)
+SECRET (random operator-provided or generated key)
     ├── session        → SESSION_SECRET       (Rack session signing)
     ├── verifiable-id  → IDENTIFIER_SECRET    (secret/receipt link identifiers)
     ├── familia-enc    → [runtime only]       (ciphertext encryption — the payload data)
-    └── key-verifier   → [runtime only]       (boot-time SECRET-vs-datastore check)
+    ├── key-verifier   → [runtime only]       (boot-time SECRET-vs-datastore check)
+    └── paseto-signing → [runtime only]       (v3 API bearer-token signing)
 ```
 
 **Treat SECRET like the database itself.** Store a copy in a secret manager
@@ -43,8 +44,10 @@ separately — see `.env.reference`.
 - **Reveals fail safe.** Under a wrong key, a reveal returns HTTP 503 with
   code `secret_undecryptable` and the reveal claim is rolled back: the
   record and ciphertext survive, and the link becomes revealable again the
-  moment the correct key is restored. No secret is consumed by a decrypt
-  that cannot succeed.
+  moment the correct key is restored. Encrypted writes are also refused while
+  the verifier reports a mismatch, so new data is not stranded when an
+  accidentally changed key is discarded. If the datastore was unavailable
+  during startup, the app rechecks before the next encrypted write.
 - **Surfacing.** `/health/advanced` reports a `secret_verifier` sub-check
   (mismatch degrades the top-level status); `bin/doctor` runs
   `rake ots:secrets:verify` (exit codes: 0 ok, 1 mismatch, 2 never adopted,
@@ -66,6 +69,9 @@ before the accident is still revealable.
 
 New writes move to the new SECRET; existing ciphertexts keep decrypting via
 a decrypt-only chain of previous secrets (`SECRET_PREVIOUS`).
+Rotating `SECRET` immediately retires v3 API bearer tokens signed with the old
+key, even while that key remains in `SECRET_PREVIOUS` for decryption. Clients
+must obtain new bearer tokens after the restart.
 
 1. **Append** the current SECRET to `SECRET_PREVIOUS` in `.env`
    (comma-separated, oldest first):
@@ -76,13 +82,17 @@ a decrypt-only chain of previous secrets (`SECRET_PREVIOUS`).
    ```
 
 2. Install the new value in `SECRET`.
-3. Restart the app, then confirm the rotation was intentional:
+3. Schedule a maintenance window or drain user traffic. Restart the app with
+   the new `SECRET`. Under the default `warn` policy, it boots with a verifier
+   mismatch; secret creation, email-change requests, and committed reveals
+   return HTTP 503 until adoption and the second restart. Under `enforce`, the
+   app refuses to boot during that interval. Confirm the intentional rotation:
 
    ```
    CONFIRM=yes bundle exec rake ots:secrets:adopt
    ```
 
-   and restart running app processes again so they drop the mismatch state.
+   Restart running app processes again so they drop the mismatch state.
 4. Verify: `bundle exec rake ots:secrets:verify` exits 0, and a reveal of a
    pre-rotation secret still works (the harness lane
    `bin/testsuite-installer secret-rotation` automates this proof).
@@ -95,6 +105,7 @@ generation after that writes under a content-addressed tag
 (`r<8-hex>`, derived from that secret's verifier), so every entry in the
 chain decrypts exactly the envelopes it wrote. See
 `Onetime::Initializers::ConfigureFamilia.build_encryption_keys`.
+The chain does not extend bearer-token verification.
 
 ## Rotating without SECRET_PREVIOUS (the cut-line path)
 

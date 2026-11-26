@@ -76,6 +76,7 @@ describe('DomainHeader', () => {
 
   const defaultProps = {
     domain: null as CustomDomain | null,
+    backVisible: false,
     hasUnsavedChanges: false,
     orgid: 'org-123',
   };
@@ -110,6 +111,13 @@ describe('DomainHeader', () => {
       const wrapper = mountComponent({ domain: null });
       expect(wrapper.find('.animate-pulse').exists()).toBe(true);
       expect(wrapper.find('h1').exists()).toBe(false);
+    });
+
+    it('keeps Back available when the domain name is unavailable', async () => {
+      const wrapper = mountComponent({ backVisible: true });
+      await wrapper.get('button').trigger('click');
+      expect(wrapper.emitted('back')).toHaveLength(1);
+      expect(wrapper.find('h1, a, .animate-pulse').exists()).toBe(false);
     });
 
     it('shows domain content when domain is provided', () => {

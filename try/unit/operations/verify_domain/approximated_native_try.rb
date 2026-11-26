@@ -93,7 +93,7 @@ Onetime::DomainValidation::Features.api_key = 'approx-try-key'
 @resolver = ApproxTryScriptedResolver.new
 @verifier = Onetime::DomainValidation::TxtVerifier.new(resolver_factory: -> { @resolver })
 @strategy = Onetime::DomainValidation::ApproximatedStrategy.new(
-  {}, client: ApproxTryIndeterminateClient, txt_verifier: @verifier
+  client: ApproxTryIndeterminateClient, txt_verifier: @verifier
 )
 
 @suffix = "#{Familia.now.to_i}-#{SecureRandom.hex(3)}"
@@ -179,7 +179,7 @@ ApproxTryIndeterminateClient.actual_values = false
 @domain.verified_unconfirmed_since = Familia.now.to_i - 3600
 @domain.save
 @upstream_strategy = Onetime::DomainValidation::ApproximatedStrategy.new(
-  {}, client: ApproxTryMatchingClient, txt_verifier: @verifier
+  client: ApproxTryMatchingClient, txt_verifier: @verifier
 )
 @upstream = Onetime::Operations::VerifyDomain.new(domain: @domain, strategy: @upstream_strategy, persist: true).call
 @stored   = approx_try_reload(@domain)

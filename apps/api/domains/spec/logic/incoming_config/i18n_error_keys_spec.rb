@@ -111,12 +111,12 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
     }
   end
 
-  # ADR-012 Stage 4: membership with entitlements for authorization
+  # Owner membership used by the manage_org check
   let(:owner_membership) do
     instance_double(
       Onetime::OrganizationMembership,
       active?: true,
-      can?: true  # Default: has all entitlements (owner-level)
+      has_capability?: true
     )
   end
 
@@ -133,7 +133,8 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
     allow(Onetime::Organization).to receive(:load)
       .with(org_id).and_return(organization)
     allow(organization).to receive(:owner?).with(authenticated_customer).and_return(true)
-    allow(organization).to receive(:can?).with('incoming_secrets').and_return(true)
+    allow(organization).to receive(:has_feature?).with('incoming_secrets').and_return(true)
+    allow(owner_membership).to receive(:can_access_domain?).with(custom_domain).and_return(true)
     allow(Onetime::CustomDomain::IncomingConfig).to receive(:find_by_domain_id)
       .with(domain_identifier).and_return(nil)
 
@@ -229,6 +230,17 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       end
     end
 
+    context 'when the membership is scoped to a different domain' do
+      it 'returns the same not-found error as an unknown domain' do
+        allow(owner_membership).to receive(:can_access_domain?).with(custom_domain).and_return(false)
+        logic = described_class.new(strategy_result, params)
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
+          expect(error.error_key).to eq('api.domains.errors.domain_not_found')
+          expect(error.args).to eq(extid: domain_extid)
+        end
+      end
+    end
+
     context 'when the domain has no resolvable organization' do
       let(:logic) { described_class.new(strategy_result, params) }
 
@@ -250,7 +262,7 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       let(:logic) { described_class.new(strategy_result, params) }
 
       before do
-        allow(organization).to receive(:can?).with('incoming_secrets').and_return(false)
+        allow(organization).to receive(:has_feature?).with('incoming_secrets').and_return(false)
       end
 
       it 'raises FormError tagged with incoming_secrets_entitlement_required' do

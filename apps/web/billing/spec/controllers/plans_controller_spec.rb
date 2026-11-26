@@ -926,14 +926,16 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     # around hook skips every :stripe_sandbox_api example in CI (no real
     # STRIPE_API_KEY is configured there). Without the override this regression
     # test would silently never run on the branch it is meant to protect.
-    it 'denies a non-owner member the organization portal', :vcr, stripe_sandbox_api: false do
+    it 'denies a non-owner member the organization portal even with manage_billing', :vcr, stripe_sandbox_api: false do
       member = Onetime::Customer.create!(email: "portal-member-#{SecureRandom.hex(4)}@example.com")
       created_customers << member
       member.save
 
       # Reproduce the repoint: an active 'member' whose default org is the
       # organization owned by someone else.
-      organization.add_members_instance(member, through_attrs: { role: 'member', status: 'active' })
+      membership = organization.add_members_instance(member, through_attrs: { role: 'member', status: 'active' })
+      membership.grant_capability('manage_billing')
+      expect(membership.has_capability?('manage_billing')).to be(true)
       member.default_org_id = organization.objid
       member.save
 
@@ -954,6 +956,21 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       expect(last_response.status).to eq(302)
       expect(last_response.location).to include('billing_error=not_authorized')
       expect(last_response.location).not_to match(%r{\Ahttps://billing\.stripe\.com/})
+    end
+
+    it 'lets the owner open the portal after a manage_billing revoke', stripe_sandbox_api: false do
+      membership = Onetime::OrganizationMembership.find_by_org_customer(organization.objid, customer.objid)
+      membership.revoke_capability('manage_billing')
+      expect(membership.has_capability?('manage_billing')).to be(false)
+
+      organization.stripe_customer_id = 'cus_owner_only_fixture'
+      organization.save
+      portal_url = 'https://billing.stripe.com/p/session/owner_only_fixture'
+      allow(Stripe::BillingPortal::Session).to receive(:create).and_return(Struct.new(:url).new(portal_url))
+
+      get '/billing/portal'
+
+      expect(last_response.location).to eq(portal_url)
     end
 
     # Positive control: the gate must not over-block the legitimate owner.

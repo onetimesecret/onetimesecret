@@ -103,9 +103,23 @@ RSpec.describe 'AddDomain role gate (#3033)', type: :integration do
       logic = build_add_domain_logic(admin_user, domain: "#{run_id}-admin.example.com")
       expect { logic.raise_concerns }.not_to raise_error
     end
+
+    it 'honors an existing member-level domain feature revoke even with manage_domains' do
+      admin_membership.revoke_entitlement('custom_domains')
+      expect(admin_membership.has_capability?('manage_domains')).to be(true)
+      logic = build_add_domain_logic(admin_user, domain: "#{run_id}-admin.example.com")
+      expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired)
+    end
   end
 
   describe 'member role' do
+    it 'honors an existing member-level domain feature grant during the transition' do
+      member_membership.grant_entitlement('custom_domains')
+      expect(member_membership.has_capability?('manage_domains')).to be(false)
+      logic = build_add_domain_logic(member_user, domain: "#{run_id}-delegated.example.com")
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
     it 'rejects with Onetime::EntitlementRequired (ADR-012 Stage 3)' do
       # Members have membership but lack the custom_domains entitlement,
       # so they get EntitlementRequired rather than Forbidden

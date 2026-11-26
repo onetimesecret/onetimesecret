@@ -1,0 +1,63 @@
+# .gitlab/ci/ruby.yml
+#
+# Ruby test lanes (docs/planning/2026-1110-gitlab-ci-migration-plan.md, §4.2).
+# GitHub runs every lane on the commits the push mirror delivers to it, after
+# the merge (plan §2.4); the jobs here run before it.
+#
+# A lane job runs the lane through tests/lanes/run with the services from
+# compose.test.yml, the same command and services as a local run. The daemon
+# for those services runs inside the job container (bin/ci docker up, plan
+# §4.3). Each step is one bin/ci command (tools/ci/README.md).
+
+# The smoke lane (tests/lanes/smoke): the curated SMOKE_SPEC_GROUPS in
+# lib/tasks/spec.rake and the Vitest list in src/tests/smoke-files.ts. It
+# waits on no other job. Selected by the same paths as GitHub's smoke-test
+# job (any Ruby or TypeScript change) and by a change to the pipeline.
+#
+# Differences from GitHub's smoke-test job, on purpose:
+#   - no frontend build: the lane passes in a checkout with no
+#     public/web/dist/ (without the Vite manifest, the page helper renders an
+#     error script tag in place of the asset tags), so the job neither builds
+#     the frontend nor waits for a job that does;
+#   - no RuboCop prerequisite: GitLab has no RuboCop job yet.
+smoke-lane:
+  stage: test
+  # The image spike S1 ran the lanes on. Its Ruby is the .ruby-version pin.
+  image: ruby:3.4.13-bookworm@sha256:a3d6cdfcefbf681f482be2ad848207f42193745d35695abe3a56327f45bdb515
+  tags: [saas-linux-medium-amd64]
+  needs: []
+  # A cold run (no Bundler cache) is the longest. Tighten once measured.
+  timeout: 15m
+  rules:
+    - changes: !reference [.changes, ci]
+    - changes: !reference [.changes, ruby]
+    - changes: !reference [.changes, typescript]
+  variables:
+    # The daemon bin/ci docker up starts; see tools/ci/docker.sh.
+    DOCKER_HOST: unix:///var/run/docker.sock
+  cache:
+    # The image name is in the prefix so that gems built against another
+    # image's libraries are never restored here.
+    key:
+      files:
+        - Gemfile.lock
+        - .ruby-version
+      prefix: bundle-ruby-bookworm
+    paths:
+      - vendor/bundle/
+  script:
+    - bin/ci toolchain
+    - bin/ci docker up
+    - bin/ci services up valkey rabbitmq
+    - bin/ci prepare
+    - bin/ci lane smoke
+  artifacts:
+    when: always
+    expire_in: 3 days
+    # mail.log stays behind: it is raw email content that no log scrubbing
+    # has seen (as in the run-test-lane action).
+    paths:
+      - tmp/ci/
+      - tmp/lanes/smoke/base/app.log
+      - tmp/lanes/smoke/base/last.log
+      - tmp/rspec_smoke_results*.json

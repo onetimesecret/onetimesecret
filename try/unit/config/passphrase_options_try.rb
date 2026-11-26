@@ -10,27 +10,27 @@ OT.conf.nil?
 #=> false
 
 ## Check if site config exists
-OT.conf.key?('site')
+OT.conf.get('site').is_a?(Hash)
 #=> true
 
 ## Load basic configuration and check secret_options exists
-OT.conf['site']['secret_options'].class
+OT.conf.get('site.secret_options').class
 #=> Hash
 
 ## Check if passphrase config exists
-OT.conf['site']['secret_options'].key?('passphrase')
+OT.conf.get('site.secret_options.passphrase').is_a?(Hash)
 #=> true
 
 ## Load basic configuration and check passphrase defaults
-OT.conf.dig('site', 'secret_options', 'passphrase', 'required')
+OT.conf.get('site.secret_options.passphrase.required')
 #=> false
 
 ## Load configuration with passphrase config
-OT.conf.dig('site', 'secret_options', 'passphrase', 'minimum_length')
+OT.conf.get('site.secret_options.passphrase.minimum_length')
 #=> 8
 
 ## Load configuration with password generation config
-OT.conf.dig('site', 'secret_options', 'password_generation', 'default_length')
+OT.conf.get('site.secret_options.password_generation.default_length')
 #=> 12
 
 ## password generation utility with default options

@@ -12,11 +12,11 @@
 # state, caches, and your working tree into the "clean" room).
 #
 # Lanes:
-#   baremetal   ruby:3.4.10-slim — the documented floor. bin/install must
+#   baremetal   ruby:3.4.13-slim — the documented floor. bin/install must
 #               succeed, produce a .env with a real SECRET, and be idempotent.
 #   ruby-old    ruby:3.3-slim   — bin/install must FAIL with a clear
-#               "need exactly 3.4.10" message (an asserted-error lane; NF-5).
-#   posix       ruby:3.4.10-slim with an empty locale — the container default IS
+#               "need exactly 3.4.13" message (an asserted-error lane; NF-5).
+#   posix       ruby:3.4.13-slim with an empty locale — the container default IS
 #               POSIX, which is the fresh-server repro for the old locale crash
 #               (must now pass; C3 fixed it). We assert LANG stays unset.
 #
@@ -44,7 +44,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Pinned base images per lane (exact patch for the Ruby-version gate).
-IMAGE_BAREMETAL="ruby:3.4.10-slim"
+IMAGE_BAREMETAL="ruby:3.4.13-slim"
 IMAGE_RUBY_OLD="ruby:3.3-slim"
 
 # Toolchain setup mirrored from docker/base.dockerfile so the container has
@@ -136,7 +136,7 @@ lane_ruby_old() {
     echo "FAIL: bin/install succeeded on old Ruby — the version gate did not fire"
     exit 1
   fi
-  if echo "$out" | grep -qiE 'need exactly 3\.4\.10|version mismatch|too old'; then
+  if echo "$out" | grep -qiE 'need exactly 3\.4\.13|version mismatch|too old'; then
     echo "OK: bin/install failed with a clear Ruby-version message (exit $status)"
   else
     echo "FAIL: bin/install failed (exit $status) but not with the expected version message"

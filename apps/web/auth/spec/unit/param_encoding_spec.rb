@@ -121,6 +121,15 @@ RSpec.describe Auth::ParamEncoding, :aggregate_failures do
       expect(sent).to be_empty
     end
 
+    it 'rejects a raw sharp-s sequence in a declared legacy-charset JSON body' do
+      sharp_s = "\xDF".b * 21
+      result  = post_raw('/reset-password-request', reset_body('user@example.com', sharp_s))
+
+      expect(result.first).to eq(400)
+      expect(JSON.parse(result.last)).to eq('error' => 'Bad Request', 'error_type' => 'BadRequest')
+      expect(sent).to be_empty
+    end
+
     it 'refuses only after every host gate has run' do
       post_raw('/reset-password-request', reset_body('user@example.com', "\xFF"))
 

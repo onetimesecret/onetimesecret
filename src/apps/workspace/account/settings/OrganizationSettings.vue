@@ -1,12 +1,12 @@
 <!-- src/apps/workspace/account/settings/OrganizationSettings.vue -->
 
 <script setup lang="ts">
-  import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
   import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
   import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
   import SecretActivityTable from '@/apps/workspace/components/organizations/SecretActivityTable.vue';
+  import SharingPolicyForm from '@/apps/workspace/components/organizations/SharingPolicyForm.vue';
+  import type { OrganizationPermissions } from '@/schemas/api/account/responses/permissions';
   import { classifyError } from '@/schemas/errors';
-  import type { ApplicationError } from '@/schemas/errors';
   import { BillingService } from '@/services/billing.service';
   import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
   import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
@@ -16,12 +16,10 @@
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import EmptyState from '@/shared/components/ui/EmptyState.vue';
   import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
-  import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
-  import { useEntitlementError } from '@/shared/composables/useEntitlementError';
   import { useEntitlements } from '@/shared/composables/useEntitlements';
   import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
-  import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
+  import { useOrganizationPermissionLookup, useResourcePermissions } from '@/shared/composables/useResourcePermissions';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useMembersStore } from '@/shared/stores/membersStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -49,12 +47,19 @@
   import { useConfirmDialog, useNow } from '@vueuse/core';
   import { storeToRefs } from 'pinia';
   import { SsoService } from '@/services/sso.service';
-  import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
   import { z } from 'zod';
 
-  type TabType = 'general' | 'members' | 'domains' | 'subscription' | 'sso' | 'activity';
+  type TabType =
+    | 'general'
+    | 'members'
+    | 'domains'
+    | 'subscription'
+    | 'sso'
+    | 'activity'
+    | 'sharing';
 
   // URL tab names map to internal tab names
   // URL: members -> internal: members (team kept as backwards-compat alias)
@@ -62,6 +67,7 @@
   // URL: subscription -> internal: subscription (billing kept as backwards-compat alias)
   // URL: sso -> internal: sso
   // URL: activity -> internal: activity
+  // URL: sharing -> internal: sharing
   const URL_TO_TAB: Record<string, TabType> = {
     members: 'members',
     team: 'members', // backwards compatibility for old URLs
@@ -71,6 +77,7 @@
     settings: 'general',
     sso: 'sso',
     activity: 'activity',
+    sharing: 'sharing',
   };
 
   const TAB_TO_URL: Record<TabType, string> = {
@@ -80,6 +87,7 @@
     general: 'settings',
     sso: 'sso',
     activity: 'activity',
+    sharing: 'sharing',
   };
 
   const props = withDefaults(
@@ -114,10 +122,7 @@
   // that window today — isLoading starts true so the skeleton covers the
   // content area, and the tab bar is v-if'd on `organization`, which is still
   // null — but guarding here removes the invalid state rather than leaving it
-  // to hold on that await ordering. The entitlement-gated tabs ('members',
-  // 'sso') are deliberately NOT handled here: they depend on permissions that
-  // aren't known until fetchAllPermissions() resolves, so they stay in
-  // checkInitialTabRedirect().
+  // to depend on that await ordering. SSO actions use the permissions returned for each domain.
   //
   // Calls isOrgsAuditLogsEnabled() rather than the orgAuditLogsFeatureEnabled
   // computed below — that binding is declared later and is still in its TDZ
@@ -162,7 +167,8 @@
    *   2. Members    - Team management: invite members, manage roles, review team
    *   3. SSO        - Only with ORGS_SSO_ENABLED; configured once, rarely touched
    *   4. Activity   - Unless ORGS_AUDIT_LOGS_ENABLED=false; the org's secret activity
-   *   5. Settings   - Rare: set-and-forget details, leave or delete. Always last.
+   *   5. Sharing    - Owner only: the organization's sharing controls; set once
+   *   6. Settings   - Rare: set-and-forget details, leave or delete. Always last.
    *
    * Domains is the default tab (props.initialTab), which saves a click for the
    * most common workflow. Subscription has no tab: it is a view of this page
@@ -171,7 +177,47 @@
    * This aligns with Fitts's Law corollary: reduce interaction cost for frequent
    * actions, accept higher cost for infrequent ones.
    */
-  const activeTab = ref<TabType>(resolveInitialTab());
+  // Delegated actions are also available without the full organization settings.
+  const { fetchAllPermissions } = useResourcePermissions();
+  const targetPermissions = ref<OrganizationPermissions | null>(null);
+  const checkingDomainPermissions = ref(false);
+  let permissionRequest = 0;
+  const refreshTargetPermissions = async () => {
+    const target = orgId.value;
+    const request = ++permissionRequest;
+    checkingDomainPermissions.value = true;
+    const result = await fetchAllPermissions();
+    if (request === permissionRequest && stillViewing(target)) {
+      targetPermissions.value = result?.organizations.find(org => org.extid === target) ?? null;
+      checkingDomainPermissions.value = false;
+    }
+  };
+  const fetchOrganizationPermissions = useOrganizationPermissionLookup();
+  // Undefined while loading; null when the server could not confirm access.
+  const canManageInvitations = ref<boolean | null>();
+  let invitationVisit = 0;
+  const clearInvitationAccess = (permission?: false) => {
+    invitationVisit++;
+    canManageInvitations.value = permission;
+    invitations.value = [];
+    showInviteForm.value = false;
+    inviteGeneralError.value = '';
+  };
+  const regularMember = computed(() => targetPermissions.value?.membership.role === 'member');
+  const assignableRoles = computed<OrganizationRole[]>(() =>
+    (targetPermissions.value?.assignable_roles ?? ['member']) as OrganizationRole[]
+  );
+  const canUseOrgSettings = computed(() => {
+    const org = organization.value;
+    if (!org || regularMember.value || (org.extid && org.extid !== orgId.value)) return false;
+    return org.current_user_role === 'owner' || org.current_user_role === 'admin';
+  });
+  const selectedTab = ref<TabType>(resolveInitialTab());
+  const activeTab = computed(() => {
+    if (selectedTab.value === 'sso' && isOrgsSsoEnabled()) return 'sso';
+    return regularMember.value || (organization.value && !canUseOrgSettings.value)
+      ? 'members' : selectedTab.value;
+  });
 
   // Switch tabs and mirror the choice in the URL (no new history entry). The
   // route lists :tab in meta.keepMountedAcrossParams, so this navigation keeps
@@ -184,18 +230,25 @@
   // onMounted continuation resuming after the user left (checkInitialTabRedirect
   // after its awaits) would otherwise navigate the NEXT page.
   let isUnmounted = false;
+  const stillViewing = (target: string) => !isUnmounted && orgId.value === target;
+  const stillViewingInvitations = (target: string, visit: number) =>
+    stillViewing(target) && visit === invitationVisit;
   onBeforeUnmount(() => {
     isUnmounted = true;
   });
   const setActiveTab = (tab: TabType) => {
-    if (isUnmounted) return;
-    activeTab.value = tab;
+    if (isUnmounted || (!canUseOrgSettings.value && tab !== 'members' && tab !== 'sso')) return;
+    selectedTab.value = tab;
     router.replace({ params: { ...route.params, tab: TAB_TO_URL[tab] } });
   };
 
   // Seat the tab a route's :tab segment names. An absent or unknown segment
   // gets the default tab, as on mount (resolveInitialTab). Entitlement-gated
-  // tabs the user can't access bounce to 'domains', URL included.
+  // tabs the user can't access bounce to 'domains', URL included. So does
+  // 'sharing' for anyone but the owner. Who the owner is isn't known until
+  // the organization has loaded, so a route naming 'sharing' before then is
+  // seated as on mount and left to checkInitialTabRedirect(). A reload after
+  // a save keeps the organization on screen, so the gate applies as usual.
   // NOTE: 'activity' has two distinct gates on different axes:
   //  - instance flag OFF (ORGS_AUDIT_LOGS_ENABLED=false) → tab is absent
   //    entirely, so deep links bounce to the default tab here;
@@ -204,18 +257,19 @@
   const showRouteTab = (urlTab: string | undefined) => {
     const resolved = urlTab ? URL_TO_TAB[urlTab] : undefined;
     if (!resolved) {
-      activeTab.value = props.initialTab;
+      selectedTab.value = props.initialTab;
       return;
     }
+    const ownerUnknown = isLoading.value && !organization.value;
     if (
-      (resolved === 'members' && !canManageMembers.value) ||
-      (resolved === 'sso' && !canManageSso.value) ||
-      (resolved === 'activity' && !orgAuditLogsFeatureEnabled.value)
+      (resolved === 'sso' && !isOrgsSsoEnabled()) ||
+      (resolved === 'activity' && !orgAuditLogsFeatureEnabled.value) ||
+      (resolved === 'sharing' && !ownerUnknown && !showSharingTab.value)
     ) {
       setActiveTab('domains');
       return;
     }
-    activeTab.value = resolved;
+    selectedTab.value = resolved;
   };
 
   // A :tab change on this org keeps this instance mounted: our own
@@ -262,12 +316,7 @@
   });
   const inviteErrors = ref<Record<string, string>>({});
   const inviteGeneralError = ref('');
-  const inviteUpgradeError = ref<ApplicationError | null>(null);
   const isInviting = ref(false);
-
-  const { wrap } = useAsyncHandler({
-    notify: false,
-  });
 
   const bootstrapStore = useBootstrapStore();
   const { billing_enabled } = storeToRefs(bootstrapStore);
@@ -281,13 +330,23 @@
     [...entitlements.value].sort((a, b) => formatEntitlement(a).localeCompare(formatEntitlement(b)))
   );
 
-  // SSO visibility: feature flag AND entitlement must both pass (dual-control)
-  const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
+  const ssoDomains = computed(() => isOrgsSsoEnabled() && !checkingDomainPermissions.value
+    ? targetPermissions.value?.domains.filter(domain => domain.permissions.can_manage_sso === true) ?? []
+    : []);
+  const ssoDomainIds = computed(() => new Set(ssoDomains.value.map(domain => domain.extid)));
+  const incomingDomainIds = computed(() => new Set(checkingDomainPermissions.value ? [] :
+    targetPermissions.value?.domains.filter(d => d.permissions.can_manage_incoming).map(d => d.extid)));
+  const ssoAccessUnconfirmed = computed(() => !targetPermissions.value ||
+    targetPermissions.value.domains.some(domain => domain.permissions.can_manage_sso === undefined));
+  const showSsoTab = computed(() => isOrgsSsoEnabled() &&
+    (canUseOrgSettings.value || ssoDomains.value.length > 0 || activeTab.value === 'sso'));
+  const showMembersTab = computed(() => canUseOrgSettings.value || activeTab.value === 'members' ||
+    targetPermissions.value?.permissions.can_manage_invitations === true);
 
   // Instance-level Secret Activity flag (default ON; ORGS_AUDIT_LOGS_ENABLED=false
   // turns it off). Distinct axis from the audit_logs ENTITLEMENT below:
   //  - flag OFF  → the Activity tab and panel are excluded entirely (unlike the
-  //    SSO tab, which renders disabled when unentitled — this one is hidden);
+  //    SSO tab, which can explain a membership denial);
   //  - flag ON + entitlement missing → tab visible, panel shows upgrade notice.
   const orgAuditLogsFeatureEnabled = computed(() => isOrgsAuditLogsEnabled());
 
@@ -311,14 +370,13 @@
   // affordance so members don't see a dead-end link.
   const { canCreateDomain } = useOrgPermissions(organization);
 
-  const { fetchAllPermissions, getOrgPermissions } = useResourcePermissions();
-
-  const assignableRoles = computed<OrganizationRole[]>(() => {
-    const orgPerms = getOrgPermissions(orgId.value);
-    return (orgPerms?.assignable_roles ?? ['member']) as OrganizationRole[];
-  });
-
   const isOwner = computed(() => organization.value?.current_user_role === 'owner');
+  const canEditSharingPolicy = computed(() => isOwner.value &&
+    targetPermissions.value?.permissions.can_manage_settings === true);
+  // The Sharing tab and its panel exist only for an owner who can edit the
+  // controls of the organization on screen.
+  const showSharingTab = computed(() => canUseOrgSettings.value && canEditSharingPolicy.value &&
+    !!organization.value?.sharing_policy && organization.value.extid === orgId.value);
   const hasDomains = computed(() => (organization.value?.domain_count ?? 0) > 0);
 
   // Delete guardrails mirrored from Onetime::Operations::Org::Delete. The
@@ -392,47 +450,21 @@
     configured: boolean;
     enabled: boolean;
   }
-  const domainSsoStatus: Record<string, DomainSsoStatus> = reactive({});
-  const isSsoStatusLoading = ref(false);
-  const isSsoStatusLoaded = ref(false);
+  const domainSsoStatus = ref<Record<string, DomainSsoStatus>>({});
+  let ssoVisit = 0;
 
-  /**
-   * Fetch SSO configuration status for each domain in the list.
-   * Only called when canManageSso is true and domains are loaded.
-   * Uses SsoService.getConfigForDomain which returns { record: null }
-   * for 404 (no config), so no error handling needed for that case.
-   */
-  const loadDomainSsoStatus = async () => {
-    if (!canManageSso.value || !domainRecords.value?.length) return;
-    // Guard against concurrent calls and redundant loads
-    if (isSsoStatusLoading.value || isSsoStatusLoaded.value) return;
-    isSsoStatusLoading.value = true;
-
-    const domains = domainRecords.value;
-    const results = await Promise.allSettled(
-      domains.map(async (domain) => {
-        const { record } = await SsoService.getConfigForDomain(domain.extid);
-        return { extid: domain.extid, record };
-      })
-    );
-
-    try {
-      for (const result of results) {
-        if (result.status === 'fulfilled') {
-          const { extid, record } = result.value;
-          domainSsoStatus[extid] = {
-            configured: record !== null,
-            enabled: record?.enabled === true,
-          };
-        }
-        // Rejected promises (network errors) are silently skipped —
-        // the badge simply won't appear for that domain.
+  const loadDomainSsoStatus = async (refreshPermissions = false) => {
+    const visit = ++ssoVisit;
+    const target = orgId.value;
+    domainSsoStatus.value = {};
+    if (refreshPermissions) await refreshTargetPermissions();
+    if (visit !== ssoVisit || !stillViewing(target) || activeTab.value !== 'sso') return;
+    await Promise.allSettled(ssoDomains.value.map(async domain => {
+      const { record } = await SsoService.getConfigForDomain(domain.extid);
+      if (visit === ssoVisit && stillViewing(target) && activeTab.value === 'sso') {
+        domainSsoStatus.value[domain.extid] = { configured: record !== null, enabled: record?.enabled === true };
       }
-
-      isSsoStatusLoaded.value = true;
-    } finally {
-      isSsoStatusLoading.value = false;
-    }
+    }));
   };
 
   // Form data
@@ -470,11 +502,13 @@
   );
 
   const loadOrganization = async () => {
+    const target = orgId.value;
     isLoading.value = true;
     error.value = '';
     orgNotFound.value = false;
     try {
-      const org = await organizationStore.fetchOrganization(orgId.value);
+      const org = await organizationStore.fetchOrganization(target);
+      if (!stillViewing(target)) return;
       organization.value = org;
       formData.value = {
         display_name: org.display_name,
@@ -482,8 +516,11 @@
         contact_email: org.contact_email || '',
       };
     } catch (err) {
+      if (!stillViewing(target)) return;
       organization.value = null;
       const classified = classifyError(err);
+      // A known member can still see the invitation decision without the roster.
+      if (classified.code === 403 && (activeTab.value === 'members' || activeTab.value === 'sso') && targetPermissions.value) return;
       if (classified.code === 404) {
         orgNotFound.value = true;
         error.value = t('web.organizations.not_found');
@@ -492,16 +529,35 @@
       }
       console.error('[OrganizationSettings] Error loading organization:', err);
     } finally {
-      isLoading.value = false;
+      if (orgId.value === target) isLoading.value = false;
     }
   };
 
   const loadInvitations = async () => {
+    if (!canManageInvitations.value) return;
+    const target = orgId.value;
+    const visit = invitationVisit;
     try {
-      invitations.value = await organizationStore.fetchInvitations(orgId.value);
+      const records = await organizationStore.fetchInvitations(target);
+      if (stillViewingInvitations(target, visit) && canManageInvitations.value) {
+        // The store also updates its array when mutations finish on other pages.
+        invitations.value = [...records];
+      }
     } catch (err) {
-      console.error('[OrganizationSettings] Error loading invitations:', err);
+      if (!stillViewingInvitations(target, visit)) return;
+      invitations.value = [];
+      if (classifyError(err).code === 403) clearInvitationAccess(false);
+      else console.error('[OrganizationSettings] Error loading invitations:', err);
     }
+  };
+
+  const refreshInvitations = async () => {
+    const target = orgId.value;
+    const visit = invitationVisit;
+    const record = await fetchOrganizationPermissions(target);
+    if (!stillViewingInvitations(target, visit)) return;
+    canManageInvitations.value = record?.permissions.can_manage_invitations ?? null;
+    await loadInvitations();
   };
 
   const loadMembers = async () => {
@@ -591,15 +647,17 @@
   };
 
   const handleInviteMember = async () => {
-    if (isInviting.value) return;
+    if (isInviting.value || !canManageInvitations.value) return;
 
     inviteErrors.value = {};
     inviteGeneralError.value = '';
-    inviteUpgradeError.value = null;
     isInviting.value = true;
+    const target = orgId.value;
+    const visit = invitationVisit;
 
     try {
-      await organizationStore.createInvitation(orgId.value, inviteFormData.value);
+      await organizationStore.createInvitation(target, inviteFormData.value);
+      if (!stillViewingInvitations(target, visit)) return;
 
       inviteFormData.value = {
         email: '',
@@ -610,6 +668,7 @@
 
       await loadInvitations();
     } catch (err) {
+      if (!stillViewingInvitations(target, visit)) return;
       if (err instanceof z.ZodError) {
         err.issues.forEach((issue) => {
           const field = issue.path[0] as string;
@@ -617,11 +676,8 @@
         });
       } else {
         const classified = classifyError(err);
-        const { isUpgradeRequired } = useEntitlementError(classified);
-
-        // Check if this is an upgrade-required error
-        if (isUpgradeRequired.value) {
-          inviteUpgradeError.value = classified;
+        if (classified.code === 403) {
+          clearInvitationAccess(false);
         } else {
           inviteGeneralError.value =
             classified.message || t('web.organizations.invitations.invite_error');
@@ -632,31 +688,25 @@
     }
   };
 
-  const handleResendInvitation = async (token: string) => {
-    error.value = '';
+  const updateInvitation = async (action: 'resend' | 'revoke', token: string) => {
+    if (!canManageInvitations.value) return;
+    const target = orgId.value;
+    const visit = invitationVisit;
+    inviteGeneralError.value = '';
     success.value = '';
-
-    const result = await wrap(() => organizationStore.resendInvitation(orgId.value, token));
-
-    if (result !== null) {
-      success.value = t('web.organizations.invitations.resend_success');
-      await loadInvitations(); // Refresh the list
-    } else {
-      error.value = t('web.organizations.invitations.resend_error');
-    }
-  };
-
-  const handleRevokeInvitation = async (token: string) => {
-    error.value = '';
-    success.value = '';
-
-    const result = await wrap(() => organizationStore.revokeInvitation(orgId.value, token));
-
-    if (result !== null) {
-      success.value = t('web.organizations.invitations.revoke_success');
-      await loadInvitations(); // Refresh the list
-    } else {
-      error.value = t('web.organizations.invitations.revoke_error');
+    try {
+      if (action === 'resend') await organizationStore.resendInvitation(target, token);
+      else await organizationStore.revokeInvitation(target, token);
+      if (!stillViewingInvitations(target, visit)) return;
+      success.value = t(`web.organizations.invitations.${action}_success`);
+      await loadInvitations();
+    } catch (err) {
+      if (!stillViewingInvitations(target, visit)) return;
+      if (classifyError(err).code === 403) {
+        clearInvitationAccess(false);
+      } else {
+        inviteGeneralError.value = t(`web.organizations.invitations.${action}_error`);
+      }
     }
   };
 
@@ -719,11 +769,6 @@
     });
   });
 
-  const canManageMembers = computed(() => {
-    if (!organization.value) return false;
-    return can(ENTITLEMENTS.MANAGE_MEMBERS);
-  });
-
   // Raw 'pending' status, NOT the expiry-aware effective status: a lapsed
   // invitation stays pending on the backend until cleanup, so a row can read
   // "Expired" in its badge while still counting here — intentional.
@@ -742,8 +787,7 @@
   };
 
   const checkInitialTabRedirect = () => {
-    // Redirect away from entitlement-gated tabs the user can't access
-    // (e.g. direct URL navigation to /org/.../members without manage_members).
+    // Redirect away from unavailable SSO, activity and sharing tabs.
     // 'activity' is entitlement-exempt (deep links land; the panel swaps in an
     // upgrade notice when unentitled). Its instance-flag clause below is
     // unreachable in practice — resolveInitialTab() rejects a flag-off
@@ -752,9 +796,9 @@
     // in depth against a future path that seats activeTab without passing
     // either gate.
     if (
-      (activeTab.value === 'members' && !canManageMembers.value) ||
-      (activeTab.value === 'sso' && !canManageSso.value) ||
-      (activeTab.value === 'activity' && !orgAuditLogsFeatureEnabled.value)
+      (activeTab.value === 'sso' && !isOrgsSsoEnabled()) ||
+      (activeTab.value === 'activity' && !orgAuditLogsFeatureEnabled.value) ||
+      (activeTab.value === 'sharing' && !showSharingTab.value)
     ) {
       setActiveTab('domains');
     }
@@ -767,37 +811,41 @@
       await refreshDomains();
     } else if (activeTab.value === 'subscription' && billingEnabled.value) {
       await loadBilling();
-    } else if (activeTab.value === 'sso' && canManageSso.value) {
-      await refreshDomains();
+    } else if (activeTab.value === 'sso') {
       await loadDomainSsoStatus();
     }
   };
 
-  onMounted(async () => {
-    // Point the store at this org immediately so the context bar doesn't
-    // flash the previously-selected org while the full fetch is in flight.
-    const cached = organizationStore.organizations?.find((o) => o.extid === orgId.value);
-    if (cached) {
-      organizationStore.setCurrentOrganization(cached);
+  const loadPage = async () => {
+    const target = orgId.value;
+    isLoading.value = true;
+    await refreshTargetPermissions();
+    if (!stillViewing(target)) return;
+    canManageInvitations.value = targetPermissions.value?.permissions.can_manage_invitations ?? null;
+
+    // A delegate's permissions already identify the organization and accessible
+    // domains. The separate organization detail endpoint can require api_access.
+    if (regularMember.value) {
+      organization.value = null;
+      isLoading.value = false;
+      await loadInitialTabData();
+      return;
     }
 
-    // Initialize entitlement definitions for formatting
     await initDefinitions();
-
-    // Fetch resource-scoped permissions (includes assignable_roles)
-    await fetchAllPermissions();
-
+    if (!stillViewing(target)) return;
     await loadOrganization();
-
+    if (!stillViewing(target) || error.value) return;
     checkInitialTabRedirect();
-
-    // Members are always loaded so the general tab's "Leave" button can
-    // identify the current user's membership record.
-    loadMembers();
-
-    // Load data for the initial tab. 'activity' needs no case here:
-    // SecretActivityTable owns its fetching and mounts lazily with the panel.
+    // The general tab's Leave action needs the current membership.
+    if (canUseOrgSettings.value) loadMembers();
     await loadInitialTabData();
+  };
+
+  onMounted(() => {
+    const cached = organizationStore.organizations?.find((o) => o.extid === orgId.value);
+    if (cached) organizationStore.setCurrentOrganization(cached);
+    return loadPage();
   });
 
   // Per-tab lazy loads on tab switch. 'activity' has no case here on purpose:
@@ -805,27 +853,22 @@
   // activation and fetches its own first page (refetching fresh on each visit —
   // desirable for an audit trail).
   watch(activeTab, async (newTab) => {
+    if (isLoading.value) return;
+    clearInvitationAccess();
+    ssoVisit++;
     if (newTab === 'members') {
       // Load members and invitations when switching to members tab
-      const promises: Promise<void>[] = [];
-      if (!membersStore.isInitialized || membersStore.currentOrgExtid !== orgId.value) {
-        promises.push(loadMembers());
-      }
-      if (invitations.value.length === 0) {
-        promises.push(loadInvitations());
-      }
-      if (promises.length > 0) {
-        await Promise.all(promises);
-      }
+      const requests = [refreshInvitations()];
+      const needsMembers = !membersStore.isInitialized || membersStore.currentOrgExtid !== orgId.value;
+      if (canUseOrgSettings.value && needsMembers) requests.push(loadMembers());
+      await Promise.all(requests);
     } else if (newTab === 'domains') {
-      // Load domains when switching to domains tab
-      await refreshDomains();
+      // Row actions use the current target-domain permission on each visit.
+      await Promise.all([refreshDomains(), refreshTargetPermissions()]);
     } else if (newTab === 'subscription' && !subscription.value && billingEnabled.value) {
       await loadBilling();
-    } else if (newTab === 'sso' && canManageSso.value) {
-      // Ensure domains are loaded, then fetch SSO status for each
-      await refreshDomains();
-      await loadDomainSsoStatus();
+    } else if (newTab === 'sso') {
+      await loadDomainSsoStatus(true);
     }
   });
 
@@ -835,33 +878,19 @@
   // onMounted loads org B. This watcher only acts if :extid changes while
   // this instance stays mounted: it then reloads the org (which updates
   // currentOrganization in the store) and the active tab's data.
-  watch(orgId, async (newOrgId, oldOrgId) => {
+  watch(orgId, (newOrgId, oldOrgId) => {
     if (newOrgId && newOrgId !== oldOrgId) {
-      // Reset SSO status cache when switching orgs — domains differ per org
-      isSsoStatusLoaded.value = false;
-      for (const key of Object.keys(domainSsoStatus)) {
-        delete domainSsoStatus[key];
-      }
-
-      await loadOrganization();
-      // Guard against stale responses from rapid org navigation — if the
-      // user navigated again while we were loading, orgId has already
-      // changed and a newer watcher invocation will handle it.
-      if (orgId.value !== newOrgId) return;
-      // Only load tab-specific data if the org loaded successfully
-      if (!orgNotFound.value && !error.value) {
-        loadMembers();
-        if (activeTab.value === 'members') {
-          await loadInvitations();
-        } else if (activeTab.value === 'domains') {
-          await refreshDomains();
-        } else if (activeTab.value === 'subscription' && billingEnabled.value) {
-          await loadBilling();
-        } else if (activeTab.value === 'sso' && canManageSso.value) {
-          await refreshDomains();
-          await loadDomainSsoStatus();
-        }
-      }
+      clearInvitationAccess();
+      inviteFormData.value = { email: '', role: 'member' };
+      inviteErrors.value = {};
+      ssoVisit++;
+      targetPermissions.value = null;
+      domainSsoStatus.value = {};
+      organization.value = null;
+      error.value = '';
+      success.value = '';
+      orgNotFound.value = false;
+      return loadPage();
     }
   });
 
@@ -870,10 +899,13 @@
   // panel shows the upgrade prompt), so it must stay keyboard-reachable. When
   // the flag is off the tab doesn't render at all.
   const navigableTabs = computed<TabType[]>(() => {
-    const tabs: TabType[] = ['domains'];
-    if (canManageMembers.value) tabs.push('members');
-    if (canManageSso.value) tabs.push('sso');
+    const tabs: TabType[] = [];
+    if (canUseOrgSettings.value) tabs.push('domains');
+    if (showMembersTab.value) tabs.push('members');
+    if (showSsoTab.value) tabs.push('sso');
+    if (!canUseOrgSettings.value) return tabs;
     if (orgAuditLogsFeatureEnabled.value) tabs.push('activity');
+    if (showSharingTab.value) tabs.push('sharing');
     tabs.push('general');
     return tabs;
   });
@@ -925,21 +957,21 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <router-link
-            to="/orgs"
+            :to="canUseOrgSettings ? '/orgs' : '/dashboard'"
             class="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            :title="organization?.display_name || t('web.organizations.title')">
+            :title="organization?.display_name || targetPermissions?.display_name || t('web.organizations.title')">
             <OIcon
               collection="heroicons"
               name="arrow-left"
               class="size-5 shrink-0"
               aria-hidden="true" />
             <h1 class="m-0 truncate text-base font-medium text-gray-900 sm:text-xl dark:text-white">
-              {{ organization?.display_name || t('web.COMMON.loading') }}
+              {{ organization?.display_name || targetPermissions?.display_name || t('web.COMMON.loading') }}
             </h1>
           </router-link>
         </div>
         <router-link
-          v-if="organization && billingEnabled"
+          v-if="organization && billingEnabled && canUseOrgSettings"
           :to="`/org/${organization.extid}/subscription`"
           class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 hover:border-gray-300 hover:text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:border-gray-500 dark:hover:text-gray-200"
           data-testid="org-subscription-chip">
@@ -956,9 +988,10 @@
         </router-link>
       </div>
 
-      <!-- Tabs: Domains, Members, SSO (conditional), Activity (conditional), Settings -->
+      <!-- Tabs: Domains, Members, SSO (conditional), Activity (conditional),
+           Sharing (owner only), Settings -->
       <div
-        v-if="!orgNotFound && organization"
+        v-if="!isLoading && !orgNotFound && (organization || targetPermissions)"
         class="border-b border-gray-200 dark:border-gray-700">
         <nav
           role="tablist"
@@ -968,6 +1001,7 @@
           @keydown="handleTabKeydown">
           <!-- Domains tab -->
           <button
+            v-if="canUseOrgSettings"
             id="org-tab-domains"
             role="tab"
             :aria-selected="activeTab === 'domains'"
@@ -983,44 +1017,39 @@
             ]">
             {{ t('web.organizations.tabs.domains') }}
           </button>
-          <!-- Members tab (entitlement-gated) -->
+          <!-- Members and invitations -->
           <button
+            v-if="showMembersTab"
             id="org-tab-members"
             role="tab"
             :aria-selected="activeTab === 'members'"
-            :aria-disabled="!canManageMembers"
             :tabindex="rovingTab === 'members' ? 0 : -1"
             aria-controls="org-panel-members"
             data-testid="org-tab-members"
-            @click="canManageMembers && setActiveTab('members')"
+            @click="setActiveTab('members')"
             :class="[
               'border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap',
-              !canManageMembers
-                ? 'cursor-not-allowed border-transparent text-gray-400 dark:text-gray-600'
-                : activeTab === 'members'
-                  ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+              activeTab === 'members'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.members') }}
           </button>
-          <!-- SSO tab (feature-flag + entitlement-gated) -->
+          <!-- Tenant SSO settings -->
           <button
-            v-if="isOrgsSsoEnabled()"
+            v-if="showSsoTab"
             id="org-tab-sso"
             role="tab"
             :aria-selected="activeTab === 'sso'"
-            :aria-disabled="!canManageSso"
             :tabindex="rovingTab === 'sso' ? 0 : -1"
             aria-controls="org-panel-sso"
             data-testid="org-tab-sso"
-            @click="canManageSso && setActiveTab('sso')"
+            @click="setActiveTab('sso')"
             :class="[
               'border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap',
-              !canManageSso
-                ? 'cursor-not-allowed border-transparent text-gray-400 dark:text-gray-600'
-                : activeTab === 'sso'
-                  ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+              activeTab === 'sso'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.sso') }}
           </button>
@@ -1029,7 +1058,7 @@
                the panel gates on the audit_logs entitlement (upgrade notice
                when unentitled) -->
           <button
-            v-if="orgAuditLogsFeatureEnabled"
+            v-if="canUseOrgSettings && orgAuditLogsFeatureEnabled"
             id="org-tab-activity"
             role="tab"
             :aria-selected="activeTab === 'activity'"
@@ -1045,8 +1074,27 @@
             ]">
             {{ t('web.organizations.tabs.activity') }}
           </button>
+          <!-- Sharing controls — owner only -->
+          <button
+            v-if="showSharingTab"
+            id="org-tab-sharing"
+            role="tab"
+            :aria-selected="activeTab === 'sharing'"
+            :tabindex="rovingTab === 'sharing' ? 0 : -1"
+            aria-controls="org-panel-sharing"
+            data-testid="org-tab-sharing"
+            @click="setActiveTab('sharing')"
+            :class="[
+              'border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap',
+              activeTab === 'sharing'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ t('web.organizations.tabs.sharing') }}
+          </button>
           <!-- Settings tab - always last -->
           <button
+            v-if="canUseOrgSettings"
             id="org-tab-general"
             role="tab"
             :aria-selected="activeTab === 'general'"
@@ -1395,6 +1443,20 @@
           </div>
         </template>
 
+        <!-- Sharing Tab — the card is the tabpanel -->
+        <SharingPolicyForm
+          v-if="activeTab === 'sharing' && showSharingTab && organization?.sharing_policy"
+          id="org-panel-sharing"
+          :key="organization.extid"
+          role="tabpanel"
+          aria-labelledby="org-tab-sharing"
+          tabindex="0"
+          data-testid="org-section-sharing"
+          :extid="organization.extid"
+          :policy="organization.sharing_policy"
+          :invalid="organization.sharing_policy_invalid === true"
+          @saved="(updated) => { if (stillViewing(updated.extid)) organization = updated }" />
+
         <!-- Members Tab -->
         <section
           v-if="activeTab === 'members'"
@@ -1411,13 +1473,15 @@
                   {{ t('web.organizations.tabs.members') }}
                 </h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {{ membersStore.memberCount }}
-                  {{
-                    membersStore.memberCount === 1
-                      ? t('web.organizations.members.member_singular')
-                      : t('web.organizations.members.member_plural')
-                  }}
-                  <span v-if="pendingInvitationCount > 0"
+                  <template v-if="canUseOrgSettings">
+                    {{ membersStore.memberCount }}
+                    {{
+                      membersStore.memberCount === 1
+                        ? t('web.organizations.members.member_singular')
+                        : t('web.organizations.members.member_plural')
+                    }}
+                  </template>
+                  <span v-if="canManageInvitations && pendingInvitationCount > 0"
                     >&nbsp;{{
                       t('web.organizations.members.pending_suffix', {
                         count: pendingInvitationCount,
@@ -1426,28 +1490,11 @@
                   >
                 </p>
               </div>
-              <!--
-                Header CTA: hidden when the form is open (form has its own primary
-                submit; avoids dual-primary). Disabled when the user lacks the
-                MANAGE_MEMBERS entitlement.
-              -->
-              <div class="flex flex-col items-end gap-1">
+              <div v-if="canManageInvitations && !showInviteForm">
                 <button
-                  v-if="!showInviteForm"
                   type="button"
-                  @click="canManageMembers && (showInviteForm = true)"
-                  :disabled="!canManageMembers"
-                  :title="
-                    !canManageMembers
-                      ? t('web.organizations.invitations.upgrade_to_invite')
-                      : undefined
-                  "
-                  :class="[
-                    'inline-flex items-center rounded-md px-3 py-2 font-brand text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-                    canManageMembers
-                      ? 'bg-brand-600 text-white hover:bg-brand-500 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400'
-                      : 'cursor-not-allowed bg-gray-300 text-gray-500 dark:bg-gray-600 dark:text-gray-400',
-                  ]">
+                  @click="showInviteForm = true"
+                  class="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-brand-600 px-3 py-1.5 font-brand text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-500 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:bg-brand-500 dark:hover:bg-brand-400">
                   <OIcon
                     collection="heroicons"
                     name="user-plus"
@@ -1457,55 +1504,32 @@
                 </button>
               </div>
             </div>
-            <div
-              v-if="!canManageMembers"
-              class="mt-4 flex items-center gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
-              <OIcon
-                collection="heroicons"
-                name="information-circle"
-                class="size-5 flex-shrink-0 text-amber-500 dark:text-amber-400"
-                aria-hidden="true" />
-              <p class="flex-1 text-sm text-amber-700 dark:text-amber-300">
-                {{ t('web.organizations.invitations.upgrade_prompt') }}
-              </p>
-              <router-link
-                :to="`/billing/${orgId}/plans`"
-                class="inline-flex items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200">
-                {{ t('web.billing.overview.view_plans_action') }}
-                <OIcon
-                  collection="heroicons"
-                  name="arrow-right"
-                  class="size-4"
-                  aria-hidden="true" />
-              </router-link>
-            </div>
+            <p
+              v-if="canManageInvitations === false"
+              class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+              {{ t('web.organizations.invitations.permission_required') }}
+            </p>
+            <p
+              v-else-if="canManageInvitations === null"
+              class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+              {{ t('web.organizations.access_unconfirmed_notice') }}
+            </p>
           </div>
 
           <div class="p-6">
             <BasicFormAlerts
-              v-if="error"
-              :error="error" />
+              v-if="inviteGeneralError || error"
+              :error="inviteGeneralError || error" />
             <BasicFormAlerts
               v-if="success"
               :success="success" />
 
-            <EntitlementUpgradePrompt
-              v-if="inviteUpgradeError"
-              :error="inviteUpgradeError"
-              resource-type="members"
-              class="mb-4"
-              @close="inviteUpgradeError = null" />
-
             <div
-              v-if="showInviteForm && canManageMembers"
+              v-if="showInviteForm && canManageInvitations"
               class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
               <form
                 @submit.prevent="handleInviteMember"
                 class="space-y-4">
-                <BasicFormAlerts
-                  v-if="inviteGeneralError"
-                  :error="inviteGeneralError" />
-
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
                   <div class="flex-1">
                     <label
@@ -1569,7 +1593,7 @@
               </form>
             </div>
 
-            <div v-if="membersStore.members.length > 0">
+            <div v-if="canUseOrgSettings && membersStore.members.length > 0">
               <MembersTable
                 :members="membersStore.members"
                 :org-extid="orgId"
@@ -1581,7 +1605,7 @@
             </div>
 
             <div
-              v-else-if="!membersStore.loading"
+              v-else-if="canUseOrgSettings && !membersStore.loading"
               class="py-8 text-center">
               <OIcon
                 collection="heroicons"
@@ -1589,14 +1613,14 @@
                 class="mx-auto size-12 text-gray-400"
                 aria-hidden="true" />
               <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('web.organizations.members.no_members') }}
+                {{ t('web.organizations.members.no_members_description') }}
               </p>
             </div>
 
-            <TableSkeleton v-else />
+            <TableSkeleton v-else-if="canUseOrgSettings" />
 
             <div
-              v-if="invitations.length > 0"
+              v-if="canManageInvitations && invitations.length > 0"
               class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
               <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ t('web.organizations.invitations.pending_invitations') }}
@@ -1637,13 +1661,13 @@
                     class="flex gap-2">
                     <button
                       type="button"
-                      @click="handleResendInvitation(invitation.token!)"
+                      @click="updateInvitation('resend', invitation.token!)"
                       class="cursor-pointer rounded px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800">
                       {{ t('web.organizations.invitations.resend') }}
                     </button>
                     <button
                       type="button"
-                      @click="handleRevokeInvitation(invitation.token!)"
+                      @click="updateInvitation('revoke', invitation.token!)"
                       class="cursor-pointer rounded px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 hover:text-red-800 focus:ring-2 focus:ring-red-500 focus:ring-offset-1 focus:outline-none dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300 dark:focus:ring-offset-gray-800">
                       {{ t('web.organizations.invitations.revoke') }}
                     </button>
@@ -1701,6 +1725,8 @@
             <DomainsTable
               v-else-if="domainCount > 0 && domainRecords"
               :domains="domainRecords"
+              :sso-domain-ids="ssoDomainIds"
+              :incoming-domain-ids="incomingDomainIds"
               :is-loading="isLoadingDomains"
               :orgid="orgId"
               compact />
@@ -1998,9 +2024,9 @@
           </template>
         </section>
 
-        <!-- SSO Tab (entitlement-gated) -->
+        <!-- Tenant SSO configuration for permitted domains -->
         <section
-          v-if="activeTab === 'sso' && canManageSso"
+          v-if="activeTab === 'sso' && showSsoTab"
           id="org-panel-sso"
           role="tabpanel"
           aria-labelledby="org-tab-sso"
@@ -2034,14 +2060,21 @@
             <div class="p-6">
               <!-- Loading state -->
               <ListSkeleton
-                v-if="isLoadingDomains"
+                v-if="checkingDomainPermissions"
                 icon
                 icon-size="w-5" />
 
+              <p v-else-if="!ssoDomains.length && ssoAccessUnconfirmed">
+                {{ t('web.organizations.access_unconfirmed_notice') }}
+              </p>
+              <p v-else-if="!ssoDomains.length && targetPermissions?.domains.length">
+                {{ t('web.domains.sso.permission_required') }}
+              </p>
+
               <!-- Empty state -->
               <EmptyState
-                v-else-if="domainCount === 0"
-                :show-action="canCreateDomain"
+                v-else-if="!ssoDomains.length"
+                :show-action="canUseOrgSettings && canCreateDomain"
                 :action-route="`/org/${orgId}/domains/add`"
                 :action-text="t('web.domains.add_domain')">
                 <template #title>
@@ -2057,7 +2090,7 @@
                 v-else
                 class="space-y-3">
                 <div
-                  v-for="domain in domainRecords"
+                  v-for="domain in ssoDomains"
                   :key="domain.extid"
                   class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-600 dark:bg-gray-700/50">
                   <div class="flex items-center gap-3">
@@ -2071,15 +2104,13 @@
                         {{ domain.display_domain }}
                       </p>
                       <router-link
-                        v-if="!domain.verified"
+                        v-if="domain.verified === false && canUseOrgSettings && domain.permissions.can_view"
                         :to="`/org/${orgId}/domains/${domain.extid}/verify`"
                         class="text-xs text-yellow-700 hover:underline dark:text-yellow-400">
                         {{ t('web.domains.pending_verification') }}
                       </router-link>
-                      <p
-                        v-else
-                        class="text-xs text-gray-500 dark:text-gray-400">
-                        {{ t('web.domains.verified') }}
+                      <p v-else-if="domain.verified !== undefined" class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ t(domain.verified ? 'web.domains.verified' : 'web.domains.pending_verification') }}
                       </p>
                     </div>
                   </div>
@@ -2096,7 +2127,7 @@
                       {{ t('web.organizations.sso.status_configured') }}
                     </span>
                     <span
-                      v-else
+                      v-else-if="domainSsoStatus[domain.extid]"
                       class="inline-flex items-center rounded-full bg-yellow-50 px-2 py-0.5 text-xs font-medium text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
                       {{ t('web.organizations.sso.status_not_configured') }}
                     </span>

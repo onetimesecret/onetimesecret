@@ -43,7 +43,7 @@ RSpec.describe 'routes_try', type: :integration do
 
   it 'Authentication is enabled' do
     result = begin
-      OT.conf['site']['authentication']['signin']
+      OT.conf.get('site.authentication.signin')
     end
     expect(result).to eq(true)
   end

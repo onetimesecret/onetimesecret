@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/jobs/publisher'
-require 'onetime/incoming/recipient_resolver'
+require 'onetime/logic/passphrase_validation'
 require 'onetime/security/no_client_ip'
 require 'onetime/security/incoming_rate_limiter'
 
@@ -39,6 +39,7 @@ module Incoming
     #   secret metadata on success.
     class CreateIncomingSecret < Incoming::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Logic::PassphraseValidation
       include Onetime::Security::IncomingRateLimiter
 
       SCHEMAS = { response: 'incomingSecret' }.freeze
@@ -61,9 +62,8 @@ module Incoming
         # Extract recipient hash instead of email
         @recipient_hash = sanitize_identifier(@payload['recipient'].to_s.strip)
 
-        # Set passphrase from global config (not per-domain yet)
-        incoming_config = OT.conf.get('features.incoming', {})
-        @passphrase     = incoming_config['default_passphrase']
+        # An operator-configured passphrase takes precedence over sender input.
+        @passphrase = OT.conf.get('features.incoming.default_passphrase', nil)
 
         # NOTE: Resolver calls (config_data, lookup) are deferred to
         # raise_concerns/process to avoid Redis I/O before entitlement check
@@ -159,13 +159,6 @@ module Incoming
         Onetime::Security::NoClientIp.subject_for(strategy_result&.metadata&.[](:ip))
       end
 
-      def resolver
-        @resolver ||= Onetime::Incoming::RecipientResolver.new(
-          domain_strategy: domain_strategy,
-          display_domain: display_domain,
-        )
-      end
-
       # Returns the display_name for a recipient hash by scanning the
       # resolver's public_recipients list. Both canonical and per-domain
       # configs produce entries shaped {'digest' => ..., 'display_name' => ...}.
@@ -192,8 +185,14 @@ module Incoming
         memo_max = domain_config[:memo_max_length] || 50
         @memo    = @memo.slice(0, memo_max) if @memo.length > memo_max
 
-        # Set TTL from domain-aware config
-        @ttl = domain_config[:default_ttl] || 604_800 # 7 days fallback
+        @ttl = domain_config.fetch(:default_ttl)
+        return unless domain_config[:passphrase_input_required]
+
+        @passphrase = @payload['passphrase']
+        unless passphrase.is_a?(String) && passphrase.match?(/[^[:space:]]/)
+          raise_form_error 'A passphrase is required', field: :passphrase, error_key: 'api.secrets.errors.passphrase_required'
+        end
+        validate_provided_passphrase
       end
 
       def create_and_encrypt_secret
@@ -257,7 +256,7 @@ module Incoming
       def resolved_domain_id
         return @resolved_domain_id if defined?(@resolved_domain_id)
 
-        @resolved_domain_id = Onetime::CustomDomain.resolve_domain_id(share_domain)
+        @resolved_domain_id = custom_domain_id || Onetime::CustomDomain.resolve_domain_id(share_domain)
       end
 
       # Optional follow-ups run after the commit. Each failure is logged by

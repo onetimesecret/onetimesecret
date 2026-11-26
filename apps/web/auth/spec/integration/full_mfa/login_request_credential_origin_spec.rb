@@ -44,14 +44,14 @@ RSpec.describe Auth::PublicHost, :aggregate_failures, :full_auth_mode, :shared_d
   let(:account_email) { unique_test_email('nonmember') }
 
   around do |example|
-    saved_host = OT.conf['site']['host']
+    saved_host = OT.conf.get('site.host')
     begin
-      OT.conf['site']['host'] = nil
-      Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+      OT.conf.get('site')['host'] = nil
+      Onetime::Middleware::DomainStrategy.initialize_from_config
       example.run
     ensure
-      OT.conf['site']['host'] = saved_host
-      Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+      OT.conf.get('site')['host'] = saved_host
+      Onetime::Middleware::DomainStrategy.initialize_from_config
     end
   end
 

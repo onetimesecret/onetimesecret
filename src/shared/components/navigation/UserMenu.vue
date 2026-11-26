@@ -35,14 +35,15 @@
   import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
   import { type Customer } from '@/schemas/shapes/v3';
   import { ENTITLEMENTS } from '@/types/organization';
-  import { isOrgsAuditLogsEnabled } from '@/utils/features';
+  import { isOrgsAuditLogsEnabled, isOrgsSsoEnabled } from '@/utils/features';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { useOrganizationPermissionLookup, useResourcePermissions } from '@/shared/composables/useResourcePermissions';
   import PlanPreviewModal from '@/shared/components/modals/PlanPreviewModal.vue';
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted, onUnmounted, ref } from 'vue';
+  import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   // Copy to clipboard helper
@@ -127,17 +128,6 @@
 
   const isElevatedRole = computed(() => userRole.value === 'owner' || userRole.value === 'admin');
 
-  // Match the DomainContext switcher's settings gate: elevated users can edit
-  // domains on standalone installs, while billing-enabled installs require the
-  // domain-management entitlement when the entitlement list is present.
-  const canManageDomainSettings = computed(() => {
-    if (!isElevatedRole.value) return false;
-    if (!billing_enabled.value) return true;
-
-    const ents = currentOrganization.value?.entitlements;
-    return !ents || ents.includes(ENTITLEMENTS.MANAGE_ORG);
-  });
-
   // Reuse the org-switcher visibility logic so the header identity chip appears
   // and disappears in step with the organization context dropdown.
   const { isSoloDefaultContext } = useScopeSwitcherVisibility();
@@ -164,11 +154,35 @@
   });
 
   // Domain context display in menu header
-  const { currentContext, isContextActive } = useDomainContext();
+  const { currentContext, isContextActive, canViewDomain } = useDomainContext();
+  const canManageDomainSettings = computed(() => isElevatedRole.value && canViewDomain(currentContext.value.extid));
   const showDomainContext = computed(() => isContextActive.value && !props.awaitingMfa);
 
   const isOpen = ref(false);
   const menuRef = ref<HTMLElement | null>(null);
+  const fetchOrganizationPermissions = useOrganizationPermissionLookup();
+  const { fetchAllPermissions } = useResourcePermissions();
+  const invitationPath = ref<string | undefined>();
+  const ssoPath = ref<string | undefined>();
+  watch([isOpen, orgExtid, customerExtid, () => props.awaitingMfa], async ([open, org, customer, awaitingMfa], _, onCleanup) => {
+    invitationPath.value = undefined;
+    ssoPath.value = undefined;
+    if (!open || !org || !customer || awaitingMfa) return;
+    let current = true;
+    onCleanup(() => { current = false; });
+    // The bulk response supplies both the org invitation action and the SSO
+    // action for each domain. Otherwise the menu needs only this org's record.
+    const record = isOrgsSsoEnabled()
+      ? (await fetchAllPermissions())?.organizations.find(item => item.extid === org)
+      : await fetchOrganizationPermissions(org);
+    if (!current || !record) return;
+    if (record.permissions.can_manage_invitations) {
+      invitationPath.value = `/org/${org}/members`;
+    }
+    if ('domains' in record && record.domains.some(domain => domain.permissions.can_manage_sso)) {
+      ssoPath.value = `/org/${org}/sso`;
+    }
+  });
 
   // Menu item type
   interface MenuItem {
@@ -229,6 +243,20 @@
       label: t('web.organizations.tabs.domains'),
       icon: { collection: 'heroicons', name: 'globe-alt' },
       condition: () => !props.awaitingMfa,
+    },
+    {
+      id: 'invitations',
+      to: invitationPath.value,
+      label: t('web.organizations.invitations.title'),
+      icon: { collection: 'heroicons', name: 'user-plus' },
+      condition: () => !!invitationPath.value,
+    },
+    {
+      id: 'tenant-sso',
+      to: ssoPath.value,
+      label: t('web.organizations.sso.domain_sso_title'),
+      icon: { collection: 'heroicons', name: 'shield-check-solid' },
+      condition: () => !!ssoPath.value,
     },
     {
       id: 'activity',

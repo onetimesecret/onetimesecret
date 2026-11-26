@@ -51,6 +51,47 @@ RSpec.describe Onetime::Receipt do
     # 1. One commit for the pair
     # -----------------------------------------------------------
     context 'commit' do
+      it 'refuses encrypted creation before any write when the key verifier mismatches' do
+        allow(Onetime).to receive(:secret_verifier_state).and_return(:mismatch)
+
+        expect { Onetime::Receipt.spawn_pair(owner_id, lifespan, content) }
+          .to raise_error(Onetime::TemporarilyUnavailable) { |error|
+            expect(error.reason).to eq(:secret_key_mismatch)
+          }
+        expect(commits).to be_empty
+        expect(Onetime::Customer).not_to have_received(:increment_secrets_active)
+      end
+
+      it 'rechecks an unavailable boot verifier and refuses a recovered mismatch' do
+        allow(Onetime).to receive(:secret_verifier_state).and_return(:unavailable)
+        allow(Onetime::SecretVerifier).to receive(:check!).and_return(:mismatch)
+
+        expect { Onetime::Receipt.spawn_pair(owner_id, lifespan, content) }
+          .to raise_error(Onetime::TemporarilyUnavailable) { |error|
+            expect(error.reason).to eq(:secret_key_mismatch)
+          }
+        expect(commits).to be_empty
+      end
+
+      it 'rechecks an unavailable boot verifier before a successful write' do
+        allow(Onetime).to receive(:secret_verifier_state).and_return(:unavailable)
+        expect(Onetime::SecretVerifier).to receive(:check!).and_return(:ok)
+
+        expect { Onetime::Receipt.spawn_pair(owner_id, lifespan, content) }.not_to raise_error
+        expect(commits.size).to eq(1)
+      end
+
+      it 'refuses writes while the verifier check remains unavailable' do
+        allow(Onetime).to receive(:secret_verifier_state).and_return(:unavailable)
+        allow(Onetime::SecretVerifier).to receive(:check!).and_return(:unavailable)
+
+        expect { Onetime::Receipt.spawn_pair(owner_id, lifespan, content) }
+          .to raise_error(Onetime::TemporarilyUnavailable) { |error|
+            expect(error.reason).to eq(:secret_verifier_unavailable)
+          }
+        expect(commits).to be_empty
+      end
+
       it 'writes the secret and receipt in exactly one atomic write' do
         receipt, secret = Onetime::Receipt.spawn_pair(owner_id, lifespan, content, domain: domain, kind: kind)
 

@@ -6,6 +6,12 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { usePageTitle } from '@/shared/composables/usePageTitle';
+import {
+  useDomainPermissionLookup,
+  useDomainSsoPermissionLookup,
+  useOrganizationPermissionLookup,
+  useResourcePermissions,
+} from '@/shared/composables/useResourcePermissions';
 import type { ClientAuthStatus } from '@/schemas/contracts/bootstrap';
 import {
   useAuthStore,
@@ -502,6 +508,15 @@ export async function handleOrgRoleRequirement(
   // win; settings routes carry the org as :extid only.
   const orgExtid = (to.params.orgid ?? to.params.extid) as string | undefined;
 
+  if (orgExtid) {
+    if (isOrganizationMembersTab(to)) return checkMembersTabAccess(store, orgExtid);
+    if (to.name === 'DomainIncoming' && typeof to.params.extid === 'string') {
+      return checkIncomingRouteAccess(store, orgExtid, to.params.extid);
+    }
+    const ssoDecision = handleTenantSsoRoute(store, to, orgExtid);
+    if (ssoDecision !== undefined) return ssoDecision;
+  }
+
   // Single-org routes test the org named in the path; the list page (no org in
   // the path) is met when any membership qualifies.
   const meets = orgExtid
@@ -548,6 +563,91 @@ function notifyOrgRoleRefused(
 }
 
 type OrganizationStore = ReturnType<typeof useOrganizationStore>;
+
+async function checkIncomingRouteAccess(
+  store: OrganizationStore, orgExtid: string, domain: string
+) {
+  const record = await useDomainPermissionLookup()(orgExtid, domain);
+  // A confirmed feature denial belongs on the Incoming page for this domain.
+  if (record?.permissions.can_manage_incoming === false &&
+      record.permissions.incoming_feature_required === true) return null;
+  return checkDomainActionAccess(store, orgExtid, record && {
+    allowed: record.permissions.can_manage_incoming, role: record.membership.role,
+  }, 'web.domains.incoming.access_denied');
+}
+
+function handleTenantSsoRoute(
+  store: OrganizationStore, to: RouteLocationNormalized, orgExtid: string
+) {
+  if (to.name === 'Organization Settings' && to.params.tab === 'sso') {
+    return checkSsoRouteAccess(store, orgExtid, organizationSsoAccess(orgExtid));
+  }
+  if (to.name === 'DomainSignin' && to.query.modal === 'sso') {
+    const { modal: _modal, ...query } = to.query;
+    return { name: 'DomainSigninSso', params: to.params, query, hash: to.hash, replace: true };
+  }
+  if (to.name === 'DomainSigninSso' && typeof to.params.extid === 'string') {
+    const fetchDomainAccess = useDomainSsoPermissionLookup();
+    return checkSsoRouteAccess(store, orgExtid, fetchDomainAccess(orgExtid, to.params.extid));
+  }
+}
+
+async function organizationSsoAccess(orgExtid: string) {
+  const { fetchAllPermissions } = useResourcePermissions();
+  const record = (await fetchAllPermissions())?.organizations.find(org => org.extid === orgExtid);
+  if (!record) return undefined;
+  const permissions = record.domains.map(domain => domain.permissions.can_manage_sso);
+  const allowed =
+    permissions.includes(true) || (permissions.includes(undefined) ? undefined : false);
+  return { allowed, role: record.membership.role };
+}
+
+async function checkSsoRouteAccess(
+  store: OrganizationStore,
+  orgExtid: string,
+  lookup: Promise<{ allowed: boolean | undefined; role: string } | undefined>,
+) {
+  return checkDomainActionAccess(store, orgExtid, await lookup, 'web.domains.sso.access_denied');
+}
+
+async function checkDomainActionAccess(
+  store: OrganizationStore, orgExtid: string,
+  record: { allowed: boolean | undefined; role: string } | undefined, deniedMessage: string,
+) {
+  if (record?.allowed) return null;
+  const elevated = record
+    ? roleMeetsRequirement(record.role, 'admin')
+    : await singleOrgMeetsRole(store, orgExtid, 'admin');
+  if (elevated) return null;
+  const key = record?.allowed === false
+    ? deniedMessage
+    : 'web.organizations.access_unconfirmed_notice';
+  useNotificationsStore().enqueue(globalComposer.t(key), 'info', 'top', 10000);
+  return { path: '/dashboard' };
+}
+
+function isOrganizationMembersTab(to: RouteLocationNormalized): boolean {
+  return to.name === 'Organization Settings' &&
+    (to.params.tab === 'members' || to.params.tab === 'team');
+}
+
+async function checkMembersTabAccess(store: OrganizationStore, orgExtid: string) {
+  const fetchOrganizationPermissions = useOrganizationPermissionLookup();
+  const record = await fetchOrganizationPermissions(orgExtid);
+  const allowed = record?.permissions.can_manage_invitations;
+  if (allowed) return null;
+  // The permissions record identifies the admin even when their plan or
+  // an override prevents reading the separate organization details endpoint.
+  const canUseRoster = record
+    ? roleMeetsRequirement(record.membership.role, 'admin')
+    : await singleOrgMeetsRole(store, orgExtid, 'admin');
+  if (canUseRoster) return null;
+  const key = allowed === false
+    ? 'web.organizations.invitations.permission_required'
+    : 'web.organizations.access_unconfirmed_notice';
+  useNotificationsStore().enqueue(globalComposer.t(key), 'info', 'top', 10000);
+  return { path: '/dashboard' };
+}
 
 /**
  * List-page scope (`/orgs`): met when any NON-DEFAULT org the user belongs to

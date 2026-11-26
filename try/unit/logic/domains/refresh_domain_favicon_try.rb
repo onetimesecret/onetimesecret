@@ -80,9 +80,9 @@ end
 
 # Force the favicon_fetch flag ON so process reaches the enqueue.
 OT.conf['jobs'] ||= {}
-OT.conf['jobs']['favicon_fetch'] ||= {}
-@orig_flag = OT.conf['jobs']['favicon_fetch']['enabled']
-OT.conf['jobs']['favicon_fetch']['enabled'] = true
+OT.conf.get('jobs')['favicon_fetch'] ||= {}
+@orig_flag = OT.conf.get('jobs.favicon_fetch.enabled')
+OT.conf.get('jobs.favicon_fetch')['enabled'] = true
 
 ## Setup verification — domain exists and is owned by the org
 [@domain.exists?, @domain.owner?(@owner)]
@@ -105,7 +105,7 @@ OT.conf['jobs']['favicon_fetch']['enabled'] = true
 #=> [nil, "Favicon refresh queued for #{@domain.display_domain}"]
 
 ## Case 2: feature flag OFF -> no fetch; success_data reports "unavailable"
-OT.conf['jobs']['favicon_fetch']['enabled'] = false
+OT.conf.get('jobs.favicon_fetch')['enabled'] = false
 @count_before = @fdf_calls.size
 @logic_off = build_refresh(@extid, @strategy_result)
 @logic_off.raise_concerns
@@ -114,7 +114,7 @@ OT.conf['jobs']['favicon_fetch']['enabled'] = false
 #=> [0, 'Favicon refresh is unavailable right now']
 
 # Re-enable the flag for the remaining cases (they raise before process anyway).
-OT.conf['jobs']['favicon_fetch']['enabled'] = true
+OT.conf.get('jobs.favicon_fetch')['enabled'] = true
 
 ## Case 3: bad extid format -> FormError (sanitize keeps A-Za-z0-9_-, lowercase regex rejects)
 @logic_bad = build_refresh('BAD-ID', @strategy_result)
@@ -226,7 +226,7 @@ end
 
 # --- Cleanup ---
 @fdf.singleton_class.send(:remove_method, :new) # restore inherited Class#new
-OT.conf['jobs']['favicon_fetch']['enabled'] = @orig_flag
+OT.conf.get('jobs.favicon_fetch')['enabled'] = @orig_flag
 @domain.destroy! if @domain&.exists?
 @org_x.destroy! if @org_x&.exists?
 @org.destroy! if @org&.exists?

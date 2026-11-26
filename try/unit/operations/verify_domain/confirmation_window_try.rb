@@ -168,7 +168,7 @@ window_try_set(@other, verified: false, since: @inside_since)
 ## The real PassthroughStrategy leaves verified_confirmed_at nil
 window_try_set(@other, verified: false)
 @passthrough = Onetime::Operations::VerifyDomain.new(
-  domain: @other, strategy: Onetime::DomainValidation::PassthroughStrategy.new({}), persist: true
+  domain: @other, strategy: Onetime::DomainValidation::PassthroughStrategy.new, persist: true
 ).call
 @passthrough_reloaded = window_try_reload(@other)
 [@passthrough.current_state, @passthrough_reloaded.verified, @passthrough_reloaded.verified_confirmed_at]

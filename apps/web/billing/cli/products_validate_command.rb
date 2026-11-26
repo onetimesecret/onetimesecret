@@ -104,13 +104,8 @@ module Onetime
 
         entitlements = entitlements_str.split(',').map(&:strip)
 
-        # Build known entitlements set (memoized)
-        @known_entitlements ||= (
-          ::Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS +
-          ::Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS
-        ).to_set
-
-        unknown = entitlements.reject { |e| @known_entitlements.include?(e) }
+        # Legacy product metadata also carries known account and role identifiers.
+        unknown = entitlements.reject { |name| Onetime::Authorization::Registry.kind(name) }
         return if unknown.empty?
 
         warnings << {

@@ -1,0 +1,7 @@
+Fixed
+-----
+
+- Tenant SSO settings now show configuration controls for the domains a member
+  can manage. This includes owners and explicitly delegated members in both
+  billing and standalone installations. Revoked permissions take effect in the
+  workspace. (#3491)

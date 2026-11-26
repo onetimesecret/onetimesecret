@@ -19,7 +19,7 @@ INTERP="$WORK/interp/installer-bash"
 ln -s "$BASH" "$INTERP"
 ENTRY="$REPO/bin/testsuite-installer"
 
-for command in run baremetal-boot secret-rotation proof-of-life check-docs-commands seed-compose-env ttfhw-chart; do
+for command in run baremetal-boot secret-rotation proof-of-life check-docs-commands check-compose-quick-start seed-compose-env ttfhw-chart; do
   cat > "$PACKAGE/$command.sh" <<'STUB'
 #!/usr/bin/env bash
 printf 'script=%s\ninterpreter=%s\ncwd=%s\n' "${0##*/}" "$BASH" "$PWD"
@@ -33,7 +33,7 @@ out="$(cd "$WORK" && "$INTERP" "$ENTRY" --help)"
 assert_contains "help outside checkout" "Usage: bin/testsuite-installer" "$out"
 
 protects "every operation retains its interpreter, argument boundaries and exit status"
-for command in run baremetal-boot secret-rotation proof-of-life check-docs-commands seed-compose-env ttfhw-chart; do
+for command in run baremetal-boot secret-rotation proof-of-life check-docs-commands check-compose-quick-start seed-compose-env ttfhw-chart; do
   out="$(cd "$WORK" && "$INTERP" "$ENTRY" "$command" 'two words' '' '--flag=value')"
   assert_contains "$command script selected" "script=$command.sh" "$out"
   assert_contains "$command interpreter preserved" "interpreter=$INTERP" "$out"

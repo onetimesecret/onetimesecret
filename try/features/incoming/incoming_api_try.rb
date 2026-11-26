@@ -16,7 +16,8 @@ require_relative '../../support/test_logic'
 require 'api/incoming/logic/incoming'
 
 
-OT.boot! :test, false
+# Secret creation needs the encryption keys installed by ConfigureFamilia.
+OT.boot! :test
 
 @email = "tryouts+incoming+#{Familia.now.to_i}@onetimesecret.com"
 @cust = Onetime::Customer.create!(email: @email)
@@ -103,7 +104,7 @@ end
 
 # Get the actual hashed recipient from the config (for use in tests)
 # Note: public_recipients returns hashes with string keys ('digest', 'display_name')
-site_secret = OT.conf.dig('site', 'secret')
+site_secret = OT.conf.get('site.secret')
 @v3_recipient_hash = @v3_incoming_config.public_recipients.first['digest']
 
 ## Incoming::Logic::GetConfig class exists
@@ -202,7 +203,7 @@ result[:config][:recipients].first['digest']
 
 ## CreateIncomingSecret rejects content longer than the configured maximum
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-max_len = OT.conf.dig('site', 'secret_options', 'content', 'maximum_length')
+max_len = OT.conf.get('site.secret_options.content.maximum_length')
 begin
   logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
     'secret' => {
@@ -221,7 +222,7 @@ end
 
 ## CreateIncomingSecret accepts content exactly at the configured maximum
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
-max_len = OT.conf.dig('site', 'secret_options', 'content', 'maximum_length')
+max_len = OT.conf.get('site.secret_options.content.maximum_length')
 logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
     'memo' => 'Test memo',

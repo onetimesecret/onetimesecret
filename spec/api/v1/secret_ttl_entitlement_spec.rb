@@ -77,6 +77,11 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
     logic
   end
 
+  def calculate_ttl(logic)
+    logic.process_params
+    logic.send(:process_ttl)
+  end
+
   def stub_secret_options
     allow(OT).to receive(:conf).and_return(
       OT::Config.wrap('site' => {
@@ -109,13 +114,13 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
 
       it 'silently clamps a 30-day request to plan limit and does NOT raise (V1 contract)' do
         logic = create_logic(logic_class, params: conceal_params(2_592_000), org: org)
-        expect { logic.process_params }.not_to raise_error
+        expect { calculate_ttl(logic) }.not_to raise_error
         expect(logic.ttl).to eq(FREE_TTL)
       end
 
       it 'silently clamps a request just above the boundary and does NOT raise' do
         logic = create_logic(logic_class, params: conceal_params(FREE_TTL + 60), org: org)
-        expect { logic.process_params }.not_to raise_error
+        expect { calculate_ttl(logic) }.not_to raise_error
         expect(logic.ttl).to eq(FREE_TTL)
       end
     end
@@ -125,7 +130,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
 
       it 'raises EntitlementRequired after clamp (clamped value still exceeds free_ttl)' do
         logic = create_logic(logic_class, params: conceal_params(2_592_000), org: org)
-        expect { logic.process_params }.to raise_error(Onetime::EntitlementRequired) do |error|
+        expect { calculate_ttl(logic) }.to raise_error(Onetime::EntitlementRequired) do |error|
           expect(error.entitlement).to eq('extended_default_expiration')
           expect(error.current_plan).to eq('identity')
         end
@@ -133,7 +138,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
 
       it 'raises even when the requested ttl exceeds plan_max (clamp first, then gate)' do
         logic = create_logic(logic_class, params: conceal_params(7_776_000), org: org)
-        expect { logic.process_params }.to raise_error(Onetime::EntitlementRequired)
+        expect { calculate_ttl(logic) }.to raise_error(Onetime::EntitlementRequired)
       end
     end
 
@@ -148,7 +153,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
 
       it 'does not raise and preserves the requested ttl' do
         logic = create_logic(logic_class, params: conceal_params(2_592_000), org: org)
-        expect { logic.process_params }.not_to raise_error
+        expect { calculate_ttl(logic) }.not_to raise_error
         expect(logic.ttl).to eq(2_592_000)
       end
     end
@@ -158,7 +163,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
 
       it 'does not raise (gate uses >, not >=)' do
         logic = create_logic(logic_class, params: conceal_params(FREE_TTL), org: org)
-        expect { logic.process_params }.not_to raise_error
+        expect { calculate_ttl(logic) }.not_to raise_error
         expect(logic.ttl).to eq(FREE_TTL)
       end
     end
@@ -166,7 +171,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
     context 'when auth_org is nil' do
       it 'bypasses the gate (no auth_org → no entitlement check)' do
         logic = create_logic(logic_class, params: conceal_params(2_592_000), org: nil)
-        expect { logic.process_params }.not_to raise_error
+        expect { calculate_ttl(logic) }.not_to raise_error
       end
     end
   end
@@ -187,7 +192,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
     context 'anonymous caller requesting TTL above the ceiling' do
       it 'clamps to the configured anonymous ceiling' do
         logic = create_logic(logic_class, params: conceal_params(2_592_000), org: nil)
-        expect { logic.process_params }.not_to raise_error
+        expect { calculate_ttl(logic) }.not_to raise_error
         expect(logic.ttl).to eq(anonymous_ceiling)
       end
     end
@@ -195,7 +200,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
     context 'anonymous caller requesting TTL at the ceiling' do
       it 'preserves the exact ceiling value' do
         logic = create_logic(logic_class, params: conceal_params(anonymous_ceiling), org: nil)
-        expect { logic.process_params }.not_to raise_error
+        expect { calculate_ttl(logic) }.not_to raise_error
         expect(logic.ttl).to eq(anonymous_ceiling)
       end
     end
@@ -204,7 +209,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
       it 'preserves the lower requested value' do
         one_hour = 3600
         logic = create_logic(logic_class, params: conceal_params(one_hour), org: nil)
-        expect { logic.process_params }.not_to raise_error
+        expect { calculate_ttl(logic) }.not_to raise_error
         expect(logic.ttl).to eq(one_hour)
       end
     end
@@ -234,6 +239,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
           display_domain: display_domain,
         )
 
+        logic.send(:process_ttl)
         expect(logic.ttl).to eq(1_209_600)
       end
 
@@ -253,6 +259,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
           display_domain: display_domain,
         )
 
+        logic.send(:process_ttl)
         expect(logic.ttl).to eq(2_592_000)
       end
     end
@@ -265,7 +272,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
           secret_lifetime: 2_592_000,
         )
         logic = create_logic(logic_class, params: conceal_params(2_592_000), org: org)
-        expect { logic.process_params }.not_to raise_error
+        expect { calculate_ttl(logic) }.not_to raise_error
         expect(logic.ttl).to eq(2_592_000)
       end
     end

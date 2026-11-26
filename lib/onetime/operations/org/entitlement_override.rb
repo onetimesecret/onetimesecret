@@ -7,6 +7,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/operations/audit_attempt'
+require_relative '../../authorization/registry'
 
 module Onetime
   module Operations
@@ -152,6 +153,7 @@ module Onetime
         REFUSAL_STATUSES = [
           :invalid_action,
           :missing_entitlement,
+          :invalid_kind,
         ].freeze
 
         # grant/revoke/clear write Familia sets and re-reconcile the org's
@@ -221,18 +223,24 @@ module Onetime
         # @param entitlement [String, nil] required for grant/revoke, ignored by clear.
         # @param dry_run [Boolean] preview only when true (the safe default —
         #   `clear` wipes EVERY override on the org).
-        def initialize(org:, action:, actor:, entitlement: nil, dry_run: true)
+        def initialize(org:, action:, actor:, entitlement: nil, dry_run: true, kind: 'entitlement')
           @org         = org
           @action      = action.to_s.strip.downcase
           @actor       = actor
           @entitlement = entitlement.to_s.strip
           @dry_run     = dry_run
+          @kind        = kind
         end
 
         # @return [Result]
         def call
           return build(:invalid_action) unless ACTIONS.include?(@action)
+          return build(:invalid_kind) unless %w[feature entitlement].include?(@kind)
           return build(:missing_entitlement) if @action != 'clear' && @entitlement.empty?
+          if @kind == 'feature' && @action != 'clear' && !Onetime::Authorization::Registry.feature?(@entitlement)
+            return build(:invalid_kind)
+          end
+          return apply_feature_override if @kind == 'feature'
 
           # Read the current override sets ONCE, before any mutation: they drive
           # both the no-change check and the dry-run projection.
@@ -267,7 +275,34 @@ module Onetime
           end
 
           memberships = apply!
-          partial     = cascade_incomplete?(memberships)
+          finish_live(
+            memberships,
+            effective: @org.materialized_entitlements.to_a,
+            grants: @org.entitlements_grants.to_a,
+            revokes: @org.entitlements_revokes.to_a,
+          )
+        end
+
+        private
+
+        def apply_feature_override
+          effective, grants, revokes, changed = @org.update_feature_override(@action, @entitlement, persist: !@dry_run)
+          unchanged                           = changed.zero? && @action != 'clear'
+          if @dry_run
+            record_preview_event(outcome: unchanged ? 'no_change' : nil)
+            return build(unchanged ? :no_change : :planned, effective: effective, grants: grants, revokes: revokes)
+          end
+          finish_live(cascade!, effective: effective, grants: grants, revokes: revokes, unchanged: unchanged)
+        end
+
+        def finish_live(memberships, effective:, grants:, revokes:, unchanged: false)
+          partial = cascade_incomplete?(memberships)
+          if unchanged && !partial
+            record_no_change_event
+            return build(:no_change, effective: effective, grants: grants, revokes: revokes, memberships: memberships)
+          end
+          detail  = applied_detail(memberships, partial)
+          detail  = detail.merge(outcome: NO_CHANGE_OUTCOME) if unchanged
 
           # One audit event per applied override change (CONTRACT 4 / epic D4),
           # emitted from HERE. Adapters MUST NOT audit or the trail
@@ -279,19 +314,17 @@ module Onetime
             verb: audit_verb,
             target: @org.extid,
             result: partial ? :partial : :success,
-            detail: applied_detail(memberships, partial),
+            detail: detail,
           )
 
           build(
             partial ? PARTIAL_STATUS : APPLIED_STATUS[@action],
-            effective: @org.materialized_entitlements.to_a,
-            grants: @org.entitlements_grants.to_a,
-            revokes: @org.entitlements_revokes.to_a,
+            effective: effective,
+            grants: grants,
+            revokes: revokes,
             memberships: memberships,
           )
         end
-
-        private
 
         # The #4337 envelope's target hook: the org's extid, the key every row
         # on this op has always carried — preview, no-change attempt and
@@ -305,7 +338,8 @@ module Onetime
         # text into the verb: the verb namespace is a closed set, and an
         # :invalid_action refusal has no success-path verb to match.
         def audit_verb
-          ACTIONS.include?(@action) ? "#{AUDIT_VERB_PREFIX}.#{@action}" : AUDIT_VERB_PREFIX
+          prefix = @kind == 'feature' ? 'organization.feature' : AUDIT_VERB_PREFIX
+          ACTIONS.include?(@action) ? "#{prefix}.#{@action}" : prefix
         end
 
         # One OBSERVATION per preview (#4337), on the budgeted access trail.
@@ -350,32 +384,12 @@ module Onetime
         # `outcome: 'no_change'` marker so the trail shows this was a retry
         # that found nothing to change on the org itself.
         def live_no_change(grants, revokes)
-          memberships = cascade!
-
-          if cascade_incomplete?(memberships)
-            Onetime::ColonelAuditEvent.record(
-              actor: @actor,
-              verb: audit_verb,
-              target: @org.extid,
-              result: :partial,
-              detail: applied_detail(memberships, true).merge(outcome: NO_CHANGE_OUTCOME),
-            )
-            return build(
-              PARTIAL_STATUS,
-              effective: @org.materialized_entitlements.to_a,
-              grants: grants,
-              revokes: revokes,
-              memberships: memberships,
-            )
-          end
-
-          record_no_change_event
-          build(
-            :no_change,
+          finish_live(
+            cascade!,
             effective: @org.materialized_entitlements.to_a,
             grants: grants,
             revokes: revokes,
-            memberships: memberships,
+            unchanged: true,
           )
         end
 

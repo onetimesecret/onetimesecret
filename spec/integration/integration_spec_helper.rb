@@ -25,7 +25,7 @@ RSpec.configure do |config|
   config.include Rack::Test::Methods, type: :integration
 
   # Parse Redis URI once at configuration time for robust port checking
-  redis_uri_string = OT.conf&.dig('redis', 'uri')
+  redis_uri_string = OT.conf&.get('redis.uri', nil)
   test_redis_port = begin
     URI.parse(redis_uri_string).port if redis_uri_string
   rescue URI::InvalidURIError

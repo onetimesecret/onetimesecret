@@ -41,6 +41,10 @@ const mockInitialize = vi.fn();
 const mockUpdateHomepageConfig = vi.fn();
 const mockNotifyShow = vi.fn();
 
+vi.mock('@/shared/composables/useResourcePermissions', () => ({
+  useTargetDomainPermissions: () => ({ permission: ref({ permissions: { can_manage_incoming: true } }) }),
+}));
+
 vi.mock('@/shared/composables/useDomain', () => ({
   useDomain: () => ({
     domain: mockDomain,

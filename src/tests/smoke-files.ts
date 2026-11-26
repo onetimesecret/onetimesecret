@@ -20,9 +20,9 @@
  * To change the list, add or remove a path under the project that runs it
  * ('dom' for jsdom, 'node' for the NODE_GLOBS directories in
  * vitest.config.ts), with a one-line reason. Keep the vitest part of the
- * smoke job around a minute: the job is cancelled at 15 minutes, and on CI
- * about 9.5 minutes pass before vitest starts (runner setup about 1, Ruby
- * about 8.6).
+ * smoke job around a minute: the whole smoke lane, Ruby and Vitest, is meant
+ * to finish in a few minutes on CI (the job is cancelled at 10). The Ruby
+ * part is SMOKE_SPEC_GROUPS in lib/tasks/spec.rake.
  *
  * Every entry is checked by findSmokeListProblems below, at config load in
  * the smoke job and by src/tests/build/smoke-files.spec.ts in T2 on every

@@ -18,10 +18,10 @@ GIT
 
 GIT
   remote: https://gitlab.com/onetimesecret/upstream-forks/rodauth.git
-  revision: 4257c21b427eaacbbb3328329df9e5c7884ed3fb
-  ref: 4257c21b427eaacbbb3328329df9e5c7884ed3fb
+  revision: a08f72421045306fc424ad59bf2d63f3d2b7d455
+  ref: a08f72421045306fc424ad59bf2d63f3d2b7d455
   specs:
-    rodauth (2.50.0)
+    rodauth (2.51.0)
       roda (>= 2.6.0)
       sequel (>= 4)
 
@@ -345,7 +345,7 @@ GEM
       date
       stringio
     public_suffix (7.0.5)
-    puma (7.2.1)
+    puma (7.2.3)
       nio4r (~> 2.0)
     raabro (1.4.0)
     racc (1.8.1)
@@ -361,7 +361,7 @@ GEM
       rack (>= 2.1.0)
     rack-parser (0.7.0)
       rack
-    rack-protection (4.2.1)
+    rack-protection (4.2.2)
       base64 (>= 0.1.0)
       logger (>= 1.6.0)
       rack (>= 3.0.0, < 4)
@@ -478,9 +478,9 @@ GEM
       fugit (~> 1.1, >= 1.11.1)
     safety_net_attestation (0.5.0)
       jwt (>= 2.0, < 4.0)
-    sanitize (7.0.1)
+    sanitize (7.0.2)
       crass (~> 1.0.8)
-      nokogiri (>= 1.16.8)
+      nokogiri (>= 1.19.7)
     securerandom (0.4.1)
     semantic_logger (4.18.0)
       concurrent-ruby (~> 1.0)
@@ -664,6 +664,7 @@ DEPENDENCIES
   lettermint (~> 0.2.1)
   logger
   mail
+  omniauth (>= 2.2.0, < 3.0)
   omniauth-apple (~> 1.4)
   omniauth-entra-id (~> 3.1)
   omniauth-github (~> 2.0)
@@ -678,11 +679,11 @@ DEPENDENCIES
   pg (~> 1.6)
   psych (~> 5.2.3)
   public_suffix (~> 7.0)
-  puma (>= 6.0, < 8.0)
+  puma (>= 7.2.3, < 8.0)
   rack (>= 3.2.8, < 4.0)
   rack-contrib (~> 2.5.0)
   rack-parser (~> 0.7)
-  rack-protection (~> 4.1)
+  rack-protection (>= 4.2.2, < 5.0)
   rack-proxy (~> 1.0, >= 1.0.3)
   rack-session (~> 2.1.2)
   rack-test
@@ -715,7 +716,7 @@ DEPENDENCIES
   ruby-lsp (~> 0.26.9)
   ruby-saml (= 1.18.1)
   rufus-scheduler (~> 3.9)
-  sanitize (~> 7.0, >= 7.0.1)
+  sanitize (~> 7.0, >= 7.0.2)
   semantic_logger (~> 4.17)
   sendgrid-ruby
   sentry-ruby
@@ -740,7 +741,7 @@ DEPENDENCIES
   webmock (~> 3.0)
 
 RUBY VERSION
-  ruby 3.4.10
+  ruby 3.4.13
 
 BUNDLED WITH
   4.0.9

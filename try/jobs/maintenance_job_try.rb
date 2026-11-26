@@ -5,7 +5,7 @@
 # Tests the MaintenanceJob base class shared infrastructure.
 #
 # Covers:
-#   - Config access helpers (maintenance_config, job_config, etc.)
+#   - Config access helpers (job_setting, job_enabled?, etc.)
 #   - job_enabled? requires both master and job-level toggle
 #   - auto_repair? defaults to false
 #   - batch_size and sample_size defaults
@@ -31,13 +31,13 @@ end
 
 # TRYOUTS
 
-## maintenance_config returns a hash (possibly empty)
-call_private(:maintenance_config).is_a?(Hash)
+## job_setting reads jobs.maintenance.<job>.<name>
+call_private(:job_setting, 'phantom_cleanup', 'cron') == OT.conf.get('jobs.maintenance.phantom_cleanup.cron', nil)
 #=> true
 
-## job_config returns a hash for unknown key
-call_private(:job_config, 'nonexistent').is_a?(Hash)
-#=> true
+## job_setting returns the default for an unknown job
+call_private(:job_setting, 'nonexistent', 'interval', '1h')
+#=> '1h'
 
 ## job_enabled? returns false when maintenance is not enabled
 call_private(:job_enabled?, 'phantom_cleanup')

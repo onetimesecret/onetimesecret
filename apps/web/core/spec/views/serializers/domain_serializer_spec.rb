@@ -256,7 +256,7 @@ RSpec.describe Core::Views::DomainSerializer do
             'features' => { 'domains' => domains_config },
           }),
         )
-        Onetime::Middleware::DomainStrategy.initialize_from_config(domains_config)
+        Onetime::Middleware::DomainStrategy.initialize_from_config
       end
 
       context 'when LINK_DOMAINS is unset' do

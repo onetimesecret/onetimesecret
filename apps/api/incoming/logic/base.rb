@@ -5,6 +5,7 @@
 require 'onetime/logic/base'
 require 'onetime/logic/organization_context'
 require 'onetime/logic/guest_route_gating'
+require 'onetime/incoming/recipient_resolver'
 
 module Incoming
   module Logic
@@ -46,6 +47,14 @@ module Incoming
         api_data.delete('success')
 
         api_data
+      end
+
+      private
+
+      def resolver
+        @resolver ||= Onetime::Incoming::RecipientResolver.new(
+          domain_strategy: domain_strategy, display_domain: display_domain, lookup: custom_domain_lookup,
+        )
       end
     end
   end

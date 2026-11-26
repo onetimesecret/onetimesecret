@@ -3,6 +3,8 @@
 # frozen_string_literal: true
 
 require_relative '../models/custom_domain/incoming_config'
+require_relative '../secret_lifetime_policy'
+require_relative '../secret_sharing_policy'
 
 module Onetime
   module Incoming
@@ -23,9 +25,10 @@ module Onetime
     #   resolver.public_recipients  # => per-domain hashed list
     #
     class RecipientResolver
-      def initialize(domain_strategy:, display_domain: nil)
+      def initialize(domain_strategy:, display_domain: nil, lookup: nil)
         @domain_strategy = domain_strategy&.to_sym
         @display_domain  = display_domain
+        @lookup          = lookup
       end
 
       # Check if incoming secrets are enabled for this domain context
@@ -42,9 +45,9 @@ module Onetime
       def enabled?
         case @domain_strategy
         when :canonical, nil
-          incoming_config['enabled'] || false
+          OT.conf.get('features.incoming.enabled', false)
         when :custom
-          is_enabled = custom_domain_record&.incoming_config&.ready? || false
+          is_enabled = incoming_config&.ready? || false
 
           return false unless is_enabled
 
@@ -74,7 +77,7 @@ module Onetime
         when :custom
           return [] if site_secret.nil? || site_secret.to_s.strip.empty?
 
-          custom_domain_record&.incoming_config&.public_recipients || []
+          incoming_config&.public_recipients || []
         else
           []
         end
@@ -96,7 +99,7 @@ module Onetime
         when :custom
           return nil if site_secret.nil? || site_secret.to_s.strip.empty?
 
-          custom_domain_record&.incoming_config&.lookup_recipient_email(hash_key)
+          incoming_config&.lookup_recipient_email(hash_key)
         end
       rescue OT::Problem
         nil
@@ -123,7 +126,7 @@ module Onetime
         entitlement = entitlement.to_s
         error_key ||= "api.entitlements.errors.#{entitlement}_required"
 
-        owning_org = custom_domain_record&.primary_organization
+        owning_org = owning_organization
 
         if owning_org.nil?
           raise OT::Forbidden.new(
@@ -156,32 +159,54 @@ module Onetime
       # @return [Hash] Config data for API response
       def config_data
         defaults = Onetime::CustomDomain::IncomingConfig::DEFAULTS
-        case @domain_strategy
-        when :custom
-          config = custom_domain_record&.incoming_config
-          {
-            enabled: enabled?,
-            memo_max_length: config&.memo_max_length || defaults[:memo_max_length],
-            secret_max_length: secret_max_length,
-            default_ttl: config&.default_ttl || defaults[:default_ttl],
-            recipients: public_recipients,
-          }
+        if @domain_strategy == :custom
+          settings = incoming_config&.settings || {}
+          ttl      = defaults[:default_ttl]
+          memo_max = defaults[:memo_max_length]
         else
-          # Canonical or nil — use global YAML config
-          {
-            enabled: enabled?,
-            memo_max_length: incoming_config['memo_max_length'] || defaults[:memo_max_length],
-            secret_max_length: secret_max_length,
-            default_ttl: incoming_config['default_ttl'] || defaults[:default_ttl],
-            recipients: public_recipients,
-          }
+          settings = {}
+          ttl      = OT.conf.get('features.incoming.default_ttl', defaults[:default_ttl])
+          memo_max = OT.conf.get('features.incoming.memo_max_length', defaults[:memo_max_length])
         end
+
+        policy             = Onetime::SecretSharingPolicy.new(organizations: [owning_organization].compact, domains: [custom_domain_record].compact)
+        ceiling            = [guest_ceiling, settings[:max_ttl]].compact.min
+        required           = settings[:passphrase_required] || policy.passphrase_required?
+        default_passphrase = OT.conf.get('features.incoming.default_passphrase', nil)
+        {
+          enabled: enabled?,
+          memo_max_length: memo_max,
+          secret_max_length: secret_max_length,
+          default_ttl: policy.clamp_ttl(ttl || defaults[:default_ttl], ceiling: ceiling),
+          passphrase_input_required: required && !default_passphrase.to_s.match?(/[^[:space:]]/),
+          recipients: public_recipients,
+        }
       end
 
       private
 
+      def guest_ceiling
+        instance_max = Array(OT.conf.get('site.secret_options.ttl_options', nil)).max
+        if owning_organization
+          return Onetime::SecretLifetimePolicy.organization_guest_ceiling(
+            config_max: instance_max, organization: owning_organization,
+          )
+        end
+        Onetime::SecretLifetimePolicy.guest_ceiling(
+          config_max: instance_max, domain_strategy: :canonical, display_domain: nil,
+        )
+      end
+
+      def owning_organization
+        return @owning_organization if defined?(@owning_organization)
+
+        @owning_organization = custom_domain_record&.primary_organization
+      end
+
       def incoming_config
-        OT.conf.get('features.incoming', {})
+        return @incoming_config if defined?(@incoming_config)
+
+        @incoming_config = custom_domain_record&.incoming_config
       end
 
       # Server-enforced secret-content ceiling, shared by the regular and
@@ -199,7 +224,8 @@ module Onetime
       end
 
       def custom_domain_record
-        return nil unless @display_domain
+        return unless @domain_strategy == :custom && @display_domain
+        return @lookup.record! if @lookup && @lookup.host == @display_domain
 
         @custom_domain_record ||= Onetime::CustomDomain.from_display_domain(@display_domain)
       end

@@ -218,7 +218,7 @@ begin
 
   # Set Familia.uri from config so integration test hooks can use Familia.dbclient
   # before boot! runs. Without this, Familia uses default redis://127.0.0.1:6379.
-  redis_uri   = OT.conf.dig('redis', 'uri')
+  redis_uri   = OT.conf.get('redis.uri', nil)
   Familia.uri = redis_uri if redis_uri
 rescue StandardError => ex
   warn "Failed to load test config: #{ex.message}"
@@ -353,7 +353,7 @@ RSpec.configure do |config|
     next if example.metadata[:shared_db_state]
     next if example.metadata[:billing]
 
-    redis_uri_string = OT.conf&.dig('redis', 'uri')
+    redis_uri_string = OT.conf&.get('redis.uri', nil)
     if redis_uri_string
       begin
         uri = URI.parse(redis_uri_string)

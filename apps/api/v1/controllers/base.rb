@@ -6,6 +6,7 @@ require 'digest'
 
 require 'onetime/security/conceal_secret_rate_limiter'
 require 'onetime/security/no_client_ip'
+require 'onetime/application/organization_loader'
 require_relative 'helpers'
 
 module V1
@@ -124,13 +125,17 @@ module V1
     # declare these as attr_accessor but don't receive a strategy_result
     # (unlike the main Logic::Base), so we bridge the gap here.
     #
-    # Creation actions also pass these values into the constructor because TTL
-    # policy is resolved during process_params. This post-construction bridge is
-    # retained for the remaining V1 actions whose domain checks run later.
     def apply_domain_context(logic)
       logic.domain_strategy = req.env['onetime.domain_strategy']
       logic.display_domain  = req.env['onetime.display_domain']
       logic.ip_match        = req.env['otto.ip_match']
+      if logic.is_a?(V1::Logic::Secrets::BaseSecretAction)
+        context = Onetime::Application::OrganizationLoader.load_organization_context(cust, nil, req.env)
+        raise Onetime::FormError, 'Organization context unavailable' if context[:domain_scope_refused]
+
+        logic.auth_org = context[:organization]
+        logic.custom_domain_lookup = req.env[Onetime::CustomDomain::Lookup::ENV_KEY]
+      end
       logic
     end
 

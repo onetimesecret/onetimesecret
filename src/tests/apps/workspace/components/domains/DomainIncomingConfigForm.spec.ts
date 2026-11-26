@@ -273,6 +273,16 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
   });
 
   describe('enabled toggle', () => {
+    it('edits the local passphrase requirement and lifetime ceiling', async () => {
+      const wrapper = mountForm({ formState: emptyFormState });
+      await wrapper.get('input[type="checkbox"]').setValue(true);
+      const lifetime = wrapper.get('input[type="number"]');
+      await lifetime.setValue('60');
+      await lifetime.setValue('');
+      expect(wrapper.emitted('update:passphraseRequired')).toEqual([[true]]);
+      expect(wrapper.emitted('update:maxTtl')).toEqual([[60], [null]]);
+    });
+
     it('emits update:enabled with the negated value', async () => {
       const wrapper = mountForm({ formState: emptyFormState });
       const toggle = wrapper.find('button[role="switch"]');
@@ -313,7 +323,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
       // a subsequent save. The persisted record still exists.
       const wrapper = mountForm({
         formState: emptyFormState,
-        savedFormState: { enabled: true, recipients: [] },
+        savedFormState: { ...emptyFormState, enabled: true },
       });
       expect(wrapper.text()).toContain('web.domains.incoming.delete_all_recipients');
     });
@@ -350,6 +360,7 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
       const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
       const wrapper = mountForm({
         formState: {
+          ...multipleRecipientsFormState,
           enabled: true,
           recipients: [
             ...multipleRecipientsFormState.recipients,
@@ -366,5 +377,25 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
       expect(wrapper.emitted('save')).toBeTruthy();
       confirmSpy.mockRestore();
     });
+  });
+});
+
+describe('DomainIncomingConfigForm field labelling', () => {
+  it('labels the passphrase and lifetime controls and ties the lifetime hint to its input', () => {
+    const wrapper = mountForm({ formState: emptyFormState });
+
+    const checkbox = wrapper.get('input[type="checkbox"]');
+    expect(wrapper.get(`label[for="${checkbox.attributes('id')}"]`).text()).toBe(
+      'web.domains.passphrase_required_label',
+    );
+
+    const lifetime = wrapper.get('input[type="number"]');
+    expect(wrapper.get(`label[for="${lifetime.attributes('id')}"]`).text()).toBe(
+      'web.domains.incoming.max_ttl',
+    );
+    expect(lifetime.attributes('min')).toBe('60');
+    expect(wrapper.get(`#${lifetime.attributes('aria-describedby')}`).text()).toBe(
+      'web.domains.incoming.max_ttl_hint',
+    );
   });
 });

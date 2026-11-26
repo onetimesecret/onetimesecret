@@ -356,6 +356,49 @@ logic.raise_concerns
 @response_result[:record].key?(:enabled)
 #=> true
 
+## PUT saves creation and reserved delivery settings and ignores a post_url parameter
+strategy = create_strategy_with_domain(@test_cust, @test_domain_display)
+params = {
+  'extid' => @test_domain.extid, 'enabled' => true, 'max_ttl' => 60, 'passphrase_required' => true,
+  'email_disabled' => true, 'post_url' => 'http://169.254.169.254/latest',
+}
+logic = PutIncomingConfig.new(strategy, params)
+logic.raise_concerns
+record = logic.process[:record]
+[record.values_at(:max_ttl, :passphrase_required, :email_disabled), record.key?(:post_url),
+ IncomingConfig.load(@test_domain.identifier).settings_json.include?('post_url')]
+#=> [[60, true, true], false, false]
+
+## Invalid settings do not replace the stored maximum
+strategy = create_strategy_with_domain(@test_cust, @test_domain_display)
+invalid = [{ 'max_ttl' => 59 }, { 'max_ttl' => 60.5 }, { 'max_ttl' => 2**53 }, { 'passphrase_required' => 'off' },
+           { 'email_disabled' => 'yes' }]
+invalid.all? do |change|
+  logic = PutIncomingConfig.new(strategy, { 'extid' => @test_domain.extid, 'enabled' => true }.merge(change))
+  begin
+    logic.raise_concerns
+    false
+  rescue OT::FormError => ex
+    ex.error_key == 'api.domains.errors.invalid_incoming_setting'
+  end
+end && IncomingConfig.load(@test_domain.identifier).settings[:max_ttl] == 60
+#=> true
+
+## The largest exact JSON integer round trips through a settings-only update
+strategy = create_strategy_with_domain(@test_cust, @test_domain_display)
+logic = PutIncomingConfig.new(strategy, { 'extid' => @test_domain.extid, 'max_ttl' => (2**53) - 1 })
+logic.raise_concerns
+logic.process[:record][:max_ttl]
+#=> 9_007_199_254_740_991
+
+## Explicit null clears a ceiling while omitted settings and recipients survive
+strategy = create_strategy_with_domain(@test_cust, @test_domain_display)
+logic = PutIncomingConfig.new(strategy, { 'extid' => @test_domain.extid, 'max_ttl' => nil })
+logic.raise_concerns
+record = logic.process[:record]
+[record[:enabled], record[:max_ttl], record[:passphrase_required], record[:email_disabled], record[:recipients].size]
+#=> [true, nil, true, true, 3]
+
 # --- TEARDOWN ---
 
 ## Cleanup test fixtures

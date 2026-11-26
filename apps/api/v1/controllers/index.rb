@@ -30,9 +30,9 @@ module V1
       SCHEMAS = {
         status:              { response: 'v1Status' },
         authcheck:           { response: 'v1Status' },
-        share:               { response: 'v1Receipt' },
-        generate:            { response: 'v1Receipt' },
-        create:              { response: 'v1Receipt' },
+        share:               { response: 'v1Receipt', request: 'v1Share' },
+        generate:            { response: 'v1Receipt', request: 'v1Generate' },
+        create:              { response: 'v1Receipt', request: 'v1Create' },
         show_receipt:        { response: 'v1Receipt' },
         show_receipt_recent: { response: 'v1ReceiptList' },
         show_secret:         { response: 'v1SecretReveal' },

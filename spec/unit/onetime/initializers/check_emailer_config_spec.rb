@@ -58,7 +58,7 @@ RSpec.describe Onetime::Initializers::CheckEmailerConfig do
   # Through the real mailer, with no SMTP host anywhere.
   context 'with mode smtp and no host' do
     before do
-      allow(Onetime::Mail::Mailer).to receive(:emailer_config).and_return('mode' => 'smtp', 'host' => '')
+      stub_emailer_config({ 'mode' => 'smtp', 'host' => '' })
       allow(Onetime::Mail::Mailer).to receive(:log_info)
       allow(ENV).to receive(:fetch).and_call_original
       allow(ENV).to receive(:fetch).with('SMTP_HOST', nil).and_return(nil)

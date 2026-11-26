@@ -22,7 +22,7 @@
 
 <template>
   <div
-    class="relative overflow-hidden rounded-2xl border border-gray-200
+    class="relative overflow-hidden rounded-lg border border-gray-200
       bg-white dark:border-gray-700 dark:bg-gray-800">
     <!-- Decorative faded mockup -->
     <div

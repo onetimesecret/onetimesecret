@@ -21,7 +21,7 @@ OT.boot! :test, false
 
 CF = Onetime::Initializers::ConfigureFamilia
 
-@secret_key = OT.conf.dig('site', 'secret')
+@secret_key = OT.conf.get('site.secret')
 
 # ConfigureFamilia is skipped when connect_to_db=false, so build the keyset
 # through the production pure mapping to test the derivation logic in isolation.

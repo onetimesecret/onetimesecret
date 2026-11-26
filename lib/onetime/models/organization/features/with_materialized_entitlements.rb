@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../features/entitlement_set_operations'
+
 module Onetime
   module Models
     module Features
@@ -98,6 +100,8 @@ module Onetime
         end
 
         module InstanceMethods
+          include EntitlementSetOperations
+
           # Materialize entitlements from a plan
           #
           # Copies plan's entitlements and limits to org-local storage,
@@ -162,34 +166,6 @@ module Onetime
               # Reconcile
               apply_entitlements
             end
-          end
-
-          # Reconcile effective entitlements from sources
-          #
-          # Order: entitlements_plan + entitlements_grants - entitlements_revokes
-          #
-          # Wraps the write operations in MULTI/EXEC via Familia#transaction so
-          # concurrent readers cannot observe partial state. Source-set reads
-          # must happen BEFORE the transaction: Redis returns Redis::Future for
-          # any read issued inside MULTI/pipelined blocks, which would cause
-          # iteration helpers (e.g. SSCAN-backed #each) to fail.
-          #
-          # @return [Array<String>] Effective entitlements after reconciliation
-          def apply_entitlements
-            # Snapshot source sets outside the transaction. Reads inside MULTI
-            # return Redis::Future objects, not real values.
-            plan_members    = entitlements_plan.to_a
-            grant_members   = entitlements_grants.to_a
-            revoke_members  = entitlements_revokes.to_a
-
-            transaction do
-              materialized_entitlements.clear
-              plan_members.each   { |e| materialized_entitlements.add(e) }
-              grant_members.each  { |e| materialized_entitlements.add(e) }
-              revoke_members.each { |e| materialized_entitlements.remove_element(e) }
-            end
-
-            materialized_entitlements.to_a
           end
 
           # Reconcile entitlements with session-scoped overrides
@@ -271,45 +247,6 @@ module Onetime
             end
             current_hash = self.class.snapshot_content_hash(entitlements, limits)
             applied[:content_hash] != current_hash
-          end
-
-          # Grant an entitlement to this org (operator override)
-          #
-          # @param entitlement [String] Entitlement to grant
-          # @return [Boolean] True if added (false if already present)
-          def grant_entitlement(entitlement)
-            ent    = entitlement.to_s
-            # Remove from revokes if present (grant takes precedence)
-            entitlements_revokes.remove_element(ent)
-            # Add to grants
-            result = entitlements_grants.add(ent)
-            # Reconcile
-            apply_entitlements
-            result
-          end
-
-          # Revoke an entitlement from this org (operator override)
-          #
-          # @param entitlement [String] Entitlement to revoke
-          # @return [Boolean] True if added (false if already present)
-          def revoke_entitlement(entitlement)
-            ent    = entitlement.to_s
-            # Remove from grants if present (explicit revoke)
-            entitlements_grants.remove_element(ent)
-            # Add to revokes
-            result = entitlements_revokes.add(ent)
-            # Reconcile
-            apply_entitlements
-            result
-          end
-
-          # Clear all operator overrides
-          #
-          # @return [Array<String>] Effective entitlements after clearing
-          def clear_entitlement_overrides
-            entitlements_grants.clear
-            entitlements_revokes.clear
-            apply_entitlements
           end
         end
       end

@@ -105,8 +105,8 @@ class << billing
     false
   end
 end
-prev = OT.conf['site']['secret_options']['ttl_max_anonymous']
-OT.conf['site']['secret_options']['ttl_max_anonymous'] = 30 * 86_400
+prev = OT.conf.get('site.secret_options.ttl_max_anonymous')
+OT.conf.get('site.secret_options')['ttl_max_anonymous'] = 30 * 86_400
 begin
   logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
   logic.send(:anonymous_max_ttl, 2_592_000)
@@ -114,7 +114,7 @@ ensure
   class << billing
     remove_method :enabled?
   end
-  OT.conf['site']['secret_options']['ttl_max_anonymous'] = prev
+  OT.conf.get('site.secret_options')['ttl_max_anonymous'] = prev
 end
 #=> 2_592_000
 
@@ -125,8 +125,8 @@ class << billing
     false
   end
 end
-prev = OT.conf['site']['secret_options']['ttl_max_anonymous']
-OT.conf['site']['secret_options']['ttl_max_anonymous'] = 30 * 86_400
+prev = OT.conf.get('site.secret_options.ttl_max_anonymous')
+OT.conf.get('site.secret_options')['ttl_max_anonymous'] = 30 * 86_400
 begin
   logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
   logic.send(:anonymous_max_ttl, 172_800)
@@ -134,38 +134,38 @@ ensure
   class << billing
     remove_method :enabled?
   end
-  OT.conf['site']['secret_options']['ttl_max_anonymous'] = prev
+  OT.conf.get('site.secret_options')['ttl_max_anonymous'] = prev
 end
 #=> 172_800
 
 ## V2: a non-positive ttl_max_anonymous falls back to the default, not to 0
 # "0" reads as "unset me", not "anonymous secrets expire immediately".
-prev = OT.conf['site']['secret_options']['ttl_max_anonymous']
-OT.conf['site']['secret_options']['ttl_max_anonymous'] = 0
+prev = OT.conf.get('site.secret_options.ttl_max_anonymous')
+OT.conf.get('site.secret_options')['ttl_max_anonymous'] = 0
 begin
   Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl
 ensure
-  OT.conf['site']['secret_options']['ttl_max_anonymous'] = prev
+  OT.conf.get('site.secret_options')['ttl_max_anonymous'] = prev
 end
 #==> _ == Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL
 
 ## V2: a malformed ttl_max_anonymous falls back to the default
-prev = OT.conf['site']['secret_options']['ttl_max_anonymous']
-OT.conf['site']['secret_options']['ttl_max_anonymous'] = 'not-a-number'
+prev = OT.conf.get('site.secret_options.ttl_max_anonymous')
+OT.conf.get('site.secret_options')['ttl_max_anonymous'] = 'not-a-number'
 begin
   Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl
 ensure
-  OT.conf['site']['secret_options']['ttl_max_anonymous'] = prev
+  OT.conf.get('site.secret_options')['ttl_max_anonymous'] = prev
 end
 #==> _ == Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL
 
 ## V2: ttl_max_anonymous is bounded by MAX_TTL (365 days)
-prev = OT.conf['site']['secret_options']['ttl_max_anonymous']
-OT.conf['site']['secret_options']['ttl_max_anonymous'] = 999_999_999
+prev = OT.conf.get('site.secret_options.ttl_max_anonymous')
+OT.conf.get('site.secret_options')['ttl_max_anonymous'] = 999_999_999
 begin
   Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl
 ensure
-  OT.conf['site']['secret_options']['ttl_max_anonymous'] = prev
+  OT.conf.get('site.secret_options')['ttl_max_anonymous'] = prev
 end
 #==> _ == Onetime::Models::Features::WithEntitlements::MAX_TTL
 
@@ -199,8 +199,8 @@ class << billing
     true
   end
 end
-prev = OT.conf['site']['secret_options']['ttl_max_anonymous']
-OT.conf['site']['secret_options']['ttl_max_anonymous'] = 30 * 86_400
+prev = OT.conf.get('site.secret_options.ttl_max_anonymous')
+OT.conf.get('site.secret_options')['ttl_max_anonymous'] = 30 * 86_400
 Onetime::Organization.reset_free_tier_limits!
 begin
   logic = V2::Logic::Secrets::ConcealSecret.new(MockStrategyResult.anonymous, { 'secret' => { 'secret' => 's' } }, 'en')
@@ -209,7 +209,7 @@ ensure
   class << billing
     remove_method :enabled?
   end
-  OT.conf['site']['secret_options']['ttl_max_anonymous'] = prev
+  OT.conf.get('site.secret_options')['ttl_max_anonymous'] = prev
   Onetime::Organization.reset_free_tier_limits!
 end
 #==> _ == Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL

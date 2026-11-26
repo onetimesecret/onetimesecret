@@ -26,6 +26,34 @@ shell-tests:
   script:
     - bash bin/testsuite run
 
+compose-quick-start:
+  extends: .lint-python
+  variables:
+    COMPOSE_VERSION: 'v5.7.0'
+    COMPOSE_SHA256: '7758048ad38e580f22559603312874fec8bb638d021a9e64182385fc17cc12a2'
+  rules:
+    - changes:
+        - README.md
+        - .env.example
+        - docker/README.md
+        - docker-compose.yml
+        - docker/compose/**/*
+        - .gitlab/ci/lint.yml
+        - bin/testsuite-installer
+        - tools/testsuite-installer/check-compose-quick-start.sh
+        - tools/testsuite-installer/testsuite-installer.sh
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends acl ca-certificates curl docker-cli openssl
+    - |
+      plugin=/usr/local/lib/docker/cli-plugins/docker-compose
+      install -d "$(dirname "$plugin")"
+      curl -fsSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-x86_64" -o "$plugin"
+      printf '%s  %s\n' "$COMPOSE_SHA256" "$plugin" | sha256sum -c -
+      chmod 0755 "$plugin"
+  script:
+    - bin/testsuite-installer check-compose-quick-start
+
 # shellcheck over every tracked shell script and actionlint over the GitHub
 # workflows, against the recorded baselines in .github/lint-baseline/.
 shell-lint:
@@ -50,18 +78,12 @@ logship:
     - bin/logship --help
     - bin/testsuite logship -q
 
-# Gemfile.lock against the Ruby advisory database. Allowed to fail while the
-# lock carries known advisories: rodauth 2.48.0 (GHSA-26qw-xq5q-hv9w, fixed in
-# 2.50.0) and sanitize 7.0.1 (GHSA-599p-54q3-ff89 and GHSA-mg79-gw37-jxx7,
-# fixed in 7.0.2). Remove allow_failure once the lock is clean, so that a new
-# advisory blocks merges.
 bundler-audit:
   stage: lint
-  image: ruby:3.4.10-trixie@sha256:ce3b7a999d9e430e59e1a12456c631fbea3dd18948c89cf8a913c3566c77b2ae
+  image: ruby:3.4.13-trixie@sha256:2cfc090f052933db5abcde345187115dde23f3a44f9620a0e7482cb33ecd9834
   tags: [saas-linux-small-amd64]
   needs: []
   timeout: 10m
-  allow_failure: true
   variables:
     # Same as static-analysis.yml; tools/testsuite/gitlab-lint-pins-test.sh
     # fails when the two differ.

@@ -45,7 +45,7 @@ specs.
 | Lane | Services | Runs | CI job |
 | --- | --- | --- | --- |
 | `unit` | valkey, rabbitmq | `try:unit`, `spec:fast` | ruby-unit (T2) |
-| `billing` | valkey, rabbitmq | `try:billing`, `spec:billing` | ruby-billing (T2, nightly only) |
+| `billing` | valkey, rabbitmq | `try:billing`, `spec:billing` | ruby-billing (T2) |
 | `billing-integration` | valkey, rabbitmq | `try:integration:billing`, `spec:integration:billing` | ruby-billing-integration (T3, nightly only) |
 | `browser` | valkey, rabbitmq | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-auth-browser (T2) |
 | `simple` | valkey, rabbitmq | `try:integration:simple`, `spec:integration:simple` | ruby-integration-simple (T3) |
@@ -354,10 +354,11 @@ Ruby test suites enter through lanes and `compose.test.yml`:
   CI never runs `--only` — a suite CI needs is a lane. The `browser`,
   `full-mfa`, `full-saml-platform`, `full-webauthn-verify` and
   `full-pg-agnostic` lanes run on a pull
-  request only when auth is selected. The `billing` lane (`ruby-billing`),
-  the `billing-integration` lane (`ruby-billing-integration`) and the billing
-  overlay rows (`ruby-integration-billing`) run nightly only, never on a pull
-  request (`docs/development/auth-ci.md`).
+  request only when auth is selected. The `billing` lane (`ruby-billing`)
+  runs on every Ruby change, like `unit`. The `billing-integration` lane
+  (`ruby-billing-integration`) and the billing overlay rows
+  (`ruby-integration-billing`) run nightly only, never on a pull request
+  (`docs/development/auth-ci.md`).
 - `.github/workflows/migration-tests.yml` runs the `migrations-*` lanes through
   the same composite. Its concurrent-boot job is intentionally CI
   orchestration, not a lane, although it uses `compose.test.yml` services.

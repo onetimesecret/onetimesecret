@@ -13,7 +13,7 @@ require 'json'
 require 'onetime/paseto'
 
 RSpec.describe Onetime::Paseto::AccessToken do
-  let(:keyring)  { Onetime::Paseto::Keyring.derive('decafbad' * 8, 'cafef00d' * 8) }
+  let(:keyring)  { Onetime::Paseto::Keyring.derive('decafbad' * 8) }
   let(:now)      { Time.utc(2026, 10, 27, 12, 0, 0) }
   let(:audience) { Onetime::Paseto::V3_AUDIENCE }
   let(:issuer)   { 'us.onetimesecret.test' }
@@ -97,13 +97,10 @@ RSpec.describe Onetime::Paseto::AccessToken do
       expect(claims.scope).to eq(['*'])
     end
 
-    it 'accepts a token signed by a previous SECRET (rotation)' do
+    it 'refuses a token signed by a previous SECRET after rotation' do
       previous_ring = Onetime::Paseto::Keyring.derive('cafef00d' * 8)
       token, = issue(keyring: previous_ring)
-
-      claims = verify(token)
-      expect(claims.kid).to eq(previous_ring.signing_key.kid)
-      expect(claims.kid).not_to eq(keyring.signing_key.kid)
+      expect { verify(token) }.to raise_error(Onetime::Paseto::UnknownKey)
     end
 
     it 'refuses a token signed by a SECRET this deployment never held' do
@@ -186,10 +183,20 @@ RSpec.describe Onetime::Paseto::AccessToken do
         'a widened scope' => { 'scope' => ['*', 'admin'] },
         'a string scope' => { 'scope' => '*' },
         'an nbf after exp' => { 'nbf' => '2026-10-27T14:00:00Z' },
+        'an expiry over one day after issuance' => { 'exp' => '2026-10-28T12:00:01Z' },
       }.each do |label, change|
         it "refuses #{label}" do
           expect { verify(forged(valid_claims.merge(change))) }.to raise_error(Onetime::Paseto::InvalidClaims)
         end
+      end
+
+      it 'refuses an expiry before issuance while the token is still unexpired' do
+        claims = valid_claims.merge(
+          'iat' => '2026-10-27T12:00:30Z',
+          'exp' => '2026-10-27T12:00:10Z',
+        )
+        expect { verify(forged(claims)) }
+          .to raise_error(Onetime::Paseto::InvalidClaims, /lifetime/)
       end
 
       it 'refuses a payload that is not a JSON object' do

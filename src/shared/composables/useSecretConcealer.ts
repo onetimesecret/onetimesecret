@@ -22,6 +22,7 @@ interface SecretConcealerOptions {
   onSuccess?: (response: ConcealDataResponse) => Promise<void> | void;
   /** Use public /api/v3/guest endpoints instead of authenticated /api/v3 */
   usePublicApi?: boolean;
+  shareDomain?: () => string;
 }
 
 type SubmitType = 'conceal' | 'generate';
@@ -55,7 +56,7 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
 
   const isSubmitting = ref(false);
 
-  const { form, validation, operations } = useSecretForm();
+  const { form, validation, operations } = useSecretForm(options?.shareDomain);
 
   // A bootstrap refresh can turn Markdown off while a form holds it. The
   // control goes away with the flag, so put the field back to text here;
@@ -126,11 +127,10 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
         type,
       });
 
-      // Generate mode skips full-form validation (the schema requires
-      // `secret`, which isn't user-typed there) but recipient is still
-      // user input and still gets mailed, so it's checked on its own.
+      // The server supplies the secret in generate mode. Both modes validate
+      // the sender's privacy and delivery settings.
       const isValid =
-        type === 'conceal' ? validation.validate() : validation.validateRecipient();
+        type === 'conceal' ? validation.validate() : validation.validateGenerate();
       if (!isValid) {
         throw createError('Please check the form for errors', 'human');
       }

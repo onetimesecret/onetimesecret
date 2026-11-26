@@ -36,7 +36,7 @@ vi.mock('@/shared/composables/useDomainContext', () => ({
 // Mock other composables used by SecretForm
 vi.mock('@/shared/composables/useSecretConcealer', () => ({
   useSecretConcealer: vi.fn(() => ({
-    form: { secret: '', passphrase: '', ttl: 300, share_domain: '' },
+    form: { secret: '', recipient: '', passphrase: '', ttl: 300, share_domain: '' },
     validation: { errors: new Map() },
     operations: {
       updateField: vi.fn(),
@@ -321,11 +321,11 @@ describe('SecretForm - Domain Context Integration', () => {
       vi.mocked(
         await import('@/shared/composables/useSecretConcealer')
       ).useSecretConcealer.mockReturnValue({
-        form: { secret: '', passphrase: '', ttl: 300, share_domain: '', display_type: 'text' },
+        form: { secret: '', recipient: '', passphrase: '', ttl: 300, share_domain: '', display_type: 'text' },
         validation: {
           errors: reactive(new Map()),
           validate: vi.fn(() => true),
-          validateRecipient: vi.fn(() => true),
+          validateGenerate: vi.fn(() => true),
         },
         operations: {
           updateField: mockUpdateField,
@@ -352,11 +352,11 @@ describe('SecretForm - Domain Context Integration', () => {
       vi.mocked(
         await import('@/shared/composables/useSecretConcealer')
       ).useSecretConcealer.mockReturnValue({
-        form: { secret: '', passphrase: '', ttl: 300, share_domain: '', display_type: 'text' },
+        form: { secret: '', recipient: '', passphrase: '', ttl: 300, share_domain: '', display_type: 'text' },
         validation: {
           errors: reactive(new Map()),
           validate: vi.fn(() => true),
-          validateRecipient: vi.fn(() => true),
+          validateGenerate: vi.fn(() => true),
         },
         operations: {
           updateField: mockUpdateField,

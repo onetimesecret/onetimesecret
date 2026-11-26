@@ -104,7 +104,7 @@ module Onetime
             private
 
             def reconcile_enabled?
-              maintenance_config['enabled'] == true
+              OT.conf.get('jobs.maintenance.enabled', nil) == true
             end
 
             # Phase 1 — bounded cursor SCAN of all secret hashes, tallying live
@@ -120,7 +120,7 @@ module Onetime
 
               redis.scan_each(match: model_scan_pattern('secret'), count: MaintenanceJob::SCAN_COUNT) do |key|
                 secrets_scanned += 1
-                owner_id = parse_redis_value(redis.hget(key, 'owner_id'))
+                owner_id         = parse_redis_value(redis.hget(key, 'owner_id'))
                 next if owner_id.nil?
 
                 owner_id = owner_id.to_s

@@ -91,27 +91,27 @@ module Onetime
       # Falls back to GLOBAL_DEFAULTS when OT.conf is not available.
       #
       # Call-time safety: OT.conf is only ever assigned the *result* of
-      # Config.after_load (boot.rb), so a non-nil OT.conf['brand'] has
+      # Config.after_load (boot.rb), so a non-nil brand section has
       # already been through normalize_brand — legacy fallbacks (e.g.
       # SITE_NAME -> product_name) are absorbed before any reader here.
       #
       # @return [Hash<Symbol, Object>] Global brand settings with config overrides
       def self.global_defaults
-        brand_conf = OT.conf&.get('brand', {})
-        return GLOBAL_DEFAULTS unless brand_conf
+        return GLOBAL_DEFAULTS if OT.conf&.get('brand', nil).nil?
 
+        product_name = OT.conf.get('brand.product_name', GLOBAL_DEFAULTS[:product_name])
         {
-          support_email: brand_conf['support_email'] || GLOBAL_DEFAULTS[:support_email],
-          product_name: brand_conf['product_name'] || GLOBAL_DEFAULTS[:product_name],
+          support_email: OT.conf.get('brand.support_email', GLOBAL_DEFAULTS[:support_email]),
+          product_name: product_name,
           # A configured product name brands new MFA enrollments too (#3612) —
           # an authenticator entry labeled with the vendor default on a renamed
           # install reads as a leak. The unconfigured 'OTS' default is unchanged,
           # so pre-existing installs keep issuing consistent labels.
-          totp_issuer: brand_conf['totp_issuer'] || brand_conf['product_name'] || GLOBAL_DEFAULTS[:totp_issuer],
-          logo_url: brand_conf['logo_url'] || GLOBAL_DEFAULTS[:logo_url],
-          logo_alt: brand_conf['logo_alt'] || GLOBAL_DEFAULTS[:logo_alt],
-          favicon_url: brand_conf['favicon_url'] || GLOBAL_DEFAULTS[:favicon_url],
-          signature_name: brand_conf['signature_name'] || GLOBAL_DEFAULTS[:signature_name],
+          totp_issuer: OT.conf.get('brand.totp_issuer', nil) || product_name || GLOBAL_DEFAULTS[:totp_issuer],
+          logo_url: OT.conf.get('brand.logo_url', GLOBAL_DEFAULTS[:logo_url]),
+          logo_alt: OT.conf.get('brand.logo_alt', GLOBAL_DEFAULTS[:logo_alt]),
+          favicon_url: OT.conf.get('brand.favicon_url', GLOBAL_DEFAULTS[:favicon_url]),
+          signature_name: OT.conf.get('brand.signature_name', GLOBAL_DEFAULTS[:signature_name]),
         }
       end
 

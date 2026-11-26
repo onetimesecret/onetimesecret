@@ -468,8 +468,8 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       before { stub_empty_guest_routes_config }
 
       it 'treats missing config as disabled (empty hash fallback)' do
-        # When config is missing, guest_routes_config returns {}
-        # An empty hash has no 'enabled' key, so enabled check fails
+        # When config is missing, site.interface.api.guest_routes.enabled
+        # reads as unset, so the enabled check fails
         logic = create_logic(V3::Logic::Secrets::ConcealSecret,
           params: { 'secret' => { 'secret' => 'test' } },
         )

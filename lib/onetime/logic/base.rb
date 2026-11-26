@@ -10,6 +10,7 @@ require 'onetime/refinements/stripe_refinements'
 require 'onetime/logic/organization_context'
 require 'onetime/security/input_sanitizers'
 require 'onetime/application/authorization_policies'
+require_relative '../authorization/registry'
 
 module Onetime
   module Logic
@@ -40,9 +41,6 @@ module Onetime
         :locale,
         :processed_params,
         :route_params,
-        :site,
-        :features,
-        :authentication,
         :domains_enabled,
         :strategy_result
 
@@ -133,12 +131,7 @@ module Onetime
       end
 
       def process_settings
-        @site            = OT.conf.get('site', {})
-        @features        = OT.conf.get('features', {})
-
-        @authentication  = site.fetch('authentication', {})
-        domains          = features.fetch('domains', {})
-        @domains_enabled = domains['enabled'] || false
+        @domains_enabled = OT.conf.get('features.domains.enabled', false)
       end
 
       def valid_email?(email_value)
@@ -314,34 +307,9 @@ module Onetime
         # Check if auth_membership has the entitlement (ADR-012 Stage 3)
         return true if auth_membership.can?(entitlement)
 
-        # Build upgrade path info
-        current_plan = auth_org.planid
-        upgrade_to   = if defined?(Billing::PlanHelpers)
-                         Billing::PlanHelpers.upgrade_path_for(entitlement, current_plan)
-                       end
-
-        raise Onetime::EntitlementRequired.new(
-          entitlement,
-          current_plan: current_plan,
-          upgrade_to: upgrade_to,
-          error_key: error_key,
-          args: { entitlement: entitlement },
-        )
+        raise_missing_entitlement!(auth_org, entitlement, error_key)
       end
 
-      # Require that the user's membership in a specific organization has an entitlement.
-      #
-      # Unlike require_entitlement! (which checks auth_membership in auth_org),
-      # this method checks the user's membership in a *target* organization.
-      # Used by Organization API endpoints that operate on organizations loaded
-      # from URL parameters rather than the user's auth context.
-      #
-      # @param organization [Onetime::Organization] The target organization
-      # @param entitlement [String, Symbol] The entitlement to check
-      # @param error_key [String, nil] Optional i18n key for the raised error
-      # @raise [Onetime::EntitlementRequired] If membership lacks the entitlement
-      # @raise [Onetime::Forbidden] If user is not a member of the organization
-      # @return [true] If entitlement check passes
       # Whether the caller's active membership in +organization+ reaches
       # +domain+, or, with no domain given, the organization-wide stream.
       #
@@ -379,16 +347,12 @@ module Onetime
         )
       end
 
-      def require_entitlement_in!(organization, entitlement, error_key: nil)
+      # A verified site operator can act without a membership. Other callers
+      # need an active membership in the specific organization.
+      def target_membership!(organization)
         raise Onetime::Problem, 'Organization context unavailable' if organization.nil?
+        return if has_system_role?('colonel')
 
-        entitlement = entitlement.to_s
-        error_key ||= "api.entitlements.errors.#{entitlement}_required"
-
-        # Colonels (site admins) bypass all entitlement checks
-        return true if has_system_role?('colonel')
-
-        # Anonymous users can't have entitlements in any organization
         if anonymous_user?
           raise Onetime::Forbidden.new(
             'Authentication required',
@@ -396,10 +360,7 @@ module Onetime
           )
         end
 
-        # Load user's membership in the target organization
         membership = membership_in(organization)
-
-        # User must be a member of the target organization
         unless membership&.active?
           raise Onetime::Forbidden.new(
             'You must be a member of this organization',
@@ -407,10 +368,53 @@ module Onetime
           )
         end
 
-        # Check if membership has the entitlement
-        return true if membership.can?(entitlement)
+        membership
+      end
+      private :target_membership!
 
-        # Build upgrade path info
+      def require_capability_in!(organization, capability)
+        raise ArgumentError, "Unknown membership capability: #{capability}" unless Onetime::Authorization::Registry.capability?(capability)
+
+        membership = target_membership!(organization)
+        return true if membership.nil? || membership.has_capability?(capability)
+
+        raise Onetime::CapabilityRequired.new(capability)
+      end
+
+      # A target-org feature check still requires a caller who can act in the
+      # organization. Operators bypass membership but still need the feature.
+      def require_feature_in!(organization, feature, error_key: nil)
+        target_membership!(organization)
+        verify_organization_feature!(organization, feature, error_key: error_key)
+      end
+
+      # Use one call for operations with both requirements. Check the member
+      # first so someone without authority receives no billing information.
+      # Callers enforce access to the specific resource or organization scope.
+      def require_feature_and_capability_in!(organization, feature:, capability:, error_key: nil)
+        require_capability_in!(organization, capability)
+        verify_organization_feature!(organization, feature, error_key: error_key)
+      end
+
+      def verify_organization_feature!(organization, feature, error_key:)
+        raise ArgumentError, "Unknown plan feature: #{feature}" unless Onetime::Authorization::Registry.feature?(feature)
+        return true if organization.has_feature?(feature)
+
+        raise_missing_entitlement!(organization, feature.to_s, error_key)
+      end
+      private :verify_organization_feature!
+
+      # Check a role-scoped plan entitlement in the target organization.
+      def require_entitlement_in!(organization, entitlement, error_key: nil)
+        entitlement = entitlement.to_s
+        membership  = target_membership!(organization)
+        return true if membership.nil? || membership.can?(entitlement)
+
+        raise_missing_entitlement!(organization, entitlement, error_key)
+      end
+
+      def raise_missing_entitlement!(organization, entitlement, error_key)
+        error_key  ||= "api.entitlements.errors.#{entitlement}_required"
         current_plan = organization.planid
         upgrade_to   = if defined?(Billing::PlanHelpers)
                          Billing::PlanHelpers.upgrade_path_for(entitlement, current_plan)
@@ -424,6 +428,7 @@ module Onetime
           args: { entitlement: entitlement },
         )
       end
+      private :raise_missing_entitlement!
 
       # Safely extract session ID when the session object might be a Hash
       # (e.g. from BasicAuth) rather than a proper session with an #id method.

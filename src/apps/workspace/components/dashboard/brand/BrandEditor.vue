@@ -100,7 +100,7 @@
           <BrandAdvancedTeaser />
         </ComingSoonPanel>
 
-        <p class="mt-3 px-1 text-xs leading-relaxed text-gray-400">
+        <p class="mt-3 px-1 field-hint leading-relaxed">
           {{ t('web.branding.paths_carryover_hint') }}
         </p>
       </div>

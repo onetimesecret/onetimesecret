@@ -20,14 +20,14 @@ require_relative '../../../support/test_helpers'
 OT.boot! :test, false
 
 # Store original config for restoration and setup test config
-@original_colonels = OT.conf.dig('site', 'authentication', 'colonels')&.dup
+@original_colonels = OT.conf.get('site.authentication.colonels', nil)&.dup
 @colonel_assignment = Onetime::Customer::Features::ColonelAssignment
 
 # Helper to set colonels config
 def set_colonels(list)
   OT.conf['site'] ||= {}
-  OT.conf['site']['authentication'] ||= {}
-  OT.conf['site']['authentication']['colonels'] = list
+  OT.conf.get('site')['authentication'] ||= {}
+  OT.conf.get('site.authentication')['colonels'] = list
 end
 
 # TRYOUTS

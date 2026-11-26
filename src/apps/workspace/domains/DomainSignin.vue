@@ -25,8 +25,10 @@ import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSi
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import SettingsCard from '@/shared/components/ui/SettingsCard.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { useTenantSsoPermissions } from '@/shared/composables/useResourcePermissions';
 import {
   resolveGlobalMethodAvailability,
   useSigninConfig,
@@ -38,10 +40,9 @@ import { isOrgsSsoEnabled } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 
 const { t } = useI18n();
-const route = useRoute();
 const router = useRouter();
 
 const props = defineProps<{
@@ -57,19 +58,6 @@ const ssoRoute = computed(() => ({
   name: 'DomainSigninSso',
   params: { orgid: props.orgid, extid: props.extid },
 }));
-
-// The SSO configuration used to open as a dialog on this page from the
-// `?modal=sso` deep link (org SSO tab, domains table). Older links still
-// carry it: send them on to the SSO page, dropping the param so Back does
-// not land here and bounce again. A query value is a string, null, or an
-// array when the param repeats (`?modal=a&modal=sso`); only the exact string
-// counts. The page unmounts on the next tick, so onMounted skips its reads.
-const legacyModalParam = route.query.modal;
-const redirectingToSsoPage = typeof legacyModalParam === 'string' && legacyModalParam === 'sso';
-if (redirectingToSsoPage) {
-  const { modal: _modal, ...query } = route.query;
-  router.replace({ ...ssoRoute.value, query });
-}
 
 const handleBack = () => {
   router.push(`/org/${props.orgid}/domains/${props.extid}`);
@@ -101,18 +89,12 @@ const organization = computed(() =>
 );
 const { can } = useEntitlements(organization);
 const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
-/**
- * Entitlement only — the form distinguishes "upgrade to configure" (this) from
- * "unavailable on this instance" (ORGS_SSO_ENABLED), so the two must not be
- * fused into one prop the way DomainsTable fuses them.
- */
-const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
-/**
- * Both gates the tenant-SSO endpoints enforce. Fetching credentials without
- * the install flag returns "Organization SSO is not enabled on this instance"
- * (DomainsAPI::Logic::SsoConfig::Base), so don't ask.
- */
-const canFetchSsoConfig = computed(() => isOrgsSsoEnabled() && canManageSso.value);
+const { canManageSso, isLoading: permissionLoading } = useTenantSsoPermissions(
+  () => props.orgid,
+  () => props.extid
+);
+const ssoAvailableOnInstance = computed(() => isOrgsSsoEnabled());
+const canFetchSsoConfig = computed(() => ssoAvailableOnInstance.value && canManageSso.value === true);
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 
 // ---------------------------------------------------------------------------
@@ -158,7 +140,6 @@ const {
 // row's "Configure" / "Finish setup" / "Edit credentials" affordance. Editing
 // happens on the SSO page, which owns the rest of this composable's state.
 const {
-  isInitialized: ssoInitialized,
   isConfigured: ssoIsConfigured,
   isEnabled: ssoIsEnabled,
   initialize: initializeSsoConfig,
@@ -169,9 +150,6 @@ const {
 // ---------------------------------------------------------------------------
 
 onMounted(async () => {
-  // Redirecting (see above): nothing read here would be shown.
-  if (redirectingToSsoPage) return;
-
   await initializeDomain();
 
   // Only fetch the signin config when the entitlement is available. Fetching
@@ -179,10 +157,6 @@ onMounted(async () => {
   // instead of the access-denied upgrade prompt below.
   if (canCustomSignin.value) {
     await initializeSigninConfig();
-  }
-
-  if (canFetchSsoConfig.value) {
-    await initializeSsoConfig();
   }
 });
 
@@ -194,11 +168,9 @@ watch(canCustomSignin, async (entitled) => {
   }
 });
 
-watch(canFetchSsoConfig, async (allowed) => {
-  if (allowed && !ssoInitialized.value) {
-    await initializeSsoConfig();
-  }
-});
+watch(canFetchSsoConfig, (allowed) => {
+  if (allowed) void initializeSsoConfig();
+}, { immediate: true });
 </script>
 
 <template>
@@ -257,30 +229,12 @@ watch(canFetchSsoConfig, async (allowed) => {
       </div>
 
       <!-- Signin Configuration Form -->
-      <div
+      <SettingsCard
         v-else
-        class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-          <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
-              <OIcon
-                collection="heroicons"
-                name="arrow-right-on-rectangle"
-                class="size-5 text-brand-600 dark:text-brand-400"
-                aria-hidden="true" />
-            </div>
-            <div class="flex-1">
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                {{ t('web.domains.signin.title') }}
-              </h2>
-              <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('web.domains.signin.config_description') }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="space-y-6 p-6">
+        icon="arrow-right-on-rectangle"
+        :title="t('web.domains.signin.title')"
+        :description="t('web.domains.signin.config_description')">
+        <div class="space-y-6">
           <!-- Effective state (ADR-024): resolver output + workspace-default
                badge + dormant warning. Replaces the old header enabled-toggle
                and not-configured notice. -->
@@ -298,18 +252,19 @@ watch(canFetchSsoConfig, async (allowed) => {
             :is-deleting="isDeleting"
             :is-configured="isConfigured"
             :workspace-default="isWorkspaceDefault"
-            :sso-configured="ssoIsConfigured"
-            :sso-setup-pending="ssoIsConfigured && !ssoIsEnabled"
+            :sso-configured="canFetchSsoConfig && ssoIsConfigured"
+            :sso-setup-pending="canFetchSsoConfig && ssoIsConfigured && !ssoIsEnabled"
             :tenant-sso="tenantSso"
             :effective-restrict-to="effectiveRestrictTo"
-            :can-manage-sso="canManageSso"
+            :can-manage-sso="canManageSso ?? null"
+            :sso-permission-loading="permissionLoading"
             :global-availability="globalAvailability"
             :saving-field="savingField"
             @auto-save="autoSaveFields"
             @delete="deleteConfig"
             @configure-sso="handleConfigureSso" />
         </div>
-      </div>
+      </SettingsCard>
     </div>
   </div>
 </template>

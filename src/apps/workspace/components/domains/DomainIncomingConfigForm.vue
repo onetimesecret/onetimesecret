@@ -41,6 +41,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'update:enabled', value: boolean): void;
+  (e: 'update:passphraseRequired', value: boolean): void;
+  (e: 'update:maxTtl', value: number | null): void;
   (e: 'save'): void;
   (e: 'delete'): void;
   (e: 'discard'): void;
@@ -84,7 +86,7 @@ const hasAnyRecipients = computed(() => recipientCount.value > 0);
 const canDelete = computed(() => {
   const saved = props.savedFormState;
   if (!saved) return false;
-  return saved.recipients.length > 0 || saved.enabled;
+  return saved.recipients.length > 0 || saved.enabled || saved.passphrase_required || saved.max_ttl != null;
 });
 
 // ---------------------------------------------------------------------------
@@ -169,6 +171,11 @@ function handleDelete(): void {
 function handleToggleEnabled(): void {
   emit('update:enabled', !props.formState.enabled);
 }
+
+function updateMaxTtl(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  if (input.reportValidity()) emit('update:maxTtl', input.value === '' ? null : input.valueAsNumber);
+}
 </script>
 
 <template>
@@ -243,7 +250,7 @@ function handleToggleEnabled(): void {
               type="button"
               @click="handleRemoveRecipient(index)"
               :disabled="isSaving || isDeleting"
-              class="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/20"
+              class="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/20"
               :aria-label="t('web.domains.incoming.remove_recipient')">
               <OIcon
                 collection="heroicons"
@@ -281,7 +288,7 @@ function handleToggleEnabled(): void {
           <div>
             <label
               for="recipient-email"
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              class="block field-label">
               {{ t('web.domains.incoming.email_label') }}
               <span class="text-red-500" aria-hidden="true">*</span>
             </label>
@@ -294,7 +301,7 @@ function handleToggleEnabled(): void {
               :placeholder="t('web.domains.incoming.email_placeholder')"
               :aria-invalid="!!emailError"
               :aria-describedby="emailError ? 'email-error' : undefined"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
+              class="mt-1 field-input"
               :class="{ 'border-red-300 dark:border-red-600': emailError }"
               @input="handleEmailInput"
               @keydown.enter.prevent="handleAddRecipient" />
@@ -310,7 +317,7 @@ function handleToggleEnabled(): void {
           <div>
             <label
               for="recipient-name"
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              class="block field-label">
               {{ t('web.domains.incoming.name_label') }}
             </label>
             <input
@@ -320,7 +327,7 @@ function handleToggleEnabled(): void {
               maxlength="100"
               autocomplete="off"
               :placeholder="t('web.domains.incoming.name_placeholder')"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
+              class="mt-1 field-input"
               @keydown.enter.prevent="handleAddRecipient" />
           </div>
         </div>
@@ -331,7 +338,7 @@ function handleToggleEnabled(): void {
             type="button"
             @click="handleAddRecipient"
             :disabled="!isAddFormValid || isSaving"
-            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-white dark:ring-gray-500 dark:hover:bg-gray-500">
+            class="btn-secondary">
             <OIcon
               collection="heroicons"
               name="plus"
@@ -359,6 +366,44 @@ function handleToggleEnabled(): void {
     </div>
 
     <!-- Enabled Toggle -->
+    <fieldset :disabled="isSaving || isDeleting" class="space-y-4">
+      <div class="flex items-center gap-3">
+        <input
+          id="incoming-passphrase-required"
+          type="checkbox"
+          :checked="formState.passphrase_required"
+          class="field-check rounded"
+          @change="emit('update:passphraseRequired', ($event.target as HTMLInputElement).checked)" />
+        <label
+          for="incoming-passphrase-required"
+          class="field-label">
+          {{ t('web.domains.passphrase_required_label') }}
+        </label>
+      </div>
+      <div class="sm:max-w-md">
+        <label
+          for="incoming-max-ttl"
+          class="block field-label">
+          {{ t('web.domains.incoming.max_ttl') }}
+        </label>
+        <input
+          id="incoming-max-ttl"
+          type="number"
+          min="60"
+          step="1"
+          inputmode="numeric"
+          :value="formState.max_ttl"
+          aria-describedby="incoming-max-ttl-hint"
+          class="mt-1 field-input tabular-nums"
+          @change="updateMaxTtl" />
+        <p
+          id="incoming-max-ttl-hint"
+          class="mt-1 field-hint">
+          {{ t('web.domains.incoming.max_ttl_hint') }}
+        </p>
+      </div>
+    </fieldset>
+
     <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
       <div>
         <label
@@ -429,7 +474,7 @@ function handleToggleEnabled(): void {
             type="button"
             @click="showDeleteConfirm = true"
             :disabled="isDeleting || isSaving"
-            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
+            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-red-300 ring-inset hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
             <OIcon
               collection="heroicons"
               name="trash"
@@ -448,14 +493,14 @@ function handleToggleEnabled(): void {
             type="button"
             @click="handleDelete"
             :disabled="isDeleting"
-            class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400">
+            class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400">
             {{ isDeleting ? t('web.COMMON.processing') : t('web.COMMON.yes_delete') }}
           </button>
           <button
             type="button"
             @click="showDeleteConfirm = false"
             :disabled="isDeleting"
-            class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+            class="btn-secondary py-1.5">
             {{ t('web.COMMON.word_cancel') }}
           </button>
         </div>
@@ -466,7 +511,7 @@ function handleToggleEnabled(): void {
           type="button"
           @click="emit('discard')"
           :disabled="isSaving"
-          class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+          class="btn-secondary">
           {{ t('web.domains.incoming.discard_changes') }}
         </button>
       </div>
@@ -476,7 +521,7 @@ function handleToggleEnabled(): void {
         v-if="hasUnsavedChanges"
         type="submit"
         :disabled="!hasUnsavedChanges || isSaving || isDeleting"
-        class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+        class="btn-primary">
         <OIcon
           v-if="isSaving"
           collection="heroicons"

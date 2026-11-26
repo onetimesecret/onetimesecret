@@ -1046,7 +1046,6 @@ class Onetime::CustomDomain::SigninConfig < Familia::Horreum
     # a second time; the rule itself is still decided only here.
     #
     # @param domain_id [String] CustomDomain identifier (objid)
-    # @param auth [Hash, nil] site.authentication settings (injectable for tests)
     # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] caller's
     #   already-loaded record, passed through to the ladder
     # @param custom_domain [Onetime::CustomDomain, nil] caller's already-
@@ -1054,13 +1053,13 @@ class Onetime::CustomDomain::SigninConfig < Familia::Horreum
     # @param reason [Symbol, nil] the caller's own
     #   SsoConfig.tenant_sso_unavailable_reason for domain_id, computed in
     #   this request (nil = available). When given, the ladder is skipped
-    #   and auth:, sso_config: and custom_domain: are unused.
+    #   and sso_config: and custom_domain: are unused.
     # @return [Boolean]
-    def tenant_sso_awaiting_verification?(domain_id, auth: nil, sso_config: nil, custom_domain: nil,
+    def tenant_sso_awaiting_verification?(domain_id, sso_config: nil, custom_domain: nil,
                                           reason: LADDER_REASON_NOT_GIVEN)
       if reason.equal?(LADDER_REASON_NOT_GIVEN)
         reason = Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(
-          domain_id, auth: auth, sso_config: sso_config, custom_domain: custom_domain
+          domain_id, sso_config: sso_config, custom_domain: custom_domain
         )
       end
       reason == :domain_unverified && sso_permitted_for?(domain_id)
@@ -1215,11 +1214,9 @@ class Onetime::CustomDomain::SigninConfig < Familia::Horreum
     # (ADR-024). Strict-boolean like the resolver: anything but true is
     # treated as off.
     #
-    # @param auth [Hash, nil] site.authentication settings (injectable for tests)
     # @return [Boolean]
-    def global_signin_enabled(auth = nil)
-      auth ||= OT.conf.get('site.authentication', {})
-      (auth['enabled'] && auth['signin']) == true
+    def global_signin_enabled
+      (OT.conf.get('site.authentication.enabled', nil) && OT.conf.get('site.authentication.signin', nil)) == true
     end
 
     # Install-level MASTER authentication switch (AUTH_ENABLED) on its
@@ -1237,11 +1234,9 @@ class Onetime::CustomDomain::SigninConfig < Familia::Horreum
     # go dark together under a master kill. Strict-boolean like the
     # other global readers.
     #
-    # @param auth [Hash, nil] site.authentication settings (injectable for tests)
     # @return [Boolean]
-    def global_auth_enabled(auth = nil)
-      auth ||= OT.conf.get('site.authentication', {})
-      auth['enabled'] == true
+    def global_auth_enabled
+      OT.conf.get('site.authentication.enabled', nil) == true
     end
 
     # Check if a domain has signin config.

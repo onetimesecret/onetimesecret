@@ -3,8 +3,7 @@
 // Page wiring between the sign-in form and its two composables. The SSO
 // credentials are edited on their own page (DomainSigninSso); this page only
 // reads the SSO record's state for the form's SSO row ("Configure" /
-// "Finish setup" / "Edit credentials"), sends Configure to that page, and
-// forwards the retired `?modal=sso` deep link there.
+// "Finish setup" / "Edit credentials") and sends Configure to that page.
 //
 // Both composables and the form are stubbed: what is under test is the
 // page's handlers and bindings, not the children.
@@ -20,11 +19,9 @@ import DomainSignin from '@/apps/workspace/domains/DomainSignin.vue';
 // Mocks
 // ─────────────────────────────────────────────────────────────────────────────
 
-const routeQuery = ref<Record<string, string | string[]>>({});
 const router = { push: vi.fn(), replace: vi.fn() };
 
 vi.mock('vue-router', () => ({
-  useRoute: () => ({ query: routeQuery.value }),
   useRouter: () => router,
 }));
 
@@ -62,6 +59,11 @@ vi.mock('@/shared/composables/useEntitlements', () => ({
   useEntitlements: () => ({ can: () => mockEntitled.value }),
 }));
 
+const mockCanManage = ref<boolean | undefined>(true);
+vi.mock('@/shared/composables/useResourcePermissions', () => ({
+  useTenantSsoPermissions: () => ({ canManageSso: mockCanManage, isLoading: ref(false) }),
+}));
+
 vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => ({}),
 }));
@@ -81,10 +83,12 @@ vi.mock('@/shared/composables/useDomain', () => ({
 }));
 
 const mockEntitled = ref(true);
+const mockSigninError = ref<{ message: string } | null>(null);
 const mockTenantSso = ref<TenantSsoVerdict | null>(null);
 
 const signin = {
   refreshDetails: vi.fn(),
+  autoSaveFields: vi.fn(),
   initialize: vi.fn(),
 };
 
@@ -95,7 +99,7 @@ vi.mock('@/shared/composables/useSigninConfig', () => ({
     isInitialized: ref(true),
     isSaving: ref(false),
     isDeleting: ref(false),
-    error: ref(null),
+    error: mockSigninError,
     formState: ref({
       enabled: true,
       signin_enabled: true,
@@ -113,7 +117,7 @@ vi.mock('@/shared/composables/useSigninConfig', () => ({
     tenantSso: mockTenantSso,
     initialize: signin.initialize,
     refreshDetails: signin.refreshDetails,
-    autoSaveFields: vi.fn(),
+    autoSaveFields: signin.autoSaveFields,
     deleteConfig: vi.fn(),
   }),
 }));
@@ -153,8 +157,9 @@ describe('DomainSignin', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    routeQuery.value = {};
     mockEntitled.value = true;
+    mockSigninError.value = null;
+    mockCanManage.value = true;
     mockTenantSso.value = null;
     mockSsoConfigured.value = true;
     mockSsoEnabled.value = false;
@@ -162,6 +167,16 @@ describe('DomainSignin', () => {
 
   afterEach(() => {
     wrapper?.unmount();
+  });
+
+  it('keeps sign-in method writes unavailable when the sign-in settings read is denied', async () => {
+    mockCanManage.value = true;
+    signin.initialize.mockImplementationOnce(() => { mockSigninError.value = { message: 'Forbidden' }; });
+    wrapper = await mountPage();
+
+    expect(signin.initialize).toHaveBeenCalledOnce();
+    expect(wrapper.findComponent({ name: 'DomainSigninConfigForm' }).exists()).toBe(false);
+    expect(signin.autoSaveFields).not.toHaveBeenCalled();
   });
 
   it('sends Configure to the SSO page', async () => {
@@ -176,51 +191,14 @@ describe('DomainSignin', () => {
     });
   });
 
-  describe('the retired `?modal=sso` deep link', () => {
-    it('is replaced by the SSO page, keeping the other query params', async () => {
-      routeQuery.value = { modal: 'sso', from: 'hub' };
-      wrapper = await mountPage();
-
-      expect(router.replace).toHaveBeenCalledWith({
-        name: 'DomainSigninSso',
-        params: { orgid: 'org_123', extid: 'dm_123' },
-        query: { from: 'hub' },
-      });
-    });
-
-    it('is the only query that redirects', async () => {
-      routeQuery.value = { modal: 'other' };
-      wrapper = await mountPage();
-
-      expect(router.replace).not.toHaveBeenCalled();
-    });
-
-    it('does not match a repeated param', async () => {
-      routeQuery.value = { modal: ['sso', 'other'] };
-      wrapper = await mountPage();
-
-      expect(router.replace).not.toHaveBeenCalled();
-      expect(sso.initialize).toHaveBeenCalledTimes(1);
-    });
-
-    it('skips the page reads: the page unmounts on the next tick', async () => {
-      routeQuery.value = { modal: 'sso' };
-      wrapper = await mountPage();
-
-      expect(router.replace).toHaveBeenCalledTimes(1);
-      expect(signin.initialize).not.toHaveBeenCalled();
-      expect(sso.initialize).not.toHaveBeenCalled();
-    });
-  });
-
   it('reads the SSO record when both tenant-SSO gates allow it', async () => {
     wrapper = await mountPage();
 
     expect(sso.initialize).toHaveBeenCalledTimes(1);
   });
 
-  it('never reads the SSO record without the entitlement', async () => {
-    mockEntitled.value = false;
+  it.each([false, undefined])('skips the SSO record when the domain permission is %s', async (allowed) => {
+    mockCanManage.value = allowed;
     wrapper = await mountPage();
 
     expect(sso.initialize).not.toHaveBeenCalled();

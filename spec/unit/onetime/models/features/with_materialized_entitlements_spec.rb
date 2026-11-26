@@ -18,6 +18,7 @@
 # Run: pnpm run test:rspec spec/unit/onetime/models/features/with_materialized_entitlements_spec.rb
 
 require 'spec_helper'
+require_relative '../../../../support/redis_entitlement_sets'
 
 require_relative '../../../../../lib/onetime/models/organization/features/with_materialized_entitlements'
 require_relative '../../../../../lib/onetime/models/organization/features/with_materialized_limits'
@@ -81,38 +82,27 @@ RSpec.describe 'WithMaterializedEntitlements', billing: true do
       include Onetime::Models::Features::WithMaterializedEntitlements::InstanceMethods
       include Onetime::Models::Features::WithMaterializedLimits::InstanceMethods
       extend cm
+      include RedisEntitlementSets
 
       attr_accessor :materialized_entitlements_at
 
       def initialize
-        @entitlements_plan         = FakeSet.new
         @limits_plan               = FakeHashKey.new
-        @entitlements_grants       = FakeSet.new
-        @entitlements_revokes      = FakeSet.new
-        @materialized_entitlements = FakeSet.new
         @materialized_entitlements_at = nil
       end
 
-      def entitlements_plan         = @entitlements_plan
       def limits_plan               = @limits_plan
-      def entitlements_grants       = @entitlements_grants
-      def entitlements_revokes      = @entitlements_revokes
-      def materialized_entitlements = @materialized_entitlements
 
       # Stub for Familia::Horreum#save_with_collections
       def save_with_collections(update_expiration: true)
         yield if block_given?
         true
       end
-
-      # Stub for Familia::Horreum#transaction (MULTI/EXEC wrapper)
-      def transaction
-        yield if block_given?
-      end
     end
   end
 
   let(:org) { test_class.new }
+  after { org.clear_entitlement_fixture }
 
   # ClassMethods are extended onto test_class, so call them as test_class.method_name
   # feature_mod is an alias so examples read clearly

@@ -51,7 +51,7 @@ module Onetime
         #
         # Merge precedence (lowest to highest):
         #   1. DEFAULTS (hardcoded fallbacks)
-        #   2. OT.conf['email_providers'][provider] (YAML config)
+        #   2. email_providers.<provider> (YAML config)
         #   3. overrides (explicit kwargs)
         #
         # @param provider [String] Provider name ('ses', 'sendgrid', 'lettermint')
@@ -73,18 +73,17 @@ module Onetime
           config
         end
 
-        # Loads provider config from OT.conf['email_providers'].
+        # Loads provider config from email_providers.<provider>.
         #
         # @param provider [String] Provider name
         # @return [Hash] Config hash with symbol keys, empty if not configured
         #
         def self.load_from_config(provider)
-          # Not get(['email_providers', provider]): provider may be '' here.
-          providers     = OT.conf&.get('email_providers') || {}
-          provider_conf = providers[provider] || {}
+          # get rejects an empty path segment; '' names no provider.
+          return {} if provider.to_s.empty?
 
           # Symbolize keys for consistency with DEFAULTS
-          symbolize_keys(provider_conf)
+          symbolize_keys(OT.conf&.get(['email_providers', provider.to_s], nil) || {})
         end
 
         # Returns all configured providers (from DEFAULTS + any in config).

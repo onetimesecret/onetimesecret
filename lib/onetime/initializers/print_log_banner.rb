@@ -41,14 +41,11 @@ module Onetime
       #
       # Helper methods available:
       # - render_section(header1, header2, rows): Creates a formatted table
-      # - is_feature_disabled?(config): Checks if a feature is disabled
+      # - disabled?(path): Checks if the config section at path is disabled
       # - format_config_value(config): Formats complex config values for display
       # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
       def print_log_banner
-      site_config     = OT.conf.get('site') # if site is missing we got real problems
-      features_config = OT.conf.get('features', {})
-      email_config    = OT.conf.get('emailer', {})
-      redis_info      = Familia.dbclient.info
+      redis_info = Familia.dbclient.info
 
       # Header banner
       auth_mode      = defined?(OT.auth_config) ? OT.auth_config.mode : 'n/a'
@@ -68,17 +65,17 @@ module Onetime
         output << render_section('Development', 'Settings', dev_rows)
       end
 
-      feature_rows = build_features_section(features_config)
+      feature_rows = build_features_section
       unless feature_rows.empty?
         output << render_section('Features', 'Configuration', feature_rows)
       end
 
-      mail_rows = build_email_section(email_config)
+      mail_rows = build_email_section
       unless mail_rows.empty?
         output << render_section('Mail Config', 'Value', mail_rows)
       end
 
-      auth_rows = build_auth_section(site_config)
+      auth_rows = build_auth_section
       unless auth_rows.empty?
         output << render_section('Authentication', 'Details', auth_rows)
       end
@@ -98,7 +95,7 @@ module Onetime
         output << render_section('Domains Config', 'Value', domains_config_rows)
       end
 
-      customization_rows = build_customization_section(site_config)
+      customization_rows = build_customization_section
       unless customization_rows.empty?
         output << render_section('Customization', 'Configuration', customization_rows)
       end
@@ -134,49 +131,36 @@ module Onetime
 
       # Builds development settings section rows
       def build_dev_section
-        dev_rows = []
+        development = OT.conf.get('development', nil)
+        return [] unless development
 
-        %w[development].each do |key|
-          next unless config_value = OT.conf.get([key], false)
-
-          dev_rows << if is_feature_disabled?(config_value)
-            [key.to_s.capitalize, 'disabled']
-          else
-            [key.to_s.capitalize, format_config_value(config_value)]
-          end
-        end
-
-        dev_rows
+        [['Development', disabled?('development') ? 'disabled' : format_config_value(development)]]
       end
 
       # Builds features section rows from features config
-      def build_features_section(features_config)
+      def build_features_section
         feature_rows = []
 
         # Domains feature
-        if features_config.key?('domains')
-          domains = features_config['domains']
-          if is_feature_disabled?(domains)
-            feature_rows << %w[Domains disabled]
-          elsif domains.is_a?(Hash) && !domains.empty?
-            feature_rows << ['Domains', format_config_value(domains)]
-          end
+        domains = OT.conf.get('features.domains', nil)
+        if disabled?('features.domains')
+          feature_rows << %w[Domains disabled]
+        elsif domains.is_a?(Hash) && !domains.empty?
+          feature_rows << ['Domains', format_config_value(domains)]
         end
 
         # Regions feature with jurisdictions
-        if features_config.key?('regions')
-          regions = features_config['regions']
-          if is_feature_disabled?(regions)
-            feature_rows << %w[Regions disabled]
-          elsif regions.is_a?(Hash)
-            jurisdictions = regions.fetch('jurisdictions', [])
-            if jurisdictions.any?
-              ids = jurisdictions.map { |j| j['identifier'] }.join(', ')
-              feature_rows << ['Regions', "enabled (#{ids})"]
-              feature_rows << ['Current', regions['current_jurisdiction']] if regions['current_jurisdiction']
-            else
-              feature_rows << ['Regions', 'enabled (no jurisdictions)']
-            end
+        if disabled?('features.regions')
+          feature_rows << %w[Regions disabled]
+        elsif OT.conf.get('features.regions', nil).is_a?(Hash)
+          jurisdictions = OT.conf.get('features.regions.jurisdictions', [])
+          if jurisdictions.any?
+            ids = jurisdictions.map { |j| j['identifier'] }.join(', ')
+            feature_rows << ['Regions', "enabled (#{ids})"]
+            current = OT.conf.get('features.regions.current_jurisdiction', nil)
+            feature_rows << ['Current', current] if current
+          else
+            feature_rows << ['Regions', 'enabled (no jurisdictions)']
           end
         end
 
@@ -184,48 +168,38 @@ module Onetime
       end
 
       # Builds email configuration section rows
-      def build_email_section(email_config)
-        return [] if email_config.nil? || email_config.empty?
+      def build_email_section
+        emailer = OT.conf.get('emailer', nil)
+        return [] if emailer.nil? || emailer.empty?
+        return [%w[Status disabled]] if disabled?('emailer')
 
-        merged_email_config = email_config.dup
+        # from_name, then fromname (deprecated as of v0.23), as Mailer.from_name reads them.
+        from_name = OT.conf.get('emailer.from_name', nil) || OT.conf.get('emailer.fromname', nil)
 
-        # fromname is deprecated as of v0.23
-        merged_email_config['from_name'] = email_config['fromname'] if email_config.key?('fromname')
-
-        begin
-          if is_feature_disabled?(email_config)
-            [%w[Status disabled]]
-          else
-            [
-              ['Mode', merged_email_config['mode']],
-              ['From', "'#{merged_email_config['from_name']} <#{merged_email_config['from']}>'"],
-              ['Host', "#{merged_email_config['host']}:#{merged_email_config['port']}"],
-              ['Region', merged_email_config['region']],
-              ['TLS', merged_email_config['tls']],
-              ['Auth', merged_email_config['auth']],
-            ].reject { |row| row[1].nil? || row[1].to_s.empty? }
-          end
-        rescue StandardError => ex
-          [['Error', "Error rendering mail config: #{ex.message}"]]
-        end
+        [
+          ['Mode', OT.conf.get('emailer.mode', nil)],
+          ['From', "'#{from_name} <#{OT.conf.get('emailer.from', nil)}>'"],
+          ['Host', "#{OT.conf.get('emailer.host', nil)}:#{OT.conf.get('emailer.port', nil)}"],
+          ['Region', OT.conf.get('emailer.region', nil)],
+          ['TLS', OT.conf.get('emailer.tls', nil)],
+          ['Auth', OT.conf.get('emailer.auth', nil)],
+        ].reject { |row| row[1].nil? || row[1].to_s.empty? }
+      rescue StandardError => ex
+        [['Error', "Error rendering mail config: #{ex.message}"]]
       end
 
       # Builds authentication section rows
       # Note: Colonels are now managed via CLI (bin/ots customers role) rather than config
-      def build_auth_section(site_config)
-        auth_rows = []
+      def build_auth_section
+        authentication = OT.conf.get('site.authentication', nil)
+        return [] unless authentication.is_a?(Hash)
 
-        if site_config.key?('authentication')
-          auth_config = site_config['authentication']
-          if is_feature_disabled?(auth_config)
-            auth_rows << ['Auth UI Settings', 'disabled']
-          else
-            auth_settings = auth_config.map { |k, v| "#{k}=#{v}" }.join(', ')
-            auth_rows << ['Auth UI Settings', auth_settings]
-          end
+        settings = if disabled?('site.authentication')
+          'disabled'
+        else
+          authentication.map { |k, v| "#{k}=#{v}" }.join(', ')
         end
-
-        auth_rows
+        [['Auth UI Settings', settings]]
       end
 
       # Builds Onetime.auth_config section rows
@@ -403,73 +377,39 @@ module Onetime
       end
 
       # Builds customization section rows
-      def build_customization_section(site_config)
+      def build_customization_section
         customization_rows = []
 
         # Secret options
-        secret_options = OT.conf.get('site.secret_options')
-        if secret_options
-          # Format default TTL
-          if secret_options['default_ttl']
-            default_ttl = format_duration(secret_options['default_ttl'].to_i)
-            customization_rows << ['Default TTL', default_ttl]
-          end
+        default_ttl = OT.conf.get('site.secret_options.default_ttl', nil)
+        customization_rows << ['Default TTL', format_duration(default_ttl.to_i)] if default_ttl
 
-          # Format TTL options
-          if secret_options['ttl_options']
-            ttl_options = secret_options['ttl_options'].map { |seconds| format_duration(seconds) }.join(', ')
-            customization_rows << ['TTL Options', ttl_options]
-          end
+        ttl_options = OT.conf.get('site.secret_options.ttl_options', nil)
+        if ttl_options
+          customization_rows << ['TTL Options', ttl_options.map { |seconds| format_duration(seconds) }.join(', ')]
+        end
 
-          # Format passphrase options
-          if secret_options['passphrase']
-            passphrase_config = secret_options['passphrase']
-            if is_feature_disabled?(passphrase_config)
-              customization_rows << %w[Passphrase disabled]
-            elsif passphrase_config.is_a?(Hash) && !passphrase_config.empty?
-              customization_rows << ['Passphrase', format_config_value(passphrase_config)]
-            end
-          end
-
-          # Format password_generation options
-          if secret_options['password_generation']
-            password_generation_config = secret_options['password_generation']
-            if is_feature_disabled?(password_generation_config)
-              customization_rows << ['Password Generation', 'disabled']
-            elsif password_generation_config.is_a?(Hash) && !password_generation_config.empty?
-              customization_rows << ['Password Generation', format_config_value(password_generation_config)]
-            end
+        { 'passphrase' => 'Passphrase', 'password_generation' => 'Password Generation' }.each do |key, label|
+          path    = "site.secret_options.#{key}"
+          section = OT.conf.get(path, nil)
+          if disabled?(path)
+            customization_rows << [label, 'disabled']
+          elsif section.is_a?(Hash) && !section.empty?
+            customization_rows << [label, format_config_value(section)]
           end
         end
 
-        # Interface configuration
-        if site_config.key?('interface')
-          interface_config = site_config['interface']
-          if is_feature_disabled?(interface_config)
-            customization_rows << %w[Interface disabled]
-          elsif interface_config.is_a?(Hash)
-            # Handle nested ui and api configs under interface
-            %w[ui api].each do |key|
-              next unless interface_config.key?(key)
-
-              sub_config = interface_config[key]
-              if is_feature_disabled?(sub_config)
-                customization_rows << ["Interface > #{key.to_s.upcase}", 'disabled']
-              elsif !sub_config.nil? && (sub_config.is_a?(Hash) ? !sub_config.empty? : !sub_config.to_s.empty?)
-                customization_rows << ["Interface > #{key.to_s.upcase}", format_config_value(sub_config)]
-              end
-            end
-          end
-        else
-          # Fallback: check for standalone ui and api configs
+        # Interface configuration, with its ui and api sections
+        if disabled?('site.interface')
+          customization_rows << %w[Interface disabled]
+        elsif OT.conf.get('site.interface', nil).is_a?(Hash)
           %w[ui api].each do |key|
-            next unless site_config.key?(key)
-
-            config = site_config[key]
-            if is_feature_disabled?(config)
-              customization_rows << [key.to_s.upcase, 'disabled']
-            elsif !config.empty?
-              customization_rows << [key.to_s.upcase, format_config_value(config)]
+            path    = "site.interface.#{key}"
+            section = OT.conf.get(path, nil)
+            if disabled?(path)
+              customization_rows << ["Interface > #{key.upcase}", 'disabled']
+            elsif !section.nil? && (section.is_a?(Hash) ? !section.empty? : !section.to_s.empty?)
+              customization_rows << ["Interface > #{key.upcase}", format_config_value(section)]
             end
           end
         end
@@ -477,9 +417,12 @@ module Onetime
         customization_rows
       end
 
-      # Helper method to check if a feature is disabled
-      def is_feature_disabled?(config)
-        config.is_a?(Hash) && config.key?('enabled') && !config['enabled']
+      # An absent flag uses the default. An explicit false or nil disables the section.
+      def disabled?(path)
+        return false unless OT.conf.get(path, nil).is_a?(Hash)
+
+        enabled = OT.conf.get("#{path}.enabled") { true }
+        !enabled
       end
 
       # Helper method to format config values with special handling for hashes and arrays

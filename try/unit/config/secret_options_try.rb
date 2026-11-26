@@ -14,37 +14,37 @@ require_relative '../../support/test_helpers'
 OT.boot! :test, false
 
 ## Config has secret_options
-OT.conf['site'].key? 'secret_options'
+OT.conf.get('site.secret_options').is_a?(Hash)
 #=> true
 
 ## secret_options has default_ttl
-OT.conf['site']['secret_options'].key? 'default_ttl'
+OT.conf.get('site.secret_options.default_ttl').is_a?(Integer)
 #=> true
 
 ## secret_options has ttl_options
-OT.conf['site']['secret_options'].key? 'ttl_options'
+OT.conf.get('site.secret_options.ttl_options').is_a?(Array)
 #=> true
 
 ## Default TTL is 604800 (7 days) when ENV['DEFAULT_TTL'] is not set
 ENV['DEFAULT_TTL'] = nil
 OT.boot! :test, false
-OT.conf['site']['secret_options']['default_ttl']
+OT.conf.get('site.secret_options.default_ttl')
 #=> 43200
 
 ## Default TTL can be overridden in config file (test reads from config.test.yaml)
 # NOTE: OT.boot! caches configuration, so ENV changes after initial boot
 # don't affect the loaded config. This test verifies the default from config.
-OT.conf['site']['secret_options']['default_ttl']
+OT.conf.get('site.secret_options.default_ttl')
 #=> 43200
 
 ## TTL options are loaded from config file
 # NOTE: OT.boot! caches configuration, so ENV changes after initial boot
 # don't affect the loaded config. This test verifies defaults from config.
-OT.conf['site']['secret_options']['ttl_options']
+OT.conf.get('site.secret_options.ttl_options')
 #=> [1800, 43200, 604800]
 
 ## TTL options structure is valid
-OT.conf['site']['secret_options']['ttl_options'].is_a?(Array) && OT.conf['site']['secret_options']['ttl_options'].all? { |t| t.is_a?(Integer) }
+OT.conf.get('site.secret_options.ttl_options').is_a?(Array) && OT.conf.get('site.secret_options.ttl_options').all? { |t| t.is_a?(Integer) }
 #=> true
 
 # Clean up environment variables after tests

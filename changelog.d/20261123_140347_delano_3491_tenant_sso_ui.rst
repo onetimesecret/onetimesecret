@@ -1,0 +1,5 @@
+AI Assistance
+-------------
+
+- AI-assisted implementation and testing aligned tenant SSO settings with
+  per-domain member permissions. (#3491)

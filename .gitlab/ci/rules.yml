@@ -1,0 +1,75 @@
+# .gitlab/ci/rules.yml
+#
+# Path lists for rules:changes, shared with !reference
+# (docs/planning/2026-1110-gitlab-ci-migration-plan.md, §4.4).
+#
+# `ruby` and `typescript` are the filters of the same names in the `changes`
+# job of .github/workflows/ci.yml, with one rewrite: a pattern that ends in
+# `/**` there ends in `/**/*` here. GitLab matches these paths with Ruby's
+# File.fnmatch, where a trailing `/**` matches one directory level and not the
+# whole tree (plan §7, S3 results). tools/testsuite/gitlab-rules-paths-test.sh
+# fails when a list here and its ci.yml filter differ by more than that
+# rewrite. The reasons for individual entries are in ci.yml's comments.
+#
+# In a merge request pipeline a list matches when the merge request's diff
+# against its target branch touches a path in it; in a push pipeline, when the
+# push does. In tag, schedule, web and API pipelines rules:changes is always
+# true, so path-selected jobs run there whatever changed.
+#
+# GitLab allows 50 patterns per rules:changes, so each list is its own rule.
+.changes:
+  # The GitLab pipeline and the commands its jobs call. A change here selects
+  # every path-selected job (plan §4.4).
+  ci:
+    - .gitlab-ci.yml
+    - .gitlab/ci/**/*
+    - tools/ci/**/*
+    - bin/ci
+  ruby:
+    - '**/*.rb'
+    - Gemfile
+    - Gemfile.lock
+    - .rubocop.yml
+    - .rubocop_todo.yml
+    - .ruby-version
+    - .rspec
+    - .simplecov
+    - spec/**/*
+    - try/**/*
+    - tests/**/*
+    - apps/**/*
+    - lib/**/*
+    - bin/**/*
+    - config.ru
+    - Rakefile
+    - .bash-version
+    - compose.test.yml
+    - tools/host-seam/**/*
+    - .github/scripts/check-api-v3-fresh-schemas.sh
+    - tools/testsuite/api-v3-fresh-schemas-test.sh
+    - src/**/*
+    - scripts/openapi/**/*
+    - package.json
+    - pnpm-lock.yaml
+    - tsconfig*.json
+    - vitest*.ts
+    - vite.config.ts
+    - .node-version
+  typescript:
+    - src/**/*.ts
+    - src/**/*.vue
+    - src/**/*.tsx
+    - src/**/*.js
+    - package.json
+    - pnpm-lock.yaml
+    - tsconfig.json
+    - tsconfig.*.json
+    - vite.config.ts
+    - vitest.config.ts
+    - vitest.smoke.config.ts
+    - eslint.config.ts
+    - .eslintrc*
+    - .nvmrc
+    - .node-version
+    - tests/**/*
+    - locales/scripts/**/*

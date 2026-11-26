@@ -48,7 +48,7 @@ module Onetime
               Likely causes:
                 - SECRET was changed/regenerated under existing data (lost .env, rerun of secret generation)
                 - the app is pointed at another install's datastore (restored dump, wrong REDIS/VALKEY URL)
-              Until fixed, existing secrets CANNOT be decrypted. New secrets will work but existing ones are unreadable.
+              Until fixed, encrypted writes and reveals are unavailable. Existing secrets cannot be decrypted.
               Fix:
                 - restore the previous SECRET in .env and restart, or
                 - if the rotation was intentional: CONFIRM=yes bundle exec rake ots:secrets:adopt

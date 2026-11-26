@@ -12,7 +12,20 @@ export const resourcePermissionsSchema = z.object({
   can_manage_settings: z.boolean(),
 });
 
+const organizationActionsSchema = resourcePermissionsSchema.extend({
+  // Older servers omit this action. Callers require an explicit true.
+  can_manage_invitations: z.boolean().optional(),
+});
+
 export type ResourcePermissions = z.infer<typeof resourcePermissionsSchema>;
+
+const domainActionsSchema = resourcePermissionsSchema.extend({
+  can_manage_sso: z.boolean().optional(),
+  can_manage_incoming: z.boolean().optional(),
+  incoming_feature_required: z.boolean().optional(),
+});
+
+const ssoDomainSchema = z.object({ display_domain: z.string(), verified: z.boolean() });
 
 /**
  * Membership details within a permissions response
@@ -24,6 +37,7 @@ export const membershipDetailsSchema = z.object({
   invited_at: z.union([z.string(), z.number()]).nullable(),
   joined_at: z.union([z.string(), z.number()]).nullable(),
   entitlements: z.array(z.string()),
+  role_capabilities: z.array(z.string()).optional(),
 });
 
 export type MembershipDetails = z.infer<typeof membershipDetailsSchema>;
@@ -39,7 +53,9 @@ export const domainPermissionsSchema = z.object({
   extid: z.string(),
   display_domain: z.string(),
   served: z.boolean(),
-  permissions: resourcePermissionsSchema,
+  passphrase_required: z.boolean().optional(),
+  verified: z.boolean().optional(),
+  permissions: domainActionsSchema,
 });
 
 export type DomainPermissions = z.infer<typeof domainPermissionsSchema>;
@@ -51,8 +67,9 @@ export const organizationPermissionsSchema = z.object({
   extid: z.string(),
   display_name: z.string(),
   is_default: z.boolean(),
+  plan_entitlements: z.array(z.string()).optional(),
   membership: membershipDetailsSchema,
-  permissions: resourcePermissionsSchema,
+  permissions: organizationActionsSchema,
   domains: z.array(domainPermissionsSchema),
   assignable_roles: z.array(z.string()),
 });
@@ -74,6 +91,7 @@ export type BulkPermissionsResponse = z.infer<typeof bulkPermissionsResponseSche
 export const organizationBriefSchema = z.object({
   extid: z.string(),
   display_name: z.string(),
+  plan_entitlements: z.array(z.string()).optional(),
 });
 
 export type OrganizationBrief = z.infer<typeof organizationBriefSchema>;
@@ -81,13 +99,23 @@ export type OrganizationBrief = z.infer<typeof organizationBriefSchema>;
 /**
  * Single-resource mode response: GET /api/account/permissions?resource_type=...&resource_id=...
  */
-export const singleResourcePermissionsResponseSchema = z.object({
-  resource_type: z.enum(['domain', 'organization']),
+const singleResourceSchema = z.object({
   resource_id: z.string(),
   organization: organizationBriefSchema,
   membership: membershipDetailsSchema,
-  permissions: resourcePermissionsSchema,
 });
+
+export const singleResourcePermissionsResponseSchema = z.discriminatedUnion('resource_type', [
+  singleResourceSchema.extend({
+    resource_type: z.literal('domain'),
+    permissions: domainActionsSchema,
+    domain: ssoDomainSchema.optional(),
+  }),
+  singleResourceSchema.extend({
+    resource_type: z.literal('organization'),
+    permissions: organizationActionsSchema,
+  }),
+]);
 
 export type SingleResourcePermissionsResponse = z.infer<
   typeof singleResourcePermissionsResponseSchema

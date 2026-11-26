@@ -42,12 +42,15 @@
     isSubmitting,
     memoMaxLength,
     secretMaxLength,
+    passphraseRequired,
+    defaultTtl,
     recipients,
     isFormValid,
     validateMemo,
     validateSecret,
     validateRecipient,
     submit,
+    resetForm,
   } = useIncomingSecret();
 
   // Ask before the page unloads while secret content is unsubmitted (ADR-046
@@ -77,10 +80,7 @@
   };
 
   const handleReset = () => {
-    form.value.memo = '';
-    form.value.secret = '';
-    form.value.recipientId = '';
-    errors.value = {};
+    resetForm();
     secretContentRef.value?.clearTextarea();
   };
 </script>
@@ -128,6 +128,18 @@
       </div>
 
       <!-- Memo Input (Last - optional, like e-transfer) -->
+      <label v-if="passphraseRequired" class="block text-sm font-medium">
+        {{ t('incoming.required_passphrase') }}
+        <input
+          v-model="form.passphrase"
+          type="password"
+autocomplete="new-password"
+required
+          :disabled="isSubmitting"
+          class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700" />
+        <span class="mt-1 block font-normal">{{ t('incoming.share_passphrase_separately') }}</span>
+      </label>
+
       <IncomingMemoInput
         v-model="form.memo"
         :max-length="memoMaxLength"
@@ -136,6 +148,9 @@
         @blur="handleTitleBlur" />
 
       <!-- Action Buttons -->
+      <p v-if="defaultTtl" class="text-sm text-gray-600 dark:text-gray-300">
+        {{ t('incoming.expires_after_seconds', { seconds: defaultTtl }) }}
+      </p>
       <div
         class="flex flex-col gap-4 border-t border-gray-200 pt-8 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
         <button

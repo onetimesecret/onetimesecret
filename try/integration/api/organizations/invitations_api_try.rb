@@ -131,8 +131,9 @@ resp = JSON.parse(last_response.body)
 post "/api/organizations/#{@org.extid}/invitations",
   { email: @invite_email3, role: 'member' }.to_json,
   { 'rack.session' => @member_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
-last_response.status >= 400
-#=> true
+body = JSON.parse(last_response.body)
+[last_response.status, body['error_type'], body['capability'], body.key?('upgrade_to')]
+#=> [403, 'CapabilityRequired', 'manage_members', false]
 
 ## POST /api/organizations/:extid/invitations - Outsider cannot create invitation
 @invite_email4 = generate_unique_test_email("invite4")
@@ -214,15 +215,17 @@ resp['records'].all? { |inv| inv['status'] == 'pending' }
 get "/api/organizations/#{@org.extid}/invitations",
   {},
   { 'rack.session' => @admin_session, 'HTTP_ACCEPT' => 'application/json' }
-last_response.status
-#=> 200
+records = JSON.parse(last_response.body).fetch('records')
+[last_response.status, records.any? { |invite| invite['email'] == @invite_email1 }]
+#=> [200, true]
 
 ## GET /api/organizations/:extid/invitations - Member cannot list invitations
 get "/api/organizations/#{@org.extid}/invitations",
   {},
   { 'rack.session' => @member_session, 'HTTP_ACCEPT' => 'application/json' }
-last_response.status >= 400
-#=> true
+body = JSON.parse(last_response.body)
+[last_response.status, body['error_type'], body['capability'], body.key?('upgrade_to')]
+#=> [403, 'CapabilityRequired', 'manage_members', false]
 
 ## Setup for resend tests - find invitation by org+email and verify token lookup works
 @invitation_to_resend = Onetime::OrganizationMembership.find_pending_by_email(@org, @invite_email1)
@@ -273,8 +276,9 @@ resp = JSON.parse(last_response.body)
 post "/api/organizations/#{@org.extid}/invitations/#{@current_token}/resend",
   {}.to_json,
   { 'rack.session' => @member_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
-last_response.status >= 400
-#=> true
+body = JSON.parse(last_response.body)
+[last_response.status, body['error_type'], body['capability'], body.key?('upgrade_to')]
+#=> [403, 'CapabilityRequired', 'manage_members', false]
 
 ## POST /api/organizations/:extid/invitations/:token/resend - Returns 400 for invalid token
 post "/api/organizations/#{@org.extid}/invitations/invalid_token/resend",
@@ -364,8 +368,9 @@ last_response.status
 delete "/api/organizations/#{@org.extid}/invitations/#{@token_member_revoke}",
   {},
   { 'rack.session' => @member_session, 'HTTP_ACCEPT' => 'application/json' }
-last_response.status >= 400
-#=> true
+body = JSON.parse(last_response.body)
+[last_response.status, body['error_type'], body['capability'], body.key?('upgrade_to')]
+#=> [403, 'CapabilityRequired', 'manage_members', false]
 
 ## DELETE /api/organizations/:extid/invitations/:token - Returns 400 for invalid token
 delete "/api/organizations/#{@org.extid}/invitations/invalid_token",
@@ -374,7 +379,45 @@ delete "/api/organizations/#{@org.extid}/invitations/invalid_token",
 last_response.status >= 400
 #=> true
 
+## A member granted manage_members can list the organization's invitations
+@member_membership = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @member.objid)
+@member_membership.grant_entitlement('manage_members')
+get "/api/organizations/#{@org.extid}/invitations", {}, { 'rack.session' => @member_session }
+last_response.status
+#=> 200
+
+## Revoking manage_members denies the same member on the next request
+@member_membership.revoke_entitlement('manage_members')
+get "/api/organizations/#{@org.extid}/invitations", {}, { 'rack.session' => @member_session }
+[last_response.status, JSON.parse(last_response.body)['capability']]
+#=> [403, 'manage_members']
+
+## A domain-scoped admin cannot list the organization's pending invitations
+@scope_domain = Onetime::CustomDomain.new
+@scope_domain.display_domain = "invitation-scope-#{SecureRandom.hex(6)}.example.com"
+@scope_domain.org_id = @org.objid
+@scope_domain.save
+@org.domains.add(@scope_domain.objid)
+@admin_membership = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @admin.objid)
+@admin_membership.domain_scope_id = @scope_domain.objid
+@admin_membership.save
+get "/api/organizations/#{@org.extid}/invitations", {}, { 'rack.session' => @admin_session }
+body = JSON.parse(last_response.body)
+[last_response.status, body['error_key'], body.key?('records'), body.key?('count')]
+#=> [403, 'api.organizations.errors.domain_scoped_forbidden', false, false]
+
+## A regular member's explicit manage_members grant still respects domain scope
+@member_membership.domain_scope_id = @scope_domain.objid
+@member_membership.save
+@member_membership.grant_entitlement('manage_members')
+get "/api/organizations/#{@org.extid}/invitations", {}, { 'rack.session' => @member_session }
+body = JSON.parse(last_response.body)
+[@member_membership.has_capability?('manage_members'), last_response.status, body['error_key'], body.key?('records'), body.key?('count')]
+#=> [true, 403, 'api.organizations.errors.domain_scoped_forbidden', false, false]
+
 # Cleanup
+@org.domains.remove(@scope_domain.objid)
+@scope_domain.destroy!
 @org.destroy!
 @owner.destroy!
 @admin.destroy!

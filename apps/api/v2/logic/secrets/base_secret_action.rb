@@ -3,6 +3,8 @@
 # frozen_string_literal: true
 
 require 'onetime/secret_lifetime_policy'
+require 'onetime/logic/creation_sharing_policy'
+require 'onetime/logic/passphrase_validation'
 require 'onetime/security/conceal_secret_rate_limiter'
 require_relative 'display_type_param'
 
@@ -11,6 +13,9 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class BaseSecretAction < V2::Logic::Base
+      include Onetime::Logic::CreationSharingPolicy
+      include Onetime::Logic::PassphraseValidation
+
       include Onetime::LoggerMethods
       include Onetime::Security::ConcealSecretRateLimiter
       include DisplayTypeParam
@@ -45,7 +50,8 @@ module V2::Logic
         # out of the fetches below and surface as a 500. Reject it as a form error.
         raise_form_error 'Incorrect payload format' unless payload.is_a?(Hash)
 
-        process_ttl
+        raise_form_error 'Incorrect payload format', field: :ttl unless scalar_param?(payload['ttl'])
+
         process_secret
         process_display_type
         process_passphrase
@@ -75,13 +81,12 @@ module V2::Logic
         require_entitlement!('api_access')
         raise_form_error 'Unknown type of secret' if kind.nil?
 
-        validate_recipient
-        validate_share_domain
-        validate_passphrase
+        validate_sharing_controls
         validate_display_type
       end
 
       def process
+        validate_sharing_controls unless @sharing_controls_checked
         create_secret_pair
         handle_success
       end
@@ -120,22 +125,13 @@ module V2::Logic
 
       protected
 
-      def process_ttl
+      def process_ttl(policy = Onetime::SecretSharingPolicy.new)
         @ttl = payload.fetch('ttl', nil)
-        # `secret[ttl][]=1` arrives as an Array; `.to_i` below would raise.
-        raise_form_error 'Incorrect payload format', field: :ttl unless scalar_param?(ttl)
 
-        # Get configuration options. We can rely on these values existing
-        # because that are guaranteed by OT::Config.after_load.
-        secret_options = OT.conf.get('site.secret_options', nil) || {
-          'default_ttl' => 7.days,
-          'ttl_options' => [1.minute, 1.hour, 1.day, 7.days],
-        }
-        default_ttl    = secret_options['default_ttl']
-        ttl_options    = secret_options['ttl_options']
-
-        # Get min/max values safely
-        min_ttl = ttl_options.min || 1.minute # Fallback to 1 minute
+        # Get configuration options. OT::Config.after_load guarantees both
+        # (Config::DEFAULTS); the fallbacks cover a config built without it.
+        default_ttl = OT.conf.get('site.secret_options.default_ttl', 7.days)
+        ttl_options = OT.conf.get('site.secret_options.ttl_options', [1.minute, 1.hour, 1.day, 7.days])
 
         # Limit enforcement: fail-open (unlimited) when no billing, else plan limit.
         config_max = ttl_options.max || 30.days
@@ -152,7 +148,7 @@ module V2::Logic
         @ttl       = default_ttl || 7.days if ttl.nil?
 
         # Convert to integer, now that we know it has a value
-        @ttl = ttl.to_i
+        @ttl = [ttl.to_i, policy.configured_max_ttl].compact.min
 
         # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
         # This runs before clamping so the user gets a clear error with upgrade path
@@ -162,18 +158,7 @@ module V2::Logic
           require_entitlement!('extended_default_expiration')
         end
 
-        # Absolute safety bound: nothing outlives MAX_TTL (365 days). The
-        # real ceilings — plan limit, anonymous cap, config ttl_options —
-        # are enforced by the bounds check below; this clamp exists because
-        # an unlimited plan resolves limit_for to Infinity and the ladder
-        # then has no terminal bound. (A hardcoded 30-day clamp here used
-        # to override all of those ceilings; see #4008.)
-        safety_max = Onetime::Models::Features::WithEntitlements::MAX_TTL
-        @ttl       = safety_max if ttl > safety_max
-
-        # Enforce bounds
-        @ttl = min_ttl if ttl < min_ttl
-        @ttl = max_ttl if ttl > max_ttl
+        @ttl = policy.clamp_ttl(ttl, ceiling: max_ttl)
       end
 
       # The authenticated free-tier TTL ceiling (14 days).
@@ -186,22 +171,6 @@ module V2::Logic
       # @return [Integer] Free-tier TTL ceiling in seconds
       def free_tier_ttl_ceiling
         Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
-      end
-
-      # Guest TTL is request-boundary policy, not an authentication-only rule.
-      # Canonical-host guests use TTL_MAX_ANONYMOUS (7 days by default).
-      # Custom-host guests use the owning organization's plan lifetime (normally
-      # 14 or 30 days), because tenant-owned storage is an accountable boundary.
-      #
-      # Keep this delegation and ConfigSerializer on the same resolver. Treating
-      # every unauthenticated request as canonical silently shortens branded
-      # custom-domain secrets and makes the UI hide valid plan durations.
-      def anonymous_max_ttl(config_max)
-        Onetime::SecretLifetimePolicy.guest_ceiling(
-          config_max: config_max,
-          domain_strategy: domain_strategy,
-          display_domain: display_domain,
-        )
       end
 
       def process_secret
@@ -218,10 +187,15 @@ module V2::Logic
       # UX concerns (e.g. preventing accidental empty-passphrase secrets) are
       # the client's responsibility. The API layer remains value-neutral.
       def process_passphrase
+        unless scalar_param?(payload['passphrase'])
+          raise_form_error 'Incorrect payload format', field: :passphrase
+        end
         @passphrase = payload.key?('passphrase') ? payload['passphrase'].to_s : nil
       end
 
-      # Our recipient contract: always a list of sanitized strings.
+      # Our recipient contract: a list holding at most one sanitized string.
+      # A legacy list contributes its first non-empty sanitized address; the
+      # rest are ignored, so validation, the receipt and delivery agree.
       #
       # Sanitization keeps trash out but does not validate as an email address.
       #
@@ -231,8 +205,11 @@ module V2::Logic
         @recipient      = recipient_list.collect do |email_address|
           next if email_address.to_s.empty?
 
-          sanitize_email(email_address)
-        end.compact.uniq
+          # Skip entries that are empty only after sanitizing (whitespace,
+          # markup) so they cannot become the chosen first recipient.
+          sanitized = sanitize_email(email_address)
+          sanitized unless sanitized.to_s.empty?
+        end.compact.uniq.first(1)
         @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
 
@@ -288,6 +265,7 @@ module V2::Logic
           raise Onetime::Unauthorized, 'An account is required to send emails.'
         end
 
+        validate_recipient_policy
         recipient.each do |email_address|
           next if valid_email?(email_address)
 
@@ -383,53 +361,14 @@ module V2::Logic
 
       # @sync src/schemas/contracts/config/public.ts — passphrase options
       def validate_passphrase
-        # Get passphrase configuration
-        passphrase_config = OT.conf.get('site.secret_options.passphrase', {})
-
         # Check if passphrase is required
-        if passphrase_config['required'] && passphrase.to_s.empty?
-          raise_form_error 'A passphrase is required for all secrets'
+        if (@sharing_policy || Onetime::SecretSharingPolicy.new).passphrase_required? && passphrase.to_s.match?(/\A[[:space:]]*\z/)
+          raise_form_error 'A passphrase is required for all secrets',
+            field: 'passphrase',
+            error_key: 'api.secrets.errors.passphrase_required'
         end
 
-        # Skip further validation if no passphrase provided
-        return if passphrase.to_s.empty?
-
-        # Validate minimum length
-        min_length = passphrase_config['minimum_length']&.to_i
-        if min_length && passphrase.length < min_length
-          raise_form_error "Passphrase must be at least #{min_length} characters long"
-        end
-
-        # Validate maximum length
-        max_length = passphrase_config['maximum_length'] || nil
-        if max_length && passphrase.length > max_length
-          raise_form_error "Passphrase must be no more than #{max_length} characters long"
-        end
-
-        # Validate complexity if required
-        if passphrase_config['enforce_complexity']
-          validate_passphrase_complexity
-        end
-      end
-
-      def validate_passphrase_complexity
-        errors = []
-
-        # Check for at least one uppercase letter
-        errors << 'uppercase letter' unless passphrase.match?(/[A-Z]/)
-
-        # Check for at least one lowercase letter
-        errors << 'lowercase letter' unless passphrase.match?(/[a-z]/)
-
-        # Check for at least one number
-        errors << 'number' unless passphrase.match?(/\d/)
-
-        # Check for at least one symbol
-        errors << 'symbol' unless passphrase.match?(%r{[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?~`]})
-
-        unless errors.empty?
-          raise_form_error "Passphrase must contain at least one #{errors.join(', ')}"
-        end
+        validate_provided_passphrase
       end
 
       private
@@ -508,9 +447,7 @@ module V2::Logic
       # The registered custom domain the secret is shared on, or nil for the
       # canonical host or a domain without a CustomDomain record.
       def receipt_custom_domain
-        return unless share_domain
-
-        Onetime::CustomDomain.from_display_domain(share_domain)
+        @selected_sharing_domain
       end
 
       # Optional follow-ups run after the commit. Each failure is logged by
@@ -586,7 +523,7 @@ module V2::Logic
 
         # e.g. dbkey -> customdomain:display_domain_index -> hash -> key: value
         # where key is the domain and value is the domainid
-        domain_record = Onetime::CustomDomain.from_display_domain(domain)
+        domain_record = sharing_domain_record(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
 
         # Resolve the anonymous-creation gate once and thread it into the
@@ -618,6 +555,7 @@ module V2::Logic
 
         validate_domain_permissions(domain_record, allow_public)
         validate_domain_verification(domain_record)
+        @selected_sharing_domain = domain_record
       end
 
       # Whether the requested domain is a member of the operator link pool
@@ -700,6 +638,21 @@ module V2::Logic
           error_type: 'domain_unverified'
       end
 
+      def deny_authenticated_domain
+        secret_logger.warn 'Member lacks access to sharing domain',
+          {
+            domain: share_domain,
+            user_id: @cust&.objid,
+            action: 'validate_domain_permissions',
+            result: :non_owner,
+          }
+        raise Onetime::Forbidden.new(
+          "You do not have permission to use domain: #{share_domain}",
+          error_key: 'api.secrets.errors.domain_permission_authenticated_non_owner',
+          args: { domain: share_domain },
+        )
+      end
+
       # Validates domain permissions based on context and configuration.
       #
       # @param domain_record [CustomDomain] The domain record to validate
@@ -726,20 +679,7 @@ module V2::Logic
         # Authenticated non-member: permission denied regardless of toggle.
         # The toggle controls anonymous traffic, not who may share via the
         # domain when authenticated.
-        unless anonymous_user?
-          secret_logger.warn 'Non-member attempted domain access',
-            {
-              domain: share_domain,
-              user_id: @cust&.objid,
-              action: 'validate_domain_permissions',
-              result: :non_owner,
-            }
-          raise Onetime::Forbidden.new(
-            "You do not have permission to use domain: #{share_domain}",
-            error_key: 'api.secrets.errors.domain_permission_authenticated_non_owner',
-            args: { domain: share_domain },
-          )
-        end
+        deny_authenticated_domain unless anonymous_user?
 
         # Anonymous on a custom domain: gated by the Homepage Secrets toggle
         # AND the homepage secrets_mode — a homepage presenting the incoming

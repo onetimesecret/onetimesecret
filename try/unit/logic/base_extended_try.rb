@@ -26,7 +26,7 @@ OT.boot! :test, false
 
 # Setup some variables for these tryouts
 @now = Familia.now
-@from_address = OT.conf.dig('emailer', 'from')
+@from_address = OT.conf.get('emailer.from')
 @email_address = generate_unique_test_email("base_extended")
 @session = {}
 @strategy_result = MockStrategyResult.new(session: @session, user: nil)
@@ -79,7 +79,7 @@ strategy_result = MockStrategyResult.new(session: sess, user: nil)
 logic = AccountAPI::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
-[logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.dig('site', 'authentication', 'autoverify').to_s]
+[logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.get('site.authentication.autoverify').to_s]
 #=> ['false', 'false', 'false']
 
 ## Can create account and have it auto-verified.
@@ -93,7 +93,7 @@ begin
   logic = AccountAPI::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
   logic.raise_concerns
   logic.process
-  [logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.dig('site', 'authentication', 'autoverify').to_s]
+  [logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.get('site.authentication.autoverify').to_s]
 ensure
   # Restored even when the case raises, so later tryout files see the booted config.
   OT.instance_variable_set(:@conf, old_conf)

@@ -261,14 +261,14 @@ RSpec.describe 'sign-in/sign-up opt-in: full-mode gate vs simple-mode gate parit
       end
     end
 
-    # The gate reads the global itself (global_signin_enabled with no argument)
-    # while the controller passes site.authentication in. Same source, two call
-    # shapes — this is the assertion that they stay the same VALUE.
+    # The gate and the controller both call global_signin_enabled and
+    # global_signup_enabled, which read site.authentication. This pins those
+    # readers to the settings the examples install.
     it 'reads the same global input on both sides' do
       expect(Onetime::CustomDomain::SigninConfig.global_signin_enabled)
-        .to be(Onetime::CustomDomain::SigninConfig.global_signin_enabled(auth_settings))
+        .to be((auth_settings['enabled'] && auth_settings['signin']) == true)
       expect(Onetime::CustomDomain::SignupConfig.global_signup_enabled)
-        .to be(Onetime::CustomDomain::SignupConfig.global_signup_enabled(auth_settings))
+        .to be((auth_settings['enabled'] && auth_settings['signup']) == true)
     end
   end
 

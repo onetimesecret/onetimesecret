@@ -86,7 +86,7 @@ module Onetime
         #
         #   Middleware that seeds CLASS-level state from config in its
         #   constructor — Onetime::Middleware::DomainStrategy#initialize
-        #   re-runs initialize_from_config(OT.conf…) — silently puts that
+        #   re-runs initialize_from_config — silently puts that
         #   state back to whatever the config says. The rebuild lands on the
         #   example's FIRST request, i.e. after its before hooks have run, so
         #   a spec that set the class state in a hook watches it disappear

@@ -143,6 +143,7 @@ vi.mock('@/shared/composables/useDomainContext', () => ({
     setContext: mockSetContext,
     getDomainDisplayName: (domain: string) => domain,
     getExtidByDomain: mockGetExtidByDomain,
+    canViewDomain: (id?: string) => !!id,
     setContextByExtid: vi.fn(),
     initialized: Promise.resolve(),
   }),

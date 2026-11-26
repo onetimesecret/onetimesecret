@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'securerandom'
+require_relative '../authorization/registry'
 
 module Onetime
   # OrganizationMembership - Through model for Organization/Customer participation
@@ -60,9 +61,8 @@ module Onetime
     # At materialization, effective entitlements are:
     #   org.materialized_entitlements ∩ ROLE_ENTITLEMENTS[role]
     #
-    # This ensures a membership never exceeds its org's plan. Role predicates
-    # (`owner?`, `admin?`, `member?`) remain for display logic; authority lives
-    # in the materialized entitlements, not role string checks.
+    # Legacy entitlement checks use this role-scoped result. Capability checks
+    # use ROLE_CAPABILITIES and the membership's grants and revokes.
     #
     # Categories mirror billing.example.yaml entitlement definitions:
     # - owner: org-level management, billing, SSO, IP rules, workspace branding
@@ -107,12 +107,17 @@ module Onetime
       'member' => MEMBER_ENTITLEMENTS.freeze,
     }.freeze
 
+    # Defaults for active memberships, independent of the plan entitlement templates.
+    ROLE_CAPABILITIES = Onetime::Authorization::Registry.role_capabilities
+    CAPABILITIES      = Onetime::Authorization::Registry.capabilities
+
     # REQUIRED: Through models must have object_identifier for deterministic keys
     feature :object_identifier
     feature :relationships
     feature :safe_dump
     feature :housekeeping
     feature :membership_materialized_entitlements
+    feature :membership_capabilities
 
     prefix :org_membership
     identifier_field :objid

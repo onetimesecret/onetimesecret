@@ -370,7 +370,7 @@ RSpec.describe 'sign-in/sign-up default polarity by host classification' do
   # The asymmetry must hold for :invalid exactly as for :custom: a
   # misclassified SSO-only tenant must not lose its working sign-in link.
   describe 'sign-in SSO carve-out' do
-    let(:global) { Onetime::CustomDomain::SigninConfig.global_signin_enabled(auth_settings) }
+    let(:global) { Onetime::CustomDomain::SigninConfig.global_signin_enabled }
 
     before do
       allow(Onetime::CustomDomain::SsoConfig)

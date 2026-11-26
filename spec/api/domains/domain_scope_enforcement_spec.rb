@@ -166,8 +166,8 @@ RSpec.describe 'Domain-scope enforcement (#3384)', type: :integration do
         'Admin must have custom_domains to exercise scope checks'
     end
 
-    it 'scoped admin has manage_members entitlement' do
-      expect(scoped_membership.can?('manage_members')).to be(true),
+    it 'scoped admin has manage_members capability' do
+      expect(scoped_membership.has_capability?('manage_members')).to be(true),
         'Admin must have manage_members to exercise scope checks on invitation/member ops'
     end
 
@@ -364,14 +364,14 @@ RSpec.describe 'Domain-scope enforcement (#3384)', type: :integration do
       expect { logic.raise_concerns }.not_to raise_error
     end
 
-    it 'admin is blocked by manage_org entitlement before scope check' do
+    it 'admin is blocked by manage_org capability before scope check' do
       # Documents the layered defense: admins never reach the scope check
       # because manage_org is owner-only.
       logic = policy_test_class.new(
         strategy_result_for(scoped_admin),
         { 'extid' => domain_a.extid },
       )
-      expect { logic.raise_concerns }.to raise_error(OT::EntitlementRequired)
+      expect { logic.raise_concerns }.to raise_error(OT::CapabilityRequired)
     end
   end
 
@@ -432,7 +432,7 @@ RSpec.describe 'Domain-scope enforcement (#3384)', type: :integration do
 
   describe 'UpdateMemberRole scope enforcement', :shared_db_state do
     # UpdateMemberRole gates on manage_org (owner-only) before the scope check,
-    # so an admin actor hits EntitlementRequired first. A domain-scoped owner is
+    # so an admin actor hits CapabilityRequired first. A domain-scoped owner is
     # required to reach (and exercise) the scope guard.
     let!(:scoped_owner) do
       customer = Onetime::Customer.create!(email: "#{run_id}_role_scopedowner@test.com")

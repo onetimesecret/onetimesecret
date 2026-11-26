@@ -261,9 +261,9 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
       conf = Onetime.conf
 
       expect(conf).not_to be_nil
-      expect(conf.dig('site', 'host')).to eq('127.0.0.1:3000')
-      expect(conf.dig('site', 'secret_options', 'default_ttl')).to eq('43200'.to_i)
-      expect(conf.dig('site', 'secret_options', 'ttl_options')).to eq(%w[1800 43200 604800].map(&:to_i))
+      expect(conf.get('site.host')).to eq('127.0.0.1:3000')
+      expect(conf.get('site.secret_options.default_ttl')).to eq('43200'.to_i)
+      expect(conf.get('site.secret_options.ttl_options')).to eq(%w[1800 43200 604800].map(&:to_i))
 
       # Run with the env var set:
       #    VALKEY_URL=redis://127.0.0.1:2163/0 pnpm test:rspec
@@ -271,8 +271,8 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
       # and port are the invariant.
       db = ENV.fetch('LANES_DATASTORE_DB', '')
       expected_db = db.match?(/\A\d+\z/) && db.to_i <= 65_535 ? db : 0
-      expect(conf.dig('redis', 'uri')).to eq("redis://127.0.0.1:2163/#{expected_db}")
-      expect(conf.dig('development', 'enabled')).to be(false)
+      expect(conf.get('redis.uri')).to eq("redis://127.0.0.1:2163/#{expected_db}")
+      expect(conf.get('development.enabled')).to be(false)
       expect(Onetime.env).to eq('testing')
     end
 
@@ -281,7 +281,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
       # The emailer is now configured via OT.conf['emailer'] and accessed
       # through Onetime::Mail::Mailer.send_email or similar methods.
       # Verify the config is set correctly (test config uses 'logger' mode):
-      expect(Onetime.conf.dig('emailer', 'mode')).to eq('logger')
+      expect(Onetime.conf.get('emailer.mode')).to eq('logger')
     end
 
     it "sets Familia.uri from the configuration" do

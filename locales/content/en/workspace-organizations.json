@@ -652,6 +652,10 @@
     "text": "Loading invitation details",
     "content_hash": "58884885"
   },
+  "web.organizations.invitations.permission_required": {
+    "text": "Ask an organization administrator for permission to manage invitations.",
+    "content_hash": "226a31a2"
+  },
   "web.organizations.invitations.upgrade_to_invite": {
     "text": "Upgrade your plan to invite team members",
     "content_hash": "5e3f8df8"
@@ -687,6 +691,10 @@
   "web.organizations.tabs.activity": {
     "text": "Activity",
     "content_hash": "38da1505"
+  },
+  "web.organizations.tabs.sharing": {
+    "text": "Sharing",
+    "content_hash": "bbedc70e"
   },
   "web.organizations.audit.title": {
     "text": "Secret Activity",
@@ -1908,5 +1916,53 @@
   "web.organizations.sso.enabled_hint": {
     "text": "When enabled, organization members can sign in using this SSO provider",
     "content_hash": "d7da2fa2"
+  },
+  "web.organizations.sharing_policy.title": {
+    "text": "Sharing controls",
+    "content_hash": "b2f81f02"
+  },
+  "web.organizations.sharing_policy.description": {
+    "text": "These rules apply to new secrets created in this organization or on its domains.",
+    "content_hash": "ffcde941"
+  },
+  "web.organizations.sharing_policy.recipient_email": {
+    "text": "Recipient email",
+    "content_hash": "df5643c1"
+  },
+  "web.organizations.sharing_policy.unrestricted": {
+    "text": "Allow any recipient domain",
+    "content_hash": "e8c2c9d6"
+  },
+  "web.organizations.sharing_policy.restricted": {
+    "text": "Allow listed domains only",
+    "content_hash": "b7f67ca2"
+  },
+  "web.organizations.sharing_policy.disabled": {
+    "text": "Disable recipient email",
+    "content_hash": "5ee08e29"
+  },
+  "web.organizations.sharing_policy.domains": {
+    "text": "Allowed email domains",
+    "content_hash": "4e2b2beb"
+  },
+  "web.organizations.sharing_policy.domains_hint": {
+    "text": "Enter one domain per line. List each subdomain separately.",
+    "content_hash": "e26a204e"
+  },
+  "web.organizations.sharing_policy.require_passphrase": {
+    "text": "Require a passphrase for new secrets",
+    "content_hash": "22a1dfba"
+  },
+  "web.organizations.sharing_policy.max_ttl": {
+    "text": "Maximum secret lifetime in seconds",
+    "content_hash": "813d3263"
+  },
+  "web.organizations.sharing_policy.ttl_hint": {
+    "text": "Enter 60 seconds or more. Seven days is 604800 seconds. Leave blank to use the existing limit.",
+    "content_hash": "7b3c578d"
+  },
+  "web.organizations.sharing_policy.invalid_notice": {
+    "text": "The saved sharing controls could not be read. The strictest controls apply until you save new ones.",
+    "content_hash": "132012de"
   }
 }

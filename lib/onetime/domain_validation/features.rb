@@ -15,7 +15,7 @@ module Onetime
     # For testing, you can stub the class methods directly or use the
     # `configure` class method to set all values atomically.
     #
-    # Configuration source: OT.conf.dig('features', 'domains', ...)
+    # Configuration source: features.domains (OT.conf.get('features.domains.validation_strategy'), ...)
     #
     # Usage:
     #   # At boot (via initializer)
@@ -98,29 +98,26 @@ module Onetime
           )
         end
 
-        # Load configuration from the application config hash.
+        # Load configuration from features.domains in the application config.
         #
-        # @param config [Hash] Application configuration (typically OT.conf)
         # @return [void]
         #
-        def load_from_config(config)
-          domains_config = config.dig('features', 'domains') || {}
-          approx_config  = domains_config['approximated'] || {}
-
-          strategy   = domains_config['validation_strategy'] || 'passthrough'
-          target     = approx_config['vhost_target']
-          has_key    = !approx_config['api_key'].to_s.empty?
+        def load_from_config
+          strategy   = OT.conf.get('features.domains.validation_strategy', 'passthrough')
+          api_key    = OT.conf.get('features.domains.approximated.api_key', nil)
+          proxy_host = OT.conf.get('features.domains.approximated.proxy_host', nil)
+          target     = OT.conf.get('features.domains.approximated.vhost_target', nil)
 
           OT.ld "[DomainValidation::Features] Loading config: strategy=#{strategy} " \
-                "vhost_target=#{target.inspect} api_key_present=#{has_key} " \
-                "proxy_host=#{approx_config['proxy_host'].inspect}"
+                "vhost_target=#{target.inspect} api_key_present=#{!api_key.to_s.empty?} " \
+                "proxy_host=#{proxy_host.inspect}"
 
           configure(
             strategy_name: strategy,
-            api_key: approx_config['api_key'],
-            proxy_ip: approx_config['proxy_ip'],
-            proxy_host: approx_config['proxy_host'],
-            proxy_name: approx_config['proxy_name'],
+            api_key: api_key,
+            proxy_ip: OT.conf.get('features.domains.approximated.proxy_ip', nil),
+            proxy_host: proxy_host,
+            proxy_name: OT.conf.get('features.domains.approximated.proxy_name', nil),
             vhost_target: target,
           )
         end

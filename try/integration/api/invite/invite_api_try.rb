@@ -43,7 +43,7 @@ def enable_domains_for_branding_tests!
   # reads from OT.conf when middleware instances are created.
   # Simply calling initialize_from_config is not enough since it gets overwritten.
   OT.conf['features'] ||= {}
-  OT.conf['features']['domains'] = {
+  OT.conf.get('features')['domains'] = {
     'enabled' => true,
     'default' => 'onetimesecret.com',
     'link_domains' => nil
@@ -526,7 +526,7 @@ sso_method.keys.all? { |k| allowed_fields.include?(k) }
 
 # Reset domain config to test defaults to avoid affecting other tests
 OT.conf['features'] ||= {}
-OT.conf['features']['domains'] = { 'enabled' => false, 'default' => nil, 'link_domains' => nil }
+OT.conf.get('features')['domains'] = { 'enabled' => false, 'default' => nil, 'link_domains' => nil }
 Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: false)
 Onetime::Middleware::DomainStrategy.reset! if Onetime::Middleware::DomainStrategy.respond_to?(:reset!)
 

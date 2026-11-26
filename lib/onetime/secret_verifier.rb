@@ -59,6 +59,29 @@ module Onetime
       MODES.include?(configured) ? configured : 'warn'
     end
 
+    # A mismatch can leave new ciphertext unreadable after the operator
+    # restores the original key. Recheck if boot could not reach the datastore,
+    # then refuse encrypted writes before related records or pointers change.
+    def ensure_writes_allowed!
+      state = Onetime.secret_verifier_state
+      state = check! if state == :unavailable
+      return if state != :mismatch && state != :unavailable
+
+      if state == :unavailable
+        raise Onetime::TemporarilyUnavailable.new(
+          'Secret creation is unavailable until the datastore key verifier can be checked.',
+          reason: :secret_verifier_unavailable,
+          retry_after: 60,
+        )
+      end
+
+      raise Onetime::TemporarilyUnavailable.new(
+        'Secret creation is unavailable until the site operator restores or rotates the encryption key.',
+        reason: :secret_key_mismatch,
+        retry_after: 60,
+      )
+    end
+
     # Boot-time check: adopt when absent, compare when present. Caches the
     # result on Onetime.secret_verifier_state and returns it. Never raises:
     # connectivity failures are doctor's and the connection pool's problem —

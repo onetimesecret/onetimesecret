@@ -64,6 +64,7 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
       data = JSON.parse(last_response.body)
       expect(data).to have_key('entitlements')
       expect(data).to have_key('plans')
+      expect(data.fetch('entitlement_kinds')).to include('manage_domains' => 'capability', 'custom_domains' => 'feature')
 
       # Verify entitlement categories structure
       expect(data['entitlements']).to be_a(Hash)
@@ -80,6 +81,10 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
       expect(first_plan).to have_key('name')
       expect(first_plan).to have_key('entitlements')
       expect(first_plan).to have_key('limits')
+      data['plans'].each_value do |plan|
+        features = plan.fetch('entitlements').select { |name| data.fetch('entitlement_kinds')[name] == 'feature' }
+        expect(plan.fetch('plan_entitlements')).to match_array(features)
+      end
     end
 
     it 'returns entitlements organized by category', :vcr do
@@ -145,6 +150,7 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
       data = JSON.parse(last_response.body)
       expect(data).to have_key('planid')
       expect(data).to have_key('plan_name')
+      expect(data.fetch('plan_entitlements')).to match_array(organization.plan_entitlements)
       expect(data).to have_key('entitlements')
       expect(data).to have_key('limits')
       expect(data).to have_key('is_legacy')

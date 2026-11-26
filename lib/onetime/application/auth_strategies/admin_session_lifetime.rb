@@ -183,12 +183,8 @@ module Onetime
           nil
         end
 
-        def admin_session_config
-          OT.conf&.get('site.admin.session', nil) || {}
-        end
-
         def admin_session_lifetime_enabled?
-          admin_session_config.fetch('enabled', true) != false
+          OT.conf&.get('site.admin.session.enabled', true) != false
         end
 
         # 0 legitimately DISABLES a bound, so this cannot use the positive_*
@@ -202,7 +198,7 @@ module Onetime
         # from `off`/`no`) falls back to the shipped default. Same intent as
         # colonel_rate_limiter.rb#positive_colonel_setting.
         def admin_timeout_setting(key, default)
-          raw = admin_session_config[key]
+          raw = OT.conf&.get(['site', 'admin', 'session', key], nil)
 
           case raw
           when Integer then raw.negative? ? default : raw

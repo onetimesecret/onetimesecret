@@ -282,12 +282,13 @@ RSpec.describe Onetime::DeliveryEvent do
       expect(described_class.recent.map { |event| event['id'] }).to eq([kept['id']])
     end
 
-    it 'sets a retention TTL on the feed key' do
+    it 'expires the feed key at the event retention deadline' do
+      now = Familia.now.to_i
+      allow(Familia).to receive(:now).and_return(now)
       described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')
 
-      expect(Familia.dbclient.pttl(described_class.events.dbkey)).to be_between(
-        (described_class::RETENTION - 1) * 1000, described_class::RETENTION * 1000 + 1,
-      )
+      deadline_ms = (now + described_class::RETENTION) * 1000
+      expect(Familia.dbclient.call('PEXPIRETIME', described_class.events.dbkey)).to eq(deadline_ms)
     end
 
     it 'does not extend the retention deadline when the feed is read or trimmed' do

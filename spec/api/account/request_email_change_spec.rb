@@ -119,6 +119,27 @@ RSpec.describe 'AccountAPI::Logic::Account::RequestEmailChange', type: :integrat
     end
   end
 
+  it 'keeps the pending confirmation when the encryption key mismatches' do
+    first = build_logic
+    first.raise_concerns
+    first.process
+    pending_id = customer.pending_email_change.value.to_s
+    expect(Onetime::Secret.find_by_identifier(pending_id)).to exist
+
+    allow(Onetime).to receive(:secret_verifier_state).and_return(:mismatch)
+    replacement = build_logic('new_email' => "#{run_id}-replacement@test.com")
+    replacement.raise_concerns
+
+    expect { replacement.process }
+      .to raise_error(Onetime::TemporarilyUnavailable) { |error|
+        expect(error.reason).to eq(:secret_key_mismatch)
+      }
+    expect(replacement.greenlighted).to be(false)
+    expect(customer.pending_email_change.value.to_s).to eq(pending_id)
+    expect(Onetime::Secret.find_by_identifier(pending_id)).to exist
+    expect(request_count).to eq(1)
+  end
+
   describe 'password verification memoization (PR #3915 item 5)' do
     it 'verifies the password exactly once across raise_concerns + process' do
       logic = build_logic

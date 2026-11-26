@@ -12,7 +12,7 @@ RSpec.describe Onetime::Mail::Mailer do
     subject { described_class.send(:determine_provider) }
 
     before do
-      allow(described_class).to receive(:emailer_config).and_return(config)
+      stub_emailer_config(config)
       # Prevent RACK_ENV=test from short-circuiting auto-detection
       allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with('RACK_ENV').and_return('development')
@@ -85,7 +85,7 @@ RSpec.describe Onetime::Mail::Mailer do
   # ==========================================================================
 
   describe '.backend_provider' do
-    before { allow(described_class).to receive(:emailer_config).and_return('mode' => mode) }
+    before { stub_emailer_config({ 'mode' => mode }) }
 
     %w[smtp ses logger disabled none].each do |name|
       context "with mode #{name}" do
@@ -144,8 +144,7 @@ RSpec.describe Onetime::Mail::Mailer do
     let(:emailer) { { 'mode' => 'smtp', 'host' => nil } }
 
     before do
-      allow(described_class).to receive(:emailer_config) { emailer }
-      allow(described_class).to receive(:provider_config).and_return({})
+      stub_emailer_config(emailer, email_providers: {})
       allow(described_class).to receive(:log_info)
       allow(described_class).to receive(:log_error)
       allow(ENV).to receive(:fetch).and_call_original
@@ -205,7 +204,7 @@ RSpec.describe Onetime::Mail::Mailer do
 
     it 'reports an Onetime::ConfigError from building the provider config as ConfigurationError' do
       emailer.replace('mode' => 'smtp2go', 'smtp2go_api_key' => 'api-test-key')
-      allow(described_class).to receive(:provider_config).with('smtp2go').and_return('fastaccept' => 'sometimes')
+      stub_emailer_config(emailer, email_providers: { 'smtp2go' => { 'fastaccept' => 'sometimes' } })
 
       expect { described_class.delivery_backend }
         .to raise_error(Onetime::Mail::ConfigurationError, /fastaccept/) do |err|
@@ -231,14 +230,14 @@ RSpec.describe Onetime::Mail::Mailer do
     end
 
     it 'returns the provider and does not keep the backend' do
-      allow(described_class).to receive(:emailer_config).and_return('mode' => 'smtp', 'host' => 'smtp.example.com')
+      stub_emailer_config({ 'mode' => 'smtp', 'host' => 'smtp.example.com' })
 
       expect(described_class.validate_delivery_config!).to eq('smtp')
       expect(described_class.instance_variable_get(:@delivery_backend)).to be_nil
     end
 
     it 'raises ConfigurationError when the backend cannot be built' do
-      allow(described_class).to receive(:emailer_config).and_return('mode' => 'smtp')
+      stub_emailer_config({ 'mode' => 'smtp' })
 
       expect { described_class.validate_delivery_config! }.to raise_error(Onetime::Mail::ConfigurationError)
     end
@@ -275,7 +274,7 @@ RSpec.describe Onetime::Mail::Mailer do
     end
 
     before do
-      allow(described_class).to receive(:emailer_config).and_return({ 'mode' => 'logger', 'from' => global_from })
+      stub_emailer_config({ 'mode' => 'logger', 'from' => global_from })
       allow(described_class).to receive(:delivery_backend).and_return(mock_backend)
     end
 
@@ -440,7 +439,7 @@ RSpec.describe Onetime::Mail::Mailer do
 
   describe '.provider_credentials' do
     before do
-      allow(described_class).to receive(:emailer_config).and_return(config)
+      stub_emailer_config(config)
     end
 
     context 'with SES config' do
@@ -497,7 +496,7 @@ RSpec.describe Onetime::Mail::Mailer do
 
       before do
         # Isolate from any email_providers.<provider> overrides.
-        allow(described_class).to receive(:provider_config).and_return({})
+        stub_emailer_config(config, email_providers: {})
       end
 
       context 'for SendGrid' do
@@ -637,7 +636,7 @@ RSpec.describe Onetime::Mail::Mailer do
       end
 
       before do
-        allow(described_class).to receive(:provider_config).with('smtp2go').and_return(provider_section)
+        stub_emailer_config(config, email_providers: { 'smtp2go' => provider_section })
       end
 
       it 'defaults to false when neither config nor ENV is set' do

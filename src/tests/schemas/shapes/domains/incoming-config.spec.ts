@@ -52,18 +52,6 @@ describe('putIncomingConfigPayloadSchema', () => {
   });
 
   describe('invalid payloads', () => {
-    it('rejects missing enabled', () => {
-      expect(() =>
-        putIncomingConfigPayloadSchema.parse({ recipients: [] }),
-      ).toThrow();
-    });
-
-    it('rejects missing recipients', () => {
-      expect(() =>
-        putIncomingConfigPayloadSchema.parse({ enabled: true }),
-      ).toThrow();
-    });
-
     it('rejects enabled as string', () => {
       expect(() =>
         putIncomingConfigPayloadSchema.parse({ enabled: 'true', recipients: [] }),
@@ -98,12 +86,33 @@ describe('putIncomingConfigPayloadSchema', () => {
     });
   });
 
+  describe('partial updates', () => {
+    it.each([
+      { recipients: [] }, { enabled: false }, { passphrase_required: true }, { email_disabled: true },
+      { max_ttl: 60 }, { max_ttl: Number.MAX_SAFE_INTEGER }, { max_ttl: null },
+    ])('accepts %o without inserting omitted fields', (payload) => {
+      expect(putIncomingConfigPayloadSchema.parse(payload)).toEqual(payload);
+    });
+
+    it.each([
+      { max_ttl: 59 }, { max_ttl: Number.MAX_SAFE_INTEGER + 1 },
+    ])('rejects %o', (payload) => {
+      expect(putIncomingConfigPayloadSchema.safeParse(payload).success).toBe(false);
+    });
+
+    it('drops post_url: delivery destinations are not owner-supplied', () => {
+      const parsed = putIncomingConfigPayloadSchema.parse({ post_url: 'https://hooks.example.org/incoming' });
+      expect(parsed).toEqual({});
+      expect(parsed).not.toHaveProperty('post_url');
+    });
+  });
+
   describe('type inference', () => {
     it('infers PutIncomingConfigPayload with enabled + recipients', () => {
       const payload: PutIncomingConfigPayload =
         putIncomingConfigPayloadSchema.parse(validPayload);
-      const _enabled: boolean = payload.enabled;
-      const _recipients: Array<{ email: string; name: string }> = payload.recipients;
+      const _enabled: boolean | undefined = payload.enabled;
+      const _recipients: Array<{ email: string; name: string }> | undefined = payload.recipients;
       expect(_enabled).toBe(true);
       expect(_recipients).toHaveLength(1);
     });
@@ -161,6 +170,13 @@ describe('customDomainIncomingConfigSchema', () => {
   };
 
   describe('valid configs', () => {
+    it('drops a post_url from an older server response', () => {
+      const parsed = customDomainIncomingConfigSchema.parse({
+        ...validConfig, post_url: 'http://169.254.169.254/latest',
+      });
+      expect(parsed).not.toHaveProperty('post_url');
+    });
+
     it('parses a complete config with timestamps', () => {
       const result = customDomainIncomingConfigSchema.parse(validConfig);
       expect(result.domain_id).toBe('domain_123abc');

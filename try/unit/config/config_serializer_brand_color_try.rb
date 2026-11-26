@@ -20,10 +20,10 @@ OT.boot! :test, false
 
 def minimal_view_vars(overrides = {})
   {
-    'site' => OT.conf.fetch('site', {}),
-    'features' => OT.conf.fetch('features', {}),
-    'development' => OT.conf.fetch('development', {}),
-    'diagnostics' => OT.conf.fetch('diagnostics', {}),
+    'site' => OT.conf.get('site', {}),
+    'features' => OT.conf.get('features', {}),
+    'development' => OT.conf.get('development', {}),
+    'diagnostics' => OT.conf.get('diagnostics', {}),
     'homepage_mode' => 'default',
     'display_domain' => 'localhost',
     'brand_primary_color' => nil,
