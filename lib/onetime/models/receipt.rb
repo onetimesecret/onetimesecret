@@ -110,6 +110,12 @@ module Onetime
     # every terminal state, plus 'previewed' and its legacy name 'viewed'.
     SECRET_WITHDRAWN_STATES = (TERMINAL_STATES + %w[previewed viewed]).freeze
 
+    # States in which the secret has not been revealed, burned or otherwise
+    # consumed: the ones an expiration warning may still be about. 'viewed' is
+    # the legacy name for 'previewed'; a receipt stored with it still points
+    # at an unconsumed secret. Read by ExpirationWarningJob.
+    LIVE_STATES = %w[new previewed viewed].freeze
+
     # Provenance gate on the share link, by :source value. See
     # #shows_share_link?; class-level so a serializer working from a raw field
     # hash (V1 receipt_hsh) applies the same rule.
@@ -310,6 +316,29 @@ module Onetime
       true
     end
 
+    # Take this receipt off the expiration timeline once its secret is gone
+    # (revealed or burned), so ExpirationWarningJob never warns about it.
+    # Called from the won-CAS branch of #revealed! and #burned!. Best effort:
+    # it runs after the transition is committed, and a failure must not turn
+    # a completed reveal or burn into an error. The job's live-state check
+    # covers an entry left behind.
+    #
+    # @return [Boolean] true if the entry was removed or absent, false on error
+    def unregister_from_expiration_notifications
+      self.class.expiration_timeline.remove_element(identifier)
+      true
+    rescue StandardError => ex
+      OT.le "[expiration-timeline] removal failed: #{ex.class} (receipt=#{shortid})"
+      false
+    end
+
+    # Whether the receipt's secret is still unconsumed (see LIVE_STATES).
+    #
+    # @return [Boolean]
+    def live?
+      LIVE_STATES.include?(state.to_s)
+    end
+
     class << self
       def generate_id
         Familia.generate_id
@@ -379,7 +408,7 @@ module Onetime
       # @raise [Onetime::SecretCreationFailed] unless EXEC confirms the commit
       def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil, display_type: nil,
                      source: nil, memo: nil, recipients: nil, recipient_name: nil, domain_id: nil, org_id: nil,
-                     &registrations)
+                     expiration_notifications: true, &registrations)
         Onetime::SecretVerifier.ensure_writes_allowed!
 
         # Coerce at the single creation choke point so lifespan is always stored
@@ -428,8 +457,13 @@ module Onetime
 
         commit_pair(receipt, secret, &registrations)
 
-        creation_followup(:expiration_notifications, receipt) do
-          receipt.register_for_expiration_notifications
+        # expiration_notifications: false keeps a secret that is account
+        # mechanics (the verification link) off the expiration timeline: its
+        # owner is never warned that it is about to expire.
+        if expiration_notifications
+          creation_followup(:expiration_notifications, receipt) do
+            receipt.register_for_expiration_notifications
+          end
         end
 
         # Maintain the owner's live-secret counter at THE single secret-creation

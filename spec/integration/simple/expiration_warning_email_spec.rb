@@ -46,8 +46,8 @@ RSpec.describe 'Expiration warning email', type: :integration do
 
   it 'enqueues the secret short id and links to the sign-in page, never an identifier' do
     enqueued = []
-    allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |*args|
-      enqueued << args
+    allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |*args, **options|
+      enqueued << [*args, options]
       true
     end
     # The timeline is shared with every other receipt in the datastore; this
@@ -56,9 +56,10 @@ RSpec.describe 'Expiration warning email', type: :integration do
 
     Onetime::Jobs::Scheduled::ExpirationWarningJob.send(:process_expiring_secrets)
 
-    # Template and payload, nothing else: no delay option and no fallback
-    # override, so the mail goes to email.message.send like every other
-    # notification.
+    # Template, payload and the sender's domain_id (nil: no custom domain),
+    # nothing else: no delay option and no fallback override, so the mail
+    # goes to email.message.send like every other notification. The owner
+    # has no locale, so the default applies.
     expect(enqueued).to eq([
       [
         :expiration_warning,
@@ -66,7 +67,9 @@ RSpec.describe 'Expiration warning email', type: :integration do
           recipient: owner.email,
           secret_shortid: secret.shortid,
           expires_at: receipt.secret_expiration,
+          locale: OT.default_locale,
         },
+        { domain_id: nil },
       ],
     ])
     payload = enqueued.first[1]

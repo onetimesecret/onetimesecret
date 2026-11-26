@@ -111,6 +111,16 @@ module Onetime
               receipt = Onetime::Receipt.load(receipt_id)
               next unless receipt&.exists?
 
+              # Only a secret that is still unconsumed can expire. A reveal or
+              # burn takes the receipt off the timeline, but an entry written
+              # before that existed (or left by a failed removal) can remain.
+              # Drop it so later scans do not load it again.
+              unless receipt.live?
+                receipt.unregister_from_expiration_notifications
+                skipped += 1
+                next
+              end
+
               # Skip anonymous secrets (no owner to notify)
               if receipt.anonymous?
                 skipped += 1
@@ -119,6 +129,16 @@ module Onetime
 
               owner = receipt.load_owner
               unless owner&.email
+                skipped += 1
+                next
+              end
+
+              # Skip when the secret is already gone, or is an account
+              # verification link. Verification links created before
+              # spawn_pair could leave them off the timeline are still on it;
+              # their owner is not warned.
+              secret = receipt.load_secret
+              if secret.nil? || secret.verification?
                 skipped += 1
                 next
               end
@@ -150,6 +170,16 @@ module Onetime
           #
           # @return [Boolean] true if the email was enqueued, false on failure
           def enqueue_warning_email(receipt, owner)
+            # Sender: the same derivation as Receipt#deliver_by_email, so a
+            # secret shared from a custom domain is announced from that
+            # domain's sender. share_domain itself stays out of the payload:
+            # it would move the layout's header and footer links to the
+            # custom domain (brand_baseuri), while this account notice links
+            # the owner to the canonical host (ExpirationWarning#recent_uri).
+            domain_id = Onetime::CustomDomain.resolve_domain_id(receipt.share_domain)
+            # Blank ("") locales are truthy and slip past a bare `||`.
+            locale    = owner.locale.to_s.strip.empty? ? OT.default_locale : owner.locale
+
             Onetime::Jobs::Publisher.enqueue_email(
               :expiration_warning,
               {
@@ -162,7 +192,9 @@ module Onetime
                 # ownership check and returns the share link).
                 secret_shortid: receipt.secret_shortid,
                 expires_at: receipt.secret_expiration,
+                locale: locale,
               },
+              domain_id: domain_id,
             )
 
             scheduler_logger.debug "[ExpirationWarningJob] Enqueued warning for #{receipt.identifier} " \

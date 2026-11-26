@@ -42,13 +42,16 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
   # Mock owner with email
   let(:owner_with_email) do
-    instance_double('Onetime::Customer', email: 'owner@example.com')
+    instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'de')
   end
 
   # Mock owner without email
   let(:owner_without_email) do
-    instance_double('Onetime::Customer', email: nil)
+    instance_double('Onetime::Customer', email: nil, locale: nil)
   end
+
+  # The receipt's secret: still stored, not an account verification link.
+  let(:live_secret) { instance_double('Onetime::Secret', verification?: false) }
 
   # Mock metadata with owner
   let(:metadata_with_owner) do
@@ -56,6 +59,9 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       'Onetime::Receipt',
       identifier: 'meta123',
       exists?: true,
+      live?: true,
+      load_secret: live_secret,
+      share_domain: nil,
       anonymous?: false,
       load_owner: owner_with_email,
       secret_shortid: 'abc123',
@@ -69,6 +75,9 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       'Onetime::Receipt',
       identifier: 'meta456',
       exists?: true,
+      live?: true,
+      load_secret: live_secret,
+      share_domain: nil,
       anonymous?: true
     )
   end
@@ -79,6 +88,9 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       'Onetime::Receipt',
       identifier: 'meta789',
       exists?: true,
+      live?: true,
+      load_secret: live_secret,
+      share_domain: nil,
       anonymous?: false,
       load_owner: owner_without_email
     )
@@ -228,8 +240,8 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       expect(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, data, *rest|
         expect(template).to eq(:expiration_warning)
         expect(data).to include(recipient: 'owner@example.com', secret_shortid: 'abc123')
-        expect(data.keys).to contain_exactly(:recipient, :secret_shortid, :expires_at)
-        expect(rest).to be_empty
+        expect(data.keys).to contain_exactly(:recipient, :secret_shortid, :expires_at, :locale)
+        expect(rest).to eq([{ domain_id: nil }])
       end
 
       described_class.send(:process_expiring_secrets)
@@ -254,7 +266,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
       allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
 
-      expect(Onetime::Jobs::Publisher).to receive(:enqueue_email).with(:expiration_warning, kind_of(Hash))
+      expect(Onetime::Jobs::Publisher).to receive(:enqueue_email).with(:expiration_warning, kind_of(Hash), domain_id: nil)
       expect(Onetime::Jobs::Publisher).not_to respond_to(:schedule_email)
 
       described_class.send(:process_expiring_secrets)
@@ -283,6 +295,116 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       described_class.send(:process_expiring_secrets)
     end
 
+    # A reveal or burn takes the receipt off the timeline, but entries
+    # written before that (or left by a failed removal) remain. The job
+    # skips any receipt whose secret is no longer live and drops the entry.
+    context 'when the receipt is no longer live' do
+      let(:consumed_receipt) do
+        instance_double(
+          'Onetime::Receipt',
+          identifier: 'meta_done',
+          exists?: true,
+          live?: false,
+          unregister_from_expiration_notifications: true,
+        )
+      end
+
+      before do
+        allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta_done'])
+        allow(Onetime::Receipt).to receive(:load).with('meta_done').and_return(consumed_receipt)
+      end
+
+      it 'sends nothing, does not mark it warned, and removes it from the timeline' do
+        expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
+
+        described_class.send(:process_expiring_secrets)
+
+        expect(consumed_receipt).to have_received(:unregister_from_expiration_notifications)
+        expect(Onetime::Receipt).not_to have_received(:mark_warning_sent)
+      end
+    end
+
+    context "when the receipt's secret is an account verification link" do
+      let(:live_secret) { instance_double('Onetime::Secret', verification?: true) }
+
+      it 'sends nothing' do
+        allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
+        allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
+
+        expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
+
+        described_class.send(:process_expiring_secrets)
+      end
+    end
+
+    context "when the receipt's secret is already gone" do
+      let(:live_secret) { nil }
+
+      it 'sends nothing' do
+        allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
+        allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
+
+        expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
+
+        described_class.send(:process_expiring_secrets)
+      end
+    end
+
+    # Sender and language: the domain_id derivation Receipt#deliver_by_email
+    # uses, and the owner's locale with the default as fallback.
+    context 'sender domain and locale' do
+      let(:shared_receipt) do
+        instance_double(
+          'Onetime::Receipt',
+          identifier: 'meta_dom',
+          exists?: true,
+          live?: true,
+          load_secret: live_secret,
+          share_domain: 'secrets.acme.example',
+          anonymous?: false,
+          load_owner: owner,
+          secret_shortid: 'dom12345',
+          secret_expiration: (Familia.now.to_i + 7200),
+        )
+      end
+
+      before do
+        allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta_dom'])
+        allow(Onetime::Receipt).to receive(:load).with('meta_dom').and_return(shared_receipt)
+        allow(Onetime::CustomDomain).to receive(:resolve_domain_id).with('secrets.acme.example').and_return('cd-acme')
+      end
+
+      context 'with an owner locale' do
+        let(:owner) { instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'fr') }
+
+        it 'passes the custom domain id and the owner locale' do
+          expect(Onetime::Jobs::Publisher).to receive(:enqueue_email)
+            .with(:expiration_warning, hash_including(locale: 'fr'), domain_id: 'cd-acme')
+
+          described_class.send(:process_expiring_secrets)
+        end
+
+        it 'keeps share_domain out of the payload' do
+          expect(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |_template, data, **|
+            expect(data).not_to include(:share_domain)
+          end
+
+          described_class.send(:process_expiring_secrets)
+        end
+      end
+
+      context 'with a blank owner locale' do
+        let(:owner) { instance_double('Onetime::Customer', email: 'owner@example.com', locale: '') }
+
+        it 'falls back to the default locale' do
+          expect(Onetime::Jobs::Publisher).to receive(:enqueue_email)
+            .with(:expiration_warning, hash_including(locale: OT.default_locale), domain_id: 'cd-acme')
+
+          described_class.send(:process_expiring_secrets)
+        end
+      end
+    end
+
     context 'when enqueuing fails' do
       it 'does not mark warning as sent on failure' do
         allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
@@ -300,6 +422,9 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
           'Onetime::Receipt',
           identifier: 'meta_second',
           exists?: true,
+          live?: true,
+          load_secret: live_secret,
+          share_domain: nil,
           anonymous?: false,
           load_owner: owner_with_email,
           secret_shortid: 'second789',
@@ -423,6 +548,9 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         'Onetime::Receipt',
         identifier: 'meta1',
         exists?: true,
+        live?: true,
+        load_secret: live_secret,
+        share_domain: nil,
         anonymous?: false,
         load_owner: owner_with_email,
         secret_shortid: 'key1',
@@ -435,6 +563,9 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         'Onetime::Receipt',
         identifier: 'meta2',
         exists?: true,
+        live?: true,
+        load_secret: live_secret,
+        share_domain: nil,
         anonymous?: false,
         load_owner: owner_with_email,
         secret_shortid: 'key2',
@@ -447,6 +578,9 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         'Onetime::Receipt',
         identifier: 'meta3',
         exists?: true,
+        live?: true,
+        load_secret: live_secret,
+        share_domain: nil,
         anonymous?: false,
         load_owner: owner_with_email,
         secret_shortid: 'key3',

@@ -171,6 +171,8 @@ module Onetime::Receipt::Features
         # The audit event fires only inside the won-CAS branch, so the actor is
         # recorded exactly once; a race loser returned above and records nothing.
         record_org_secret_activity_event('revealed', **lifecycle_activity_attrs(actor_context))
+        # The secret is gone: no expiration warning may follow (best effort).
+        unregister_from_expiration_notifications
         true
       end
 
@@ -249,6 +251,8 @@ module Onetime::Receipt::Features
 
         # Actor recorded exactly once inside the won-CAS branch (see revealed!).
         record_org_secret_activity_event('burned', **lifecycle_activity_attrs(actor_context))
+        # The secret is gone: no expiration warning may follow (best effort).
+        unregister_from_expiration_notifications
         true
       end
 

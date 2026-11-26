@@ -524,7 +524,11 @@ module Onetime
       def send_verification_email(_token = nil, customer: cust)
         msg = format("Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"", OT::Utils.random_fortune)
 
-        _receipt, secret = Onetime::Receipt.spawn_pair(customer&.objid, 24.days, msg)
+        # Not on the expiration timeline: the owner is never warned that their
+        # own verification link is about to expire.
+        _receipt, secret = Onetime::Receipt.spawn_pair(
+          customer&.objid, 24.days, msg, expiration_notifications: false
+        )
 
         secret.verification    = true
         secret.kind            = 'account_verification' # mailbox proof for the owner's current address (#4735)
