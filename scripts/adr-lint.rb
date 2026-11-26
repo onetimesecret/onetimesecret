@@ -24,7 +24,7 @@ ADR_DIR = ENV.fetch('ADR_DIR', 'docs/adr')
 REFERENCE = /\bADR-(\d{3,})(?:#([a-z0-9][a-z0-9-]*))?/i
 
 # Skip binaries and anything that would produce noise.
-SKIP_EXT = %w[.png .jpg .jpeg .gif .pdf .zip .gz .ico .woff .woff2 .ttf
+SKIP_EXT = %w[.png .jpg .jpeg .gif .pdf .zip .gz .ico .woff .woff2 .ttf .xlsx
               .lock .min.js .map].to_set
 
 # Tiny Levenshtein for the "did you mean" hint.
