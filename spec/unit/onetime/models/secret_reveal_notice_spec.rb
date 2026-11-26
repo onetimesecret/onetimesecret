@@ -27,6 +27,7 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
     Onetime::Customer.new(email: "reveal-notice-#{SecureRandom.hex(8)}@example.com").tap do |cust|
       cust.notify_on_reveal = 'true'
       cust.locale           = 'fr'
+      cust.verified         = 'true'
       cust.save
     end
   end

@@ -42,7 +42,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
   # Mock owner with email
   let(:owner_with_email) do
-    instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'de')
+    instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'de', verified?: true)
   end
 
   # Mock owner without email
@@ -417,7 +417,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       end
 
       context 'with an owner locale' do
-        let(:owner) { instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'fr') }
+        let(:owner) { instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'fr', verified?: true) }
 
         it 'passes the custom domain id and the owner locale' do
           expect(Onetime::Jobs::Publisher).to receive(:enqueue_email)
@@ -436,7 +436,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       end
 
       context 'with a blank owner locale' do
-        let(:owner) { instance_double('Onetime::Customer', email: 'owner@example.com', locale: '') }
+        let(:owner) { instance_double('Onetime::Customer', email: 'owner@example.com', locale: '', verified?: true) }
 
         it 'falls back to the default locale' do
           expect(Onetime::Jobs::Publisher).to receive(:enqueue_email)

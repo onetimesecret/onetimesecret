@@ -249,13 +249,18 @@ RSpec.describe 'RabbitMQ Publishing', :rabbitmq, type: :integration do
       queue = channel.queue(email_queue, passive: true)
 
       expires_at = Familia.now.to_i + 7200
-      owner      = instance_double('Onetime::Customer', email: 'owner@example.com')
+      owner      = instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'de', verified?: true)
+      secret     = instance_double('Onetime::Secret', verification?: false)
       receipt    = instance_double(
         'Onetime::Receipt',
         identifier: 'rcpt-rabbit',
+        shortid: 'rcptrabb',
         exists?: true,
+        live?: true,
         anonymous?: false,
         load_owner: owner,
+        load_secret: secret,
+        sender_domain_id: 'cd-rabbit',
         secret_shortid: 'a1b2c3d4',
         secret_expiration: expires_at,
       )
@@ -283,7 +288,9 @@ RSpec.describe 'RabbitMQ Publishing', :rabbitmq, type: :integration do
         recipient: 'owner@example.com',
         secret_shortid: 'a1b2c3d4',
         expires_at: expires_at,
+        locale: 'de',
       )
+      expect(received[:domain_id]).to eq('cd-rabbit')
       expect(Onetime::Receipt).to have_received(:mark_warning_sent).with('rcpt-rabbit')
     end
   end

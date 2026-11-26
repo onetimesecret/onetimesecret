@@ -137,6 +137,16 @@ module Onetime
                 next
               end
 
+              # Mail goes only to a verified contact address (ADR-051
+              # decision 6). Dropped like the anonymous skip above, so an
+              # owner who never verifies does not hold a batch slot until
+              # the secret expires.
+              unless owner.verified?
+                receipt.unregister_from_expiration_notifications
+                skipped += 1
+                next
+              end
+
               # Skip when the secret is already gone, or is an account
               # verification link. Verification links created before
               # spawn_pair could leave them off the timeline are still on it;

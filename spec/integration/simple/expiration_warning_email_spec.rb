@@ -34,7 +34,11 @@ RSpec.describe 'Expiration warning email', type: :integration do
   end
 
   let(:owner) do
-    Onetime::Customer.new(email: "expiring-owner-#{SecureRandom.hex(8)}@example.com").tap(&:save)
+    # Verified: the warning goes only to an owner with a verified email.
+    Onetime::Customer.new(email: "expiring-owner-#{SecureRandom.hex(8)}@example.com").tap do |cust|
+      cust.verified = 'true'
+      cust.save
+    end
   end
 
   # Two days: not below the default min_ttl_hours (48), so spawn_pair puts the

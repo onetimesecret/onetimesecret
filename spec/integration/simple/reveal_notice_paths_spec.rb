@@ -56,6 +56,7 @@ RSpec.describe 'Owner reveal notice on every reveal route', type: :integration d
   let(:owner) do
     Onetime::Customer.new(email: "reveal-route-#{SecureRandom.hex(8)}@integration-test.example.com").tap do |cust|
       cust.notify_on_reveal = 'true'
+      cust.verified         = 'true'
       cust.save
     end
   end
