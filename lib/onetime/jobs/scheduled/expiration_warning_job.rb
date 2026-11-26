@@ -138,7 +138,8 @@ module Onetime
               end
 
               # Mail goes only to a verified account (Customer#verified?;
-              # same rule as the reveal notice). The entry is dropped so an
+              # same rule as the reveal notice, so IdP-asserted SSO
+              # addresses qualify; see Secret#notify_owner_of_reveal). The entry is dropped so an
               # owner who never verifies does not hold a batch slot until
               # the secret expires. Unlike anonymity this can change: an
               # owner who verifies after the scan gets no warning for an

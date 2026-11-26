@@ -313,8 +313,13 @@ module Onetime::Secret::Features
         return if owner.email.to_s.empty?
         # Mail goes only to a verified account: Customer#verified?, the
         # account-level flag, by owner decision (not the stricter
-        # mailbox_verified?). An unverified owner is a silent skip, never
-        # an error.
+        # mailbox_verified?). An SSO account qualifies: the address its IdP
+        # asserted is trusted for owner notifications, as it is for
+        # organization membership. mailbox_verified? stays reserved for
+        # gates where holding the mailbox grants authority. An SSO account
+        # with a verification_hold (the IdP reported the address
+        # unverified) is not verified? and gets no mail. An unverified
+        # owner is a silent skip, never an error.
         return unless owner.verified?
         return unless owner.notify_on_reveal?
 
