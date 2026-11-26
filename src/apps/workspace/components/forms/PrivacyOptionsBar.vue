@@ -64,7 +64,7 @@
 
   const hasPassphrase = computed(() => !!props.currentPassphrase);
 
-  const { defaultTtl } = useSharingControls();
+  const { defaultTtl, passphraseRequired } = useSharingControls();
   const ttlChanged = computed(() => props.currentTtl !== defaultTtl.value);
 </script>
 
@@ -121,6 +121,13 @@
           class="size-3.5"
           aria-hidden="true" />
         <span>{{ t('web.COMMON.secret_privacy_options') }}</span>
+        <!-- A passphrase is required: say so on the pill, as the desktop chip does -->
+        <span
+          v-if="passphraseRequired"
+          data-testid="privacy-options-required-marker">
+          <span aria-hidden="true">*</span>
+          <span class="sr-only">{{ t('web.secrets.passphraseRequired') }}</span>
+        </span>
         <span
           v-if="ttlChanged"
           class="flex items-center justify-center rounded bg-brand-200/60 p-0.5

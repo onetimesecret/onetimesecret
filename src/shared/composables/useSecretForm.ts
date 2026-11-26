@@ -5,6 +5,11 @@ import {
   secretDisplayTypeSchema,
 } from '@/schemas/contracts/secret';
 import { transforms } from '@/schemas/transforms';
+import {
+  reportedPassphraseIssue,
+  type PassphraseCharacterClass,
+  type PassphraseIssue,
+} from './usePassphraseRules';
 import { useSharingControls } from './useSharingControls';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
@@ -36,6 +41,13 @@ const formSchema = z.object({
   team_id: z.string().optional(),
   display_type: secretDisplayTypeSchema,
 });
+
+const CHARACTER_CLASS_NAMES: Record<PassphraseCharacterClass, string> = {
+  uppercase: 'uppercase letter',
+  lowercase: 'lowercase letter',
+  number: 'number',
+  symbol: 'symbol',
+};
 
 /**
  * Form data structure with defaults
@@ -102,38 +114,28 @@ export function useSecretForm(shareDomain?: () => string) {
     }
   }
 
+  // The rules are shared with the dashboard passphrase chip and mobile sheet
+  // (usePassphraseRules); only the wording is this form's own.
   function validatePassphrase() {
-    const value = form.passphrase;
-    if (controls.passphraseRequired.value && !value.trim()) {
-      errors.set('passphrase', 'A passphrase is required for all secrets');
-      return;
-    }
-    const config = secret_options.value?.passphrase;
-    if (!config || !value) return;
-    if (config.minimum_length && value.length < config.minimum_length) {
-      errors.set('passphrase',
-        `Passphrase must be at least ${config.minimum_length} characters long`);
-    }
-    if (config.maximum_length && value.length > config.maximum_length) {
-      errors.set('passphrase',
-        `Passphrase must be no more than ${config.maximum_length} characters long`);
-    }
-    if (config.enforce_complexity) validatePassphraseComplexity(value);
+    const issue = reportedPassphraseIssue(form.passphrase, {
+      required: controls.passphraseRequired.value,
+      config: secret_options.value?.passphrase,
+    });
+    if (issue) errors.set('passphrase', passphraseIssueMessage(issue));
   }
 
-  function validatePassphraseComplexity(passphrase: string) {
-    const complexityErrors = [];
-    if (!/[A-Z]/.test(passphrase)) complexityErrors.push('uppercase letter');
-    if (!/[a-z]/.test(passphrase)) complexityErrors.push('lowercase letter');
-    if (!/\d/.test(passphrase)) complexityErrors.push('number');
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(passphrase))
-      complexityErrors.push('symbol');
-
-    if (complexityErrors.length > 0) {
-      errors.set(
-        'passphrase',
-        `Passphrase must contain at least one ${complexityErrors.join(', ')}`
-      );
+  function passphraseIssueMessage(issue: PassphraseIssue): string {
+    switch (issue.code) {
+      case 'required':
+        return 'A passphrase is required for all secrets';
+      case 'too_short':
+        return `Passphrase must be at least ${issue.length} characters long`;
+      case 'too_long':
+        return `Passphrase must be no more than ${issue.length} characters long`;
+      case 'complexity':
+        return `Passphrase must contain at least one ${issue.missing
+          .map((name) => CHARACTER_CLASS_NAMES[name])
+          .join(', ')}`;
     }
   }
 

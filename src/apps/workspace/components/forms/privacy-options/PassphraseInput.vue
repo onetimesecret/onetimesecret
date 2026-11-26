@@ -9,18 +9,17 @@
    * and visual feedback for passphrase state.
    */
   import { computed, nextTick, ref } from 'vue';
-  import { useSharingControls } from '@/shared/composables/useSharingControls';
+  import { usePassphraseRules } from '@/shared/composables/usePassphraseRules';
   import { useI18n } from 'vue-i18n';
   import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
 
   const { t } = useI18n();
-  const { passphraseRequired } = useSharingControls();
 
   interface Props {
     /** Current passphrase value (v-model) */
     modelValue: string;
-    /** Minimum passphrase length from config */
+    /** Overrides the configured minimum passphrase length when above zero */
     minLength?: number;
     /** Disable when form is submitting */
     disabled?: boolean;
@@ -42,31 +41,19 @@
   // Computed state
   const hasPassphrase = computed(() => !!props.modelValue);
 
-  const isValid = computed(() => {
-    // Empty is valid (passphrase is optional)
-    if (!props.modelValue) return true;
-    // Check minimum length if configured
-    if (props.minLength > 0) {
-      return props.modelValue.length >= props.minLength;
-    }
-    return true;
-  });
-
-  // The shared hint says "(Optional)", which is wrong once a sharing control
-  // or the instance requires a passphrase.
-  const minimumLengthText = computed(() =>
-    t(
-      passphraseRequired.value
-        ? 'web.secrets.passphraseMinimumLengthRequired'
-        : 'web.secrets.passphraseMinimumLength',
-      { length: props.minLength }
-    )
+  // The same rules the form enforces on submit (minimum and maximum length,
+  // complexity, required), so the chip does not show a passphrase as valid
+  // that the form will then refuse.
+  const {
+    passphraseRequired,
+    errorText: validationError,
+    minimumLengthHint,
+    complexityHint,
+    markInteracted,
+  } = usePassphraseRules(
+    () => props.modelValue,
+    () => props.minLength
   );
-
-  const validationError = computed(() => {
-    if (!props.modelValue || isValid.value) return '';
-    return minimumLengthText.value;
-  });
 
   const errorId = computed(() =>
     validationError.value ? 'passphrase-error' : undefined
@@ -121,10 +108,12 @@
   // Handlers
   const handleInput = (event: Event) => {
     const value = (event.target as HTMLInputElement).value;
+    markInteracted();
     emit('update:modelValue', value);
   };
 
   const clearPassphrase = () => {
+    markInteracted();
     emit('update:modelValue', '');
     inputRef.value?.focus();
   };
@@ -165,7 +154,7 @@
         class="size-3 text-red-600 dark:text-red-400"
         aria-hidden="true" />
       <OIcon
-        v-else-if="hasPassphrase && isValid"
+        v-else-if="hasPassphrase"
         collection="heroicons"
         name="check"
         class="size-3 text-brand-600 dark:text-brand-400"
@@ -208,6 +197,7 @@
             :class="inputBorderClasses"
             :placeholder="t('web.secrets.enterPassphrase')"
             @input="handleInput"
+            @blur="markInteracted"
             @keydown.enter.prevent />
           <div class="absolute inset-y-0 right-0 flex items-center gap-0.5 pr-1.5">
             <button
@@ -238,14 +228,18 @@
           v-if="validationError"
           :id="errorId"
           class="mt-1.5 text-xs text-red-500 dark:text-red-400"
-          role="alert">
+          role="alert"
+          data-testid="passphrase-error">
           {{ validationError }}
         </p>
-        <!-- Hint when no passphrase and min length is configured -->
+        <!-- Hints for an empty field: minimum length and, when enforced, complexity -->
         <p
-          v-else-if="minLength > 0 && !modelValue"
-          class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-          {{ minimumLengthText }}
+          v-else-if="!modelValue && (minimumLengthHint || complexityHint)"
+          class="mt-1.5 text-xs text-gray-500 dark:text-gray-400"
+          data-testid="passphrase-hint">
+          <span v-if="minimumLengthHint">{{ minimumLengthHint }}</span>
+          <span v-if="minimumLengthHint && complexityHint"> • </span>
+          <span v-if="complexityHint">{{ complexityHint }}</span>
         </p>
       </PopoverPanel>
     </transition>
