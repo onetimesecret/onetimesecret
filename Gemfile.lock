@@ -1,5 +1,5 @@
 GIT
-  remote: https://github.com/onetimesecret/omniauth-gitlab.git
+  remote: https://gitlab.com/onetimesecret/upstream-forks/omniauth-gitlab.git
   revision: f9c4d0b1f25027a7ab6906937a252e5cf9761945
   ref: f9c4d0b1f25027a7ab6906937a252e5cf9761945
   specs:
@@ -8,7 +8,7 @@ GIT
       omniauth-oauth2 (~> 1.8)
 
 GIT
-  remote: https://github.com/onetimesecret/rodauth-oauth.git
+  remote: https://gitlab.com/onetimesecret/upstream-forks/rodauth-oauth.git
   revision: b0e7ceb0c26eb43226faa089bfd0a05bdddb8b1d
   ref: b0e7ceb0c26eb43226faa089bfd0a05bdddb8b1d
   specs:
@@ -17,7 +17,7 @@ GIT
       rodauth (~> 2.28)
 
 GIT
-  remote: https://github.com/onetimesecret/rodauth.git
+  remote: https://gitlab.com/onetimesecret/upstream-forks/rodauth.git
   revision: a08f72421045306fc424ad59bf2d63f3d2b7d455
   ref: a08f72421045306fc424ad59bf2d63f3d2b7d455
   specs:

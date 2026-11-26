@@ -63,12 +63,25 @@ source 'https://rubygems.org/'
 gem 'otto', '~> 2.13'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
+# Forked gems (rodauth, rodauth-oauth, omniauth-gitlab) are fetched from
+# gitlab.com/onetimesecret/upstream-forks, so `bundle install` does not depend
+# on GitHub. Each fork is developed where its upstream is hosted:
+#   - rodauth and omniauth-gitlab: on GitHub (github.com/onetimesecret/<name>).
+#     The GitLab projects are read-only pull mirrors; push to GitHub. A mirror
+#     trails GitHub until GitLab's next scheduled pull, so before pinning a new
+#     commit check that it is on the mirror (`git ls-remote` the GitLab URL) or
+#     start a pull with
+#     `glab api -X POST projects/onetimesecret%2Fupstream-forks%2F<name>/mirror/pull`.
+#   - rodauth-oauth (upstream os85/rodauth-oauth is on GitLab): on GitLab.
+# Every ref is a full commit SHA, so a mirror cannot serve different code
+# under the same pin.
+#
 # Rodauth 2.51.0 includes the WebAuthn fix for GHSA-jv3v-q542-9c26.
 # The fork retains the two changes from onetimesecret/rodauth#3: delete the
 # verification key after account verification, and use the account being
 # verified when adding recovery codes during passkey signup.
 gem 'rodauth',
-  git: 'https://github.com/onetimesecret/rodauth.git',
+  git: 'https://gitlab.com/onetimesecret/upstream-forks/rodauth.git',
   ref: 'a08f72421045306fc424ad59bf2d63f3d2b7d455'
 # Forked to add `oauth_mount_prefix`, which fixes the Rack::URLMap mount-prefix
 # mismatch (discovery URLs, issuer, and per-endpoint CSRF exemptions losing the
@@ -79,8 +92,9 @@ gem 'rodauth',
 # the change is upstreamed to os85/rodauth-oauth.
 #
 # The fork is at 1.6.6.ots1: upstream 1.6.6 merged on top of the mount-prefix
-# change (onetimesecret/rodauth-oauth#16). Two upstream decisions the app has
-# to account for, see doc/release_notes/1_6_6_ots1.md in the fork:
+# change (PR #16 on github.com/onetimesecret/rodauth-oauth, the fork's GitHub
+# copy). Two upstream decisions the app has to account for, see
+# doc/release_notes/1_6_6_ots1.md in the fork:
 #   - `oauth_pkce_allow_plain_method` defaults to true upstream (the fork used
 #     to default it to false); features/oauth.rb sets it to false explicitly.
 #   - the plain OAuth `POST /register` no longer returns
@@ -95,7 +109,7 @@ gem 'rodauth',
 # not.
 gem 'rodauth-oauth',
   '~> 1.6',
-  git: 'https://github.com/onetimesecret/rodauth-oauth.git',
+  git: 'https://gitlab.com/onetimesecret/upstream-forks/rodauth-oauth.git',
   ref: 'b0e7ceb0c26eb43226faa089bfd0a05bdddb8b1d'
 gem 'rodauth-omniauth', '~> 0.4'
 gem 'rodauth-tools', '~> 0.4.0'
@@ -127,7 +141,7 @@ gem 'omniauth-github', '~> 2.0'
 # nothing reads extra.site. The fork's version is 4.1.0.1 (#3), so the lock
 # does not read as the released gem.
 gem 'omniauth-gitlab',
-  git: 'https://github.com/onetimesecret/omniauth-gitlab.git',
+  git: 'https://gitlab.com/onetimesecret/upstream-forks/omniauth-gitlab.git',
   ref: 'f9c4d0b1f25027a7ab6906937a252e5cf9761945'
 gem 'omniauth-google-oauth2', '~> 1.2'
 gem 'omniauth_openid_connect', '~> 0.8'
