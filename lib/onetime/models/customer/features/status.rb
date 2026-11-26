@@ -179,6 +179,35 @@ module Onetime::Customer::Features
         verified? && Onetime::Customer::MAILBOX_VERIFIED_BY.include?(verified_by.to_s)
       end
 
+      # May this customer receive owner notification mail (the reveal notice,
+      # Secret#notify_owner_of_reveal, and the expiration warning,
+      # Onetime::Jobs::Scheduled::ExpirationWarningJob)? True for a
+      # non-anonymous customer with a non-empty email whose account is
+      # verified by any provenance.
+      #
+      # The rule is verified?, the account-level flag, by owner decision
+      # (not the stricter mailbox_verified?). An SSO account qualifies: the
+      # address its IdP asserted is trusted for owner notifications, as it
+      # is for organization membership. mailbox_verified? stays reserved for
+      # gates where holding the mailbox grants authority.
+      #
+      # An SSO account whose IdP reported the address as unverified, or
+      # whose email_verified claim could not be read, carries a
+      # verification_hold (one of Onetime::Customer::VERIFICATION_HOLDS). The
+      # OmniAuth JIT hook (apps/web/auth/config/hooks/omniauth.rb, where
+      # sso_verified is derived from the account status and the hold) leaves
+      # such an account unverified, so it is not notifiable and gets no
+      # owner notices until an operator verifies it.
+      #
+      # Per-notice preferences (notify_on_reveal?) and secret-side guards
+      # (an 'anon' owner_id) stay with the callers. A false answer is a
+      # silent skip for them, never an error.
+      #
+      # @return [Boolean]
+      def notifiable?
+        !anonymous? && !email.to_s.empty? && verified?
+      end
+
       # Must a federated subscription wait for this customer's mailbox proof
       # whatever the caller? Never once the record carries mailbox proof.
       # Otherwise true for two kinds of record:

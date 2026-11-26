@@ -132,19 +132,18 @@ module Onetime
               end
 
               owner = receipt.load_owner
-              unless owner&.email
+              # A missing or blank email is skipped and its entry kept.
+              if owner.nil? || owner.email.to_s.empty?
                 skipped += 1
                 next
               end
 
-              # Mail goes only to a verified account (Customer#verified?;
-              # same rule as the reveal notice, so IdP-asserted SSO
-              # addresses qualify; see Secret#notify_owner_of_reveal). The entry is dropped so an
-              # owner who never verifies does not hold a batch slot until
-              # the secret expires. Unlike anonymity this can change: an
-              # owner who verifies after the scan gets no warning for an
-              # entry already dropped.
-              unless owner.verified?
+              # Who may get owner mail at all: see Customer#notifiable?. The
+              # entry is dropped so an owner who never verifies does not hold
+              # a batch slot until the secret expires. Unlike anonymity this
+              # can change: an owner who verifies after the scan gets no
+              # warning for an entry already dropped.
+              unless owner.notifiable?
                 receipt.unregister_from_expiration_notifications
                 skipped += 1
                 next
