@@ -516,9 +516,10 @@ describe('DomainIncomingConfigForm recipients section copy', () => {
       missingWarn: false,
       fallbackWarn: false,
       missing: (_, key) => key,
+      // `never`: the generated message schema expects every key (see createTestI18n).
       messages: {
         en: { web: { domains: { incoming: { recipients_usage: '{count} OF {max} Recipients' } } } },
-      },
+      } as never,
     });
     const wrapper = mount(DomainIncomingConfigForm, {
       props: { formState: singleRecipientFormState, savedFormState: null, maxRecipients: 20 },
