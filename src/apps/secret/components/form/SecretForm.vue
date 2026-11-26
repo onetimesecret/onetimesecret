@@ -354,10 +354,17 @@
                 <div
                   v-if="passphraseConfig"
                   class="text-xs text-gray-500 dark:text-gray-400">
-                  <span v-if="passphraseConfig.minimum_length">
+                  <!--
+                    "(Optional)" only while the field is optional and has no
+                    error: once a passphrase was entered and refused, the
+                    minimum applies to it.
+                  -->
+                  <span
+                    v-if="passphraseConfig.minimum_length"
+                    data-testid="secret-passphrase-minimum-hint">
                     {{
                       t(
-                        isPassphraseRequired
+                        isPassphraseRequired || getError('passphrase')
                           ? 'web.secrets.passphraseMinimumLengthRequired'
                           : 'web.secrets.passphraseMinimumLength',
                         { length: passphraseConfig.minimum_length }

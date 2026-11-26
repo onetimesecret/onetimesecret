@@ -128,6 +128,16 @@ describe('usePassphraseRules', () => {
     expect(rules.errorText.value).toBe('web.secrets.passphraseComplexityRequired');
   });
 
+  it('words a too-short error without "(Optional)", even when optional', () => {
+    setup({ minimum_length: 6, maximum_length: 64 });
+    const rules = usePassphraseRules(() => 'abc');
+
+    // web.secrets.passphraseMinimumLength is the text that ends "(Optional)".
+    expect(rules.passphraseRequired.value).toBe(false);
+    expect(rules.errorText.value).toBe('web.secrets.passphraseMinimumLengthRequired{"length":6}');
+    expect(rules.minimumLengthHint.value).toBe('web.secrets.passphraseMinimumLength{"length":6}');
+  });
+
   it('has no complexity hint when complexity is not enforced', () => {
     setup({ minimum_length: 4, maximum_length: 64 });
     expect(usePassphraseRules(() => '').complexityHint.value).toBe('');

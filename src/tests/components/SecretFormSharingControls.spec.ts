@@ -104,6 +104,25 @@ describe('sharing controls in the creation form', () => {
     expect(toggle.attributes('aria-expanded')).toBe('true');
   });
 
+  it('drops "(Optional)" from the minimum length hint once an optional passphrase is refused', async () => {
+    const { bootstrap, render } = setup(organization('org'));
+    bootstrap.$patch({ secret_options: {
+      default_ttl: 3600, ttl_options: [60, 3600], passphrase: { minimum_length: 8 },
+    } });
+    render();
+    await flushPromises();
+    const hint = () => wrapper.get('[data-testid="secret-passphrase-minimum-hint"]').text();
+    // The test i18n renders keys. The plain key's English text ends "(Optional)".
+    expect(hint()).toBe('web.secrets.passphraseMinimumLength');
+
+    await wrapper.get('textarea').setValue('draft secret');
+    await wrapper.get(passphrase).setValue('short');
+    await wrapper.get('form').trigger('submit');
+    expect(wrapper.get(passphrase).attributes('aria-invalid')).toBe('true');
+    expect(hint()).toBe('web.secrets.passphraseMinimumLengthRequired');
+    expect(useSecretStore().conceal).not.toHaveBeenCalled();
+  });
+
   it('labels the required marker and the passphrase toggle from locale keys', async () => {
     const { render } = setup(organization('org', { ...unrestricted, passphrase_required: true }));
     render();

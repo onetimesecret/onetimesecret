@@ -140,7 +140,9 @@ export function usePassphraseRules(value: () => string, minimumLength?: () => nu
       case 'required':
         return t('web.secrets.passphraseRequired');
       case 'too_short':
-        return minimumLengthHint.value;
+        // An error is never "(Optional)": a passphrase that was entered has
+        // to meet the minimum whether or not one was required.
+        return t('web.secrets.passphraseMinimumLengthRequired', { length: found.length });
       case 'too_long':
         return t('web.secrets.passphraseMaximumLength', { length: found.length });
       case 'complexity':

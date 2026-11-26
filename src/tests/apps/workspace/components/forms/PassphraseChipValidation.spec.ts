@@ -117,9 +117,15 @@ describe('PassphraseInput (desktop chip)', () => {
     expect(wrapper.get('button').classes()).toContain('bg-brand-50');
   });
 
-  it('still reports a passphrase shorter than the minimum', () => {
+  it('reports a too-short optional passphrase without the "(Optional)" wording', () => {
     mountChip('abc', { minimum_length: 6, maximum_length: 10 });
-    expect(error().exists()).toBe(true);
+    // web.secrets.passphraseMinimumLength is the text that ends "(Optional)".
+    expect(error().text()).toBe(MIN_REQUIRED);
+  });
+
+  it('keeps "(Optional)" on the neutral hint of an optional passphrase', () => {
+    mountChip('', { minimum_length: 6, maximum_length: 10 });
+    expect(hint().text()).toBe(MIN);
   });
 
   it('uses the minLength prop over the published minimum when above zero', () => {
@@ -185,6 +191,16 @@ describe('PrivacyOptionsSheet (mobile sheet)', () => {
   it('reports a passphrase that lacks the enforced character classes', () => {
     mountSheet('abcdefgh', { minimum_length: 6, maximum_length: 10, enforce_complexity: true });
     expect(error().text()).toBe(COMPLEXITY);
+  });
+
+  it('reports a too-short optional passphrase without the "(Optional)" wording', () => {
+    mountSheet('abc', { minimum_length: 6, maximum_length: 10 });
+    expect(error().text()).toBe(MIN_REQUIRED);
+  });
+
+  it('keeps "(Optional)" on the neutral hint of an optional passphrase', () => {
+    mountSheet('', { minimum_length: 6, maximum_length: 10 });
+    expect(hint().text()).toBe(MIN);
   });
 
   it('shows the complexity hint when enforced', () => {
