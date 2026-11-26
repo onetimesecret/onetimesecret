@@ -206,10 +206,10 @@ module Onetime::Customer::Features
       # is for organization membership. mailbox_verified? stays reserved for
       # gates where holding the mailbox grants authority.
       #
-      # An SSO account whose IdP reported the address as unverified, or
-      # whose email_verified claim could not be read, carries a
-      # verification_hold (one of Onetime::Customer::VERIFICATION_HOLDS). The
-      # OmniAuth JIT hook (apps/web/auth/config/hooks/omniauth.rb, where
+      # An SSO account whose IdP reported the address (or its domain owner)
+      # as unverified, or whose email_verified claim could not be read,
+      # carries a verification_hold (one of
+      # Onetime::Customer::VERIFICATION_HOLDS). The OmniAuth JIT hook (apps/web/auth/config/hooks/omniauth.rb, where
       # sso_verified is derived from the account status and the hold) leaves
       # such an account unverified, so it is not notifiable and gets no
       # owner notices until an operator verifies it.
