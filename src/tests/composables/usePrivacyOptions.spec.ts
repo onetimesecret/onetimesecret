@@ -260,7 +260,16 @@ describe('usePrivacyOptions', () => {
       const { formatDuration } = usePrivacyOptions();
 
       expect(formatDuration(DAY)).toBe('1:web.UNITS.ttl.duration');
-      expect(formatDuration(90)).toBe('90:web.UNITS.ttl.duration');
+      expect(formatDuration(120)).toBe('2:web.UNITS.ttl.duration');
+    });
+
+    it('formats a value that is not a whole number of one unit as a compound', () => {
+      setupStore();
+      const { formatDuration } = usePrivacyOptions();
+
+      // 90 seconds is 1 minute 30 seconds; the rule is covered in
+      // useDurationFormat.spec.ts.
+      expect(formatDuration(90)).toBe('web.UNITS.ttl.duration_compound');
     });
   });
 });

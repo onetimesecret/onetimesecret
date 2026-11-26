@@ -2,8 +2,8 @@
 
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 
+import { useDurationFormat } from './useDurationFormat';
 import type { SecretFormData } from './useSecretForm';
 import { useSharingControls } from './useSharingControls';
 
@@ -42,7 +42,6 @@ function includeSelectedTtl(options: number[], selected: number | undefined, max
 export function usePrivacyOptions(formOperations?: {
   updateField: <K extends keyof SecretFormData>(field: K, value: SecretFormData[K]) => void;
 }, selectedTtl?: () => number) {
-  const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
   const { ttlCeiling, defaultTtl } = useSharingControls();
 
@@ -52,32 +51,8 @@ export function usePrivacyOptions(formOperations?: {
     lifetimeOptions: [],
   });
 
-  /**
-   * Formats duration for display
-   */
-  const formatDuration = (seconds: number): string => {
-    const units = [
-      { key: 'day', seconds: 86400 },
-      { key: 'hour', seconds: 3600 },
-      { key: 'minute', seconds: 60 },
-      { key: 'second', seconds: 1 },
-    ];
-
-    for (const unit of units) {
-      const quotient = seconds / unit.seconds;
-      if (Number.isInteger(quotient) && quotient >= 1) {
-        return t('web.UNITS.ttl.duration', {
-          count: quotient,
-          unit: t(`web.UNITS.ttl.time.${unit.key}`, quotient),
-        });
-      }
-    }
-
-    return t('web.UNITS.ttl.duration', {
-      count: seconds,
-      unit: t('web.UNITS.ttl.time.second', seconds),
-    });
-  };
+  // Duration formatting is shared with other surfaces (useDurationFormat).
+  const { formatDuration } = useDurationFormat();
 
   /**
    * Available lifetime options, capped at what the server will actually grant.

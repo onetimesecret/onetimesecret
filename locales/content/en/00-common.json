@@ -1121,6 +1121,10 @@
     "text": "{count} {unit}",
     "content_hash": "e6c9e0e6"
   },
+  "web.UNITS.ttl.duration_compound": {
+    "text": "{head} {tail}",
+    "content_hash": "8809bfaf"
+  },
   "web.UNITS.ttl.time.day": {
     "text": "day | days",
     "content_hash": "6ac0d345"
