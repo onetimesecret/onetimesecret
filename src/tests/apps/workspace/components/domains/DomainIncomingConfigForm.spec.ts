@@ -9,6 +9,7 @@ import { mount, type VueWrapper, flushPromises, DOMWrapper } from '@vue/test-uti
 import { describe, it, expect, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { createTestI18n } from '@tests/setup';
+import { createI18n } from 'vue-i18n';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import DomainIncomingConfigForm from '@/apps/workspace/components/domains/DomainIncomingConfigForm.vue';
@@ -484,5 +485,54 @@ describe('DomainIncomingConfigForm when a higher level already requires a passph
   it('ignores the organization level when no organization is given', () => {
     const wrapper = mountInherited({ organization: true });
     expect(wrapper.get<HTMLInputElement>(checkbox).element.disabled).toBe(false);
+  });
+});
+
+describe('DomainIncomingConfigForm recipients section copy', () => {
+  it('describes the section with the section description, not the empty-state text', () => {
+    const wrapper = mountForm({ formState: singleRecipientFormState });
+
+    // The test i18n renders keys.
+    expect(wrapper.get('[data-testid="incoming-recipients-description"]').text()).toBe(
+      'web.domains.incoming.recipients_description'
+    );
+    expect(wrapper.text()).not.toContain('web.domains.incoming.empty_state_description');
+  });
+
+  it('heads the list with a heading key, not the status badge key', () => {
+    const wrapper = mountForm({ formState: singleRecipientFormState });
+
+    expect(wrapper.get('[data-testid="incoming-recipients-list-heading"]').text()).toContain(
+      'web.domains.incoming.recipients_list_heading'
+    );
+    expect(wrapper.text()).not.toContain('web.domains.incoming.badge_configured');
+  });
+
+  it('renders the usage line from one key with count and max, without lower-casing a translation', () => {
+    // Pass-through like the test i18n, with real text for the one key under test.
+    const usageI18n = createI18n({
+      legacy: false,
+      locale: 'en',
+      missingWarn: false,
+      fallbackWarn: false,
+      missing: (_, key) => key,
+      messages: {
+        en: { web: { domains: { incoming: { recipients_usage: '{count} OF {max} Recipients' } } } },
+      },
+    });
+    const wrapper = mount(DomainIncomingConfigForm, {
+      props: { formState: singleRecipientFormState, savedFormState: null, maxRecipients: 20 },
+      global: { plugins: [createTestingPinia({ createSpy: vi.fn }), usageI18n] },
+    });
+
+    // Capitals survive: the text is the translator's, not passed through toLowerCase().
+    expect(wrapper.get('[data-testid="incoming-recipients-usage"]').text()).toBe(
+      '1 OF 20 Recipients'
+    );
+  });
+
+  it('shows no usage line without recipients', () => {
+    const wrapper = mountForm({ formState: emptyFormState });
+    expect(wrapper.find('[data-testid="incoming-recipients-usage"]').exists()).toBe(false);
   });
 });

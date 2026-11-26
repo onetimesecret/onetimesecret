@@ -1183,6 +1183,14 @@
     "text": "Recipients",
     "content_hash": "1e8568a8"
   },
+  "web.domains.incoming.recipients_list_heading": {
+    "text": "Configured",
+    "content_hash": "84aebc69"
+  },
+  "web.domains.incoming.recipients_usage": {
+    "text": "{count} / {max} recipients",
+    "content_hash": "2d925fc0"
+  },
   "web.domains.incoming.recipients_description": {
     "text": "Define who can receive incoming secrets on this domain. Recipients will receive email notifications when a secret is sent to them.",
     "content_hash": "026f9d9d"

@@ -217,8 +217,10 @@ function updateMaxTtl(event: Event): void {
         <h3 class="text-base font-semibold text-gray-900 dark:text-white">
           {{ t('web.domains.incoming.recipients_title') }}
         </h3>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.domains.incoming.empty_state_description') }}
+        <p
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400"
+          data-testid="incoming-recipients-description">
+          {{ t('web.domains.incoming.recipients_description') }}
         </p>
       </div>
 
@@ -226,8 +228,10 @@ function updateMaxTtl(event: Event): void {
       <div
         v-if="hasAnyRecipients"
         class="space-y-2">
-        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.domains.incoming.badge_configured') }}
+        <h4
+          class="text-sm font-medium text-gray-700 dark:text-gray-300"
+          data-testid="incoming-recipients-list-heading">
+          {{ t('web.domains.incoming.recipients_list_heading') }}
           <span class="ml-1 text-gray-500 dark:text-gray-400">
             ({{ recipientCount }})
           </span>
@@ -367,9 +371,9 @@ function updateMaxTtl(event: Event): void {
       <!-- Recipient Count -->
       <p
         v-if="hasAnyRecipients"
-        class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-        {{ recipientCount }} / {{ maxRecipients }}
-        {{ t('web.domains.incoming.recipients_title').toLowerCase() }}
+        class="mt-4 text-sm text-gray-500 dark:text-gray-400"
+        data-testid="incoming-recipients-usage">
+        {{ t('web.domains.incoming.recipients_usage', { count: recipientCount, max: maxRecipients }) }}
       </p>
     </div>
 
