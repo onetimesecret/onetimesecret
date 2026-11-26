@@ -227,6 +227,15 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
         end
       end
 
+      context 'when the record stores the Unicode form of an A-label share domain' do
+        let(:share_domain) { 'xn--bcher-kva.example' }
+        let(:stored) { { display_domain: 'bücher.example', org_id: 'org-a' } }
+
+        it 'passes the stored domain_id' do
+          expect(reveal_from_domain[2]).to eq(domain_id: 'cd-acme')
+        end
+      end
+
       context 'when the record belongs to another organization' do
         let(:stored) { { display_domain: share_domain, org_id: 'org-b' } }
 

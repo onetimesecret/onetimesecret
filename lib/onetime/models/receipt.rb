@@ -369,7 +369,9 @@ module Onetime
 
       domain = Onetime::CustomDomain.load(domain_id)
       return nil if domain.nil?
-      return nil unless domain.display_domain.to_s.downcase == share_domain.to_s.downcase
+      # Same name comparison as record_for_display_domain: share_domain from
+      # the Host header is an A-label, display_domain may be stored in Unicode.
+      return nil unless Onetime::CustomDomain.display_domain_names_record?(share_domain, domain.display_domain)
       return nil unless domain.org_id.to_s == org_id.to_s
 
       domain.identifier
