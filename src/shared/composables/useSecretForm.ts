@@ -14,6 +14,7 @@ import { useSharingControls } from './useSharingControls';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
 import { reactive, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { z } from 'zod';
 
 export interface SecretFormState {
@@ -42,11 +43,11 @@ const formSchema = z.object({
   display_type: secretDisplayTypeSchema,
 });
 
-const CHARACTER_CLASS_NAMES: Record<PassphraseCharacterClass, string> = {
-  uppercase: 'uppercase letter',
-  lowercase: 'lowercase letter',
-  number: 'number',
-  symbol: 'symbol',
+const CHARACTER_CLASS_KEYS: Record<PassphraseCharacterClass, string> = {
+  uppercase: 'web.secrets.passphrase_class_uppercase',
+  lowercase: 'web.secrets.passphrase_class_lowercase',
+  number: 'web.secrets.passphrase_class_number',
+  symbol: 'web.secrets.passphrase_class_symbol',
 };
 
 /**
@@ -72,6 +73,7 @@ export type SecretFormData = z.infer<typeof formSchema>;
  */
 /* eslint-disable max-lines-per-function */
 export function useSecretForm(shareDomain?: () => string) {
+  const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
   const { secret_options } = storeToRefs(bootstrapStore);
 
@@ -110,7 +112,7 @@ export function useSecretForm(shareDomain?: () => string) {
     const allowedDomains = controls.recipientDomains.value;
     const domain = form.recipient.slice(form.recipient.lastIndexOf('@') + 1).toLowerCase();
     if (!controls.recipientEnabled.value || (allowedDomains && !allowedDomains.includes(domain))) {
-      errors.set('recipient', 'Recipient email is restricted by the organization');
+      errors.set('recipient', t('web.secrets.error_recipient_restricted'));
     }
   }
 
@@ -127,15 +129,15 @@ export function useSecretForm(shareDomain?: () => string) {
   function passphraseIssueMessage(issue: PassphraseIssue): string {
     switch (issue.code) {
       case 'required':
-        return 'A passphrase is required for all secrets';
+        return t('web.secrets.error_passphrase_required');
       case 'too_short':
-        return `Passphrase must be at least ${issue.length} characters long`;
+        return t('web.secrets.error_passphrase_too_short', { length: issue.length });
       case 'too_long':
-        return `Passphrase must be no more than ${issue.length} characters long`;
+        return t('web.secrets.error_passphrase_too_long', { length: issue.length });
       case 'complexity':
-        return `Passphrase must contain at least one ${issue.missing
-          .map((name) => CHARACTER_CLASS_NAMES[name])
-          .join(', ')}`;
+        return t('web.secrets.error_passphrase_complexity', {
+          missing: issue.missing.map((name) => t(CHARACTER_CLASS_KEYS[name])).join(', '),
+        });
     }
   }
 
@@ -148,7 +150,7 @@ export function useSecretForm(shareDomain?: () => string) {
       }
     }
     if (controls.ttlCeiling.value !== null && controls.ttlCeiling.value < 60) {
-      errors.set('ttl', 'Maximum secret lifetime is below 60 seconds');
+      errors.set('ttl', t('web.secrets.error_ttl_below_minimum'));
     }
     validateRecipientPolicy();
     validatePassphrase();

@@ -740,6 +740,10 @@
     "text": "Show Less",
     "content_hash": "0264d7b0"
   },
+  "web.LABELS.required": {
+    "text": "Required",
+    "content_hash": "4850b174"
+  },
   "web.LABELS.show_passphrase": {
     "text": "Show passphrase",
     "content_hash": "76880d38"

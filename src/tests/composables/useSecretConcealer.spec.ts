@@ -293,7 +293,8 @@ describe('useSecretConcealer', () => {
     // A-labels). The error message tells the policy check from the schema's
     // email check, which runs first and suppresses the policy check.
     describe('recipient domain restriction', () => {
-      const restricted = 'Recipient email is restricted by the organization';
+      // The i18n mock renders keys.
+      const restricted = 'web.secrets.error_recipient_restricted';
       const submitted = 'submitted';
       const invalidEmail = 'invalid email';
 

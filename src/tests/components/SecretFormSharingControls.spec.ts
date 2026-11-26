@@ -104,6 +104,19 @@ describe('sharing controls in the creation form', () => {
     expect(toggle.attributes('aria-expanded')).toBe('true');
   });
 
+  it('labels the required marker and the passphrase toggle from locale keys', async () => {
+    const { render } = setup(organization('org', { ...unrestricted, passphrase_required: true }));
+    render();
+    await flushPromises();
+    // The test i18n renders keys.
+    const label = wrapper.get(passphrase).element.closest('.relative')!.parentElement!;
+    expect(label.querySelector('label span')!.getAttribute('aria-label')).toBe('web.LABELS.required');
+    const toggle = wrapper.get('[data-testid="secret-toggle-passphrase"]');
+    expect(toggle.attributes('aria-label')).toBe('web.LABELS.show_passphrase');
+    await toggle.trigger('click');
+    expect(toggle.attributes('aria-label')).toBe('web.LABELS.hide_passphrase');
+  });
+
   it.each([true, false])('replaces an edited host policy and keeps domain passphrase=%s', async required => {
     const { bootstrap, organizations, render } = setup(organization('host', {
       ...unrestricted, max_ttl: 90, passphrase_required: true, recipient_email_mode: 'disabled',

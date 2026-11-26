@@ -345,7 +345,7 @@
                 <span
                   v-if="isPassphraseRequired"
                   class="ml-1 text-red-500"
-                  aria-label="Required"
+                  :aria-label="t('web.LABELS.required')"
                   >*</span
                 >
               </label>
@@ -393,7 +393,11 @@
                 <button
                   type="button"
                   @click="togglePassphraseVisibility"
-                  :aria-label="state.passphraseVisibility ? 'Hide passphrase' : 'Show passphrase'"
+                  :aria-label="
+                    state.passphraseVisibility
+                      ? t('web.LABELS.hide_passphrase')
+                      : t('web.LABELS.show_passphrase')
+                  "
                   :aria-pressed="state.passphraseVisibility"
                   class="absolute inset-y-0 right-3 flex items-center
                     focus:outline-none focus:ring-2 focus:ring-blue-500"
