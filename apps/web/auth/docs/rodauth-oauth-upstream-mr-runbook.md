@@ -5,7 +5,7 @@ fork to the gem maintainer once we're ready to drop the fork.
 
 - **Fork:** `onetimesecret/upstream-forks/rodauth-oauth` (GitLab, a fork of `os85/rodauth-oauth`) · branch `main`. The change was developed on the fork's GitHub copy, `github.com/onetimesecret/rodauth-oauth`: branch `claude/rodauth-oauth-urlmap-prefix-gczunl`, PR #13. The fork has since merged upstream 1.6.6 and is versioned `1.6.6.ots1` (PR #16 on the GitHub copy); upstream 1.6.6 does **not** include the mount-prefix change, so this runbook still applies.
 - **Upstream:** `os85/rodauth-oauth` (GitLab, maintainer: Tiago Cardoso / honeyryderchuck), default branch `master`
-- **Status:** not yet submitted upstream. This is a third-party project; submit only with explicit sign-off from the OTS maintainer who owns the `onetimesecret/rodauth-oauth` fork (currently @delano).
+- **Status:** not yet submitted upstream. This is a third-party project; submit only with explicit sign-off from the OTS maintainer who owns the `onetimesecret/upstream-forks/rodauth-oauth` fork (currently @delano).
 
 ## The fix in one paragraph
 
@@ -86,13 +86,17 @@ git remote get-url upstream >/dev/null 2>&1 || \
 git fetch upstream
 git checkout -b fix/oauth-mount-prefix upstream/master
 
-# identify the commits to bring over (the gem change), then cherry-pick them:
-git log --oneline origin/main..origin/claude/rodauth-oauth-urlmap-prefix-gczunl
+# identify the commits to bring over (the gem change), then cherry-pick them.
+# The topic branch was deleted after PR #13 merged. c46dbf7d is that merge, so
+# its second parent is the branch tip. The range also lists the fork's other
+# changes (PRs #1 to #12), so bring over only the subjects named below.
+git log --oneline --no-merges upstream/master..c46dbf7d19ff11d887a3a029b0d7fc4bb34fd5fe^2
 #   include (subjects): "Add oauth_mount_prefix to decouple mount point ...",
 #     "Make registration_client_uri honor oauth_mount_prefix ...",
 #     "Honor oauth_mount_prefix in the management-feature path helpers",
 #     "Harden oauth_mount_prefix ...", and the two test-coverage commits + the docs.
-#   exclude: "Add standalone proof-of-concept ..." (mount_prefix_poc.rb) and
+#   exclude: "Add standalone proof-of-concept ..." and "PoC: document the
+#     dev-gem dependency ..." (mount_prefix_poc.rb) and
 #     "Add rendered PNG ..." (doc/mount_prefix_fix.png) — developer artifacts.
 # git cherry-pick <sha> <sha> ...   (or diff the fork branch and re-apply lib/test/doc hunks)
 
