@@ -74,6 +74,19 @@ describe('sharing controls in the creation form', () => {
     __resetDomainContextForTesting();
   });
 
+  it.each([true, false])('labels the minimum length hint as optional only when passphrase required=%s is false', async required => {
+    const { bootstrap, render } = setup(organization('org', { ...unrestricted, passphrase_required: required }));
+    bootstrap.$patch({ secret_options: {
+      default_ttl: 3600, ttl_options: [60, 3600], passphrase: { minimum_length: 4 },
+    } });
+    render();
+    await flushPromises();
+    const hint = wrapper.get(passphrase).element.closest('.relative')!.parentElement!.textContent ?? '';
+    // The test i18n renders keys. The plain key's English text ends "(Optional)".
+    expect(hint.includes('web.secrets.passphraseMinimumLengthRequired')).toBe(required);
+    expect(/passphraseMinimumLength(?!Required)/.test(hint)).toBe(!required);
+  });
+
   it.each([true, false])('replaces an edited host policy and keeps domain passphrase=%s', async required => {
     const { bootstrap, organizations, render } = setup(organization('host', {
       ...unrestricted, max_ttl: 90, passphrase_required: true, recipient_email_mode: 'disabled',

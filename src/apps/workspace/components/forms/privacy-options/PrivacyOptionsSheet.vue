@@ -70,11 +70,20 @@
     return true;
   });
 
+  // The shared hint says "(Optional)", which is wrong once a sharing control
+  // or the instance requires a passphrase.
+  const minimumLengthText = computed(() =>
+    t(
+      passphraseRequired.value
+        ? 'web.secrets.passphraseMinimumLengthRequired'
+        : 'web.secrets.passphraseMinimumLength',
+      { length: minPassphraseLength.value }
+    )
+  );
+
   const passphraseValidationError = computed(() => {
     if (!props.currentPassphrase || isPassphraseValid.value) return '';
-    return t('web.secrets.passphraseMinimumLength', {
-      length: minPassphraseLength.value,
-    });
+    return minimumLengthText.value;
   });
 
   // Handlers
@@ -261,7 +270,7 @@
               <p
                 v-else-if="minPassphraseLength > 0 && !currentPassphrase"
                 class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('web.secrets.passphraseMinimumLength', { length: minPassphraseLength }) }}
+                {{ minimumLengthText }}
               </p>
             </form>
 

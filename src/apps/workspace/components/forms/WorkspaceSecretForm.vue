@@ -300,10 +300,13 @@
 
 <template>
   <div class="mx-auto min-w-[320px] max-w-full space-y-6">
-    <!-- Alert Display -->
+    <!--
+      Alert Display. Kept below the PrivacyOptionsBar (z-10) so an open TTL or
+      passphrase popover is not covered by the banner, and above the form card.
+    -->
     <BasicFormAlerts
       :errors="Array.from(validation.errors.values())"
-      class="sticky top-4 z-50" />
+      class="sticky top-4 z-[5]" />
 
     <form
       @submit.prevent="handleSubmit"

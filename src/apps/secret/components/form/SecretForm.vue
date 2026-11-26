@@ -344,9 +344,12 @@
                   class="text-xs text-gray-500 dark:text-gray-400">
                   <span v-if="passphraseConfig.minimum_length">
                     {{
-                      t('web.secrets.passphraseMinimumLength', {
-                        length: passphraseConfig.minimum_length,
-                      })
+                      t(
+                        isPassphraseRequired
+                          ? 'web.secrets.passphraseMinimumLengthRequired'
+                          : 'web.secrets.passphraseMinimumLength',
+                        { length: passphraseConfig.minimum_length }
+                      )
                     }}
                   </span>
                   <span

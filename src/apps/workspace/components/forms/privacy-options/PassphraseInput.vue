@@ -52,11 +52,20 @@
     return true;
   });
 
+  // The shared hint says "(Optional)", which is wrong once a sharing control
+  // or the instance requires a passphrase.
+  const minimumLengthText = computed(() =>
+    t(
+      passphraseRequired.value
+        ? 'web.secrets.passphraseMinimumLengthRequired'
+        : 'web.secrets.passphraseMinimumLength',
+      { length: props.minLength }
+    )
+  );
+
   const validationError = computed(() => {
     if (!props.modelValue || isValid.value) return '';
-    return t('web.secrets.passphraseMinimumLength', {
-      length: props.minLength,
-    });
+    return minimumLengthText.value;
   });
 
   const errorId = computed(() =>
@@ -236,7 +245,7 @@
         <p
           v-else-if="minLength > 0 && !modelValue"
           class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-          {{ t('web.secrets.passphraseMinimumLength', { length: minLength }) }}
+          {{ minimumLengthText }}
         </p>
       </PopoverPanel>
     </transition>
