@@ -164,6 +164,23 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
       expect(notices).to be_empty
     end
 
+    # Mail goes only to a verified owner. The skip is silent: the reveal
+    # completes and destroys the secret, and the owner lookup still runs,
+    # so the gate (not an earlier guard) is what stops the notice.
+    it 'sends nothing to an opted-in owner who is not verified, and still reveals' do
+      owner.verified = 'false'
+      owner.save
+      expect(owner.notify_on_reveal?).to be(true)
+      allow(Onetime::Customer).to receive(:load).and_call_original
+      receipt, secret = spawn
+
+      expect(secret.reveal!).to eq('reveal notice fixture')
+      expect(Onetime::Customer).to have_received(:load).with(owner.objid)
+      expect(notices).to be_empty
+      expect(Onetime::Secret.load(secret.identifier)).to be_nil
+      expect(Onetime::Receipt.load(receipt.identifier).state).to eq('revealed')
+    end
+
     it 'sends nothing when the owner has no email' do
       owner.email = ''
       owner.save

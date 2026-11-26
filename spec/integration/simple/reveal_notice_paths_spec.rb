@@ -104,7 +104,7 @@ RSpec.describe 'Owner reveal notice on every reveal route', type: :integration d
     !Onetime::Receipt.expiration_timeline.score(receipt.identifier).nil?
   end
 
-  {
+  reveal_routes = {
     'POST /api/v1/secret/:key' => ->(id, token) {
       header 'Content-Type', 'application/x-www-form-urlencoded'
       header 'X-CSRF-Token', token
@@ -122,7 +122,9 @@ RSpec.describe 'Owner reveal notice on every reveal route', type: :integration d
     'GET /api/v3/guest/secret/:id?continue=true' => ->(id, _token) {
       get "/api/v3/guest/secret/#{id}", continue: 'true'
     },
-  }.each do |route, reveal|
+  }.freeze
+
+  reveal_routes.each do |route, reveal|
     it "sends exactly one notice, short id only, through #{route}" do
       receipt, secret = Onetime::Receipt.spawn_pair(owner.objid, lifespan, 'route notice fixture')
       expect(on_timeline?(receipt)).to be(true)
@@ -142,6 +144,36 @@ RSpec.describe 'Owner reveal notice on every reveal route', type: :integration d
 
       expect(Onetime::Receipt.load(receipt.identifier).state).to eq('revealed')
       expect(on_timeline?(receipt)).to be(false)
+    end
+  end
+
+  # Mail goes only to a verified owner. An opted-in owner whose email is
+  # not verified gets nothing; the reveal itself still succeeds.
+  context 'when the opted-in owner is not verified' do
+    let(:owner) do
+      Onetime::Customer.new(email: "reveal-route-unv-#{SecureRandom.hex(8)}@integration-test.example.com").tap do |cust|
+        cust.notify_on_reveal = 'true'
+        cust.verified         = 'false'
+        cust.save
+      end
+    end
+
+    reveal_routes.slice('POST /api/v1/secret/:key', 'POST /api/v3/guest/secret/:id/reveal').each do |route, reveal|
+      it "sends no notice and still reveals through #{route}" do
+        expect(owner.notify_on_reveal?).to be(true)
+        expect(owner.verified?).to be(false)
+        receipt, secret = Onetime::Receipt.spawn_pair(owner.objid, lifespan, 'route notice fixture')
+
+        token = anonymous_visit
+        instance_exec(secret.identifier, token, &reveal)
+
+        expect(last_response.status).to eq(200), "#{route}: #{last_response.status} #{last_response.body}"
+        expect(last_response.body).to include('route notice fixture')
+        expect(notices).to be_empty, "#{route}: #{sent.inspect}"
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+        expect(Onetime::Receipt.load(receipt.identifier).state).to eq('revealed')
+        expect(on_timeline?(receipt)).to be(false)
+      end
     end
   end
 

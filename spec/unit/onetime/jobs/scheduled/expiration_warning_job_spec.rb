@@ -256,6 +256,61 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).with(:expiration_warning, anything, domain_id: nil)
     end
 
+    # Mail goes only to a verified owner. The skip is permanent, like the
+    # anonymous one, so the entry is dropped and stops taking a batch slot.
+    context 'when the owner is not verified' do
+      let(:unverified_owner) do
+        instance_double('Onetime::Customer', email: 'unverified@example.com', locale: 'de', verified?: false)
+      end
+
+      let(:unverified_receipt) do
+        instance_double(
+          'Onetime::Receipt',
+          identifier: 'meta_unv',
+          exists?: true,
+          live?: true,
+          load_secret: live_secret,
+          sender_domain_id: nil,
+          shortid: 'shortunv',
+          unregister_from_expiration_notifications: true,
+          anonymous?: false,
+          load_owner: unverified_owner,
+          secret_shortid: 'unv12345',
+          secret_expiration: (Familia.now.to_i + 7200),
+        )
+      end
+
+      it 'sends nothing, does not mark it warned, and drops the timeline entry' do
+        allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta_unv'])
+        allow(Onetime::Receipt).to receive(:load).with('meta_unv').and_return(unverified_receipt)
+
+        described_class.send(:process_expiring_secrets)
+
+        expect(unverified_owner).to have_received(:verified?)
+        expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+        expect(Onetime::Receipt).not_to have_received(:mark_warning_sent)
+        expect(unverified_receipt).to have_received(:unregister_from_expiration_notifications)
+      end
+
+      it 'gives the freed batch slot to a due warning on the next scan' do
+        allow(OT).to receive(:conf).and_return(OT::Config.wrap({
+          'jobs' => { 'expiration_warnings' => { 'enabled' => true, 'warning_hours' => 24, 'batch_size' => 1 } },
+        }))
+        timeline = %w[meta_unv meta123]
+        allow(Onetime::Receipt).to receive(:expiring_within) { timeline.dup }
+        allow(Onetime::Receipt).to receive(:load).with('meta_unv').and_return(unverified_receipt)
+        allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
+        allow(unverified_receipt).to receive(:unregister_from_expiration_notifications) { timeline.delete('meta_unv') }
+
+        described_class.send(:process_expiring_secrets)
+        expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+
+        described_class.send(:process_expiring_secrets)
+        expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email)
+          .once.with(:expiration_warning, hash_including(recipient: 'owner@example.com'), domain_id: nil)
+      end
+    end
+
     it 'skips secrets without owner email' do
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta789'])
       allow(Onetime::Receipt).to receive(:load).with('meta789').and_return(metadata_no_email)
