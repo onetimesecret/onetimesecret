@@ -20,6 +20,7 @@
    */
   import { ref } from 'vue';
   import { useI18n } from 'vue-i18n';
+  import { useDurationFormat } from '@/shared/composables/useDurationFormat';
   import { useIncomingSecret } from '@/shared/composables/useIncomingSecret';
   import { useUnsavedInputGuard } from '@/shared/composables/useUnsavedInputGuard';
   import IncomingMemoInput from '@/apps/secret/components/incoming/IncomingMemoInput.vue';
@@ -36,6 +37,7 @@
   });
 
   const { t } = useI18n();
+  const { formatDuration } = useDurationFormat();
   const {
     form,
     errors,
@@ -149,7 +151,7 @@ required
 
       <!-- Action Buttons -->
       <p v-if="defaultTtl" class="text-sm text-gray-600 dark:text-gray-300">
-        {{ t('incoming.expires_after_seconds', { seconds: defaultTtl }) }}
+        {{ t('incoming.expires_after_duration', { duration: formatDuration(defaultTtl) }) }}
       </p>
       <div
         class="flex flex-col gap-4 border-t border-gray-200 pt-8 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
