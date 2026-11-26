@@ -87,6 +87,23 @@ describe('sharing controls in the creation form', () => {
     expect(/passphraseMinimumLength(?!Required)/.test(hint)).toBe(!required);
   });
 
+  it('keeps the error banner below page menus and lifts the card while its menu is open', async () => {
+    const { render } = setup(organization('org'));
+    render();
+    await flushPromises();
+    // jsdom has no layout, so this pins the classes the stacking order relies on.
+    const banner = wrapper.get('[data-testid="secret-form-alerts"]');
+    expect(banner.classes()).toContain('z-[5]');
+    expect(banner.classes()).not.toContain('z-50');
+    const toggle = wrapper.get('[data-testid="split-button-dropdown-toggle"]');
+    expect(toggle.attributes('aria-haspopup')).toBe('true');
+    const card = toggle.element.closest('.backdrop-blur-sm')!;
+    expect(card.classList).toContain('relative');
+    expect(card.classList).toContain('has-[[aria-haspopup][aria-expanded=true]]:z-10');
+    await toggle.trigger('click');
+    expect(toggle.attributes('aria-expanded')).toBe('true');
+  });
+
   it.each([true, false])('replaces an edited host policy and keeps domain passphrase=%s', async required => {
     const { bootstrap, organizations, render } = setup(organization('host', {
       ...unrestricted, max_ttl: 90, passphrase_required: true, recipient_email_mode: 'disabled',
