@@ -242,7 +242,7 @@ module Onetime::Customer::Features
       #     for an address nobody had proven. The re-claim runs from
       #     after_verify_account through SetCustomerVerification.
       #
-      # Deliberately NOT deferred: a account_verified? record with a non-mailbox
+      # Deliberately NOT deferred: an account_verified? record with a non-mailbox
       # provenance ('autoverify', 'stripe_payment', 'legacy', blank). Rodauth
       # never re-verifies a Verified row, so such an account has no self-
       # service way to produce mailbox proof; deferring it would leave a new
