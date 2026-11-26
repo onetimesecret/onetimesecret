@@ -119,7 +119,7 @@ module InviteAPITestHelper
       extid: "ext-#{SecureRandom.hex(4)}",
       email: "test-#{SecureRandom.hex(4)}@example.com",
       anonymous?: false,
-      verified?: false,
+      account_verified?: false,
       obscure_email: 'te***@example.com'
     }
     instance_double(Onetime::Customer, defaults.merge(attrs))

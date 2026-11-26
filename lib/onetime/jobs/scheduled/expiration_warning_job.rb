@@ -132,8 +132,12 @@ module Onetime
               end
 
               owner = receipt.load_owner
-              # A missing or blank email is skipped and its entry kept.
-              if owner.nil? || owner.email.to_s.empty?
+              # A missing email is skipped and its entry kept. So is a blank
+              # one on a verified account, which could still add an address.
+              # A blank email on an anonymous or unverified account falls
+              # through to the notifiable? check below and is dropped.
+              if owner.nil? || owner.email.nil? ||
+                 (owner.email.empty? && owner.account_verified?)
                 skipped += 1
                 next
               end

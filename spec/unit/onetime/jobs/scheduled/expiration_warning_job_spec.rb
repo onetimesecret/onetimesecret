@@ -320,10 +320,11 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       described_class.send(:process_expiring_secrets)
     end
 
-    # A blank email counts as missing: skipped, entry kept, and the owner is
-    # never asked notifiable? (which would drop the entry).
-    it 'skips a blank owner email and keeps the timeline entry' do
-      blank_owner = instance_double('Onetime::Customer', email: '', locale: nil, notifiable?: true)
+    # A blank email on a verified account counts as missing: skipped, entry
+    # kept, and the owner is never asked notifiable? (which would drop it).
+    it 'skips a blank email on a verified owner and keeps the timeline entry' do
+      blank_owner = instance_double('Onetime::Customer', email: '', locale: nil,
+                                                         account_verified?: true, notifiable?: false)
       allow(metadata_no_email).to receive(:load_owner).and_return(blank_owner)
       allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta789'])
       allow(Onetime::Receipt).to receive(:load).with('meta789').and_return(metadata_no_email)
@@ -333,6 +334,22 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
       expect(blank_owner).not_to have_received(:notifiable?)
       expect(metadata_no_email).not_to have_received(:unregister_from_expiration_notifications)
+    end
+
+    # A blank email on an unverified (or anonymous) account is dropped, as
+    # it was before the blank-email check: it would otherwise take a batch
+    # slot on every scan until the secret expires.
+    it 'drops the timeline entry for a blank email on an unverified owner' do
+      blank_owner = instance_double('Onetime::Customer', email: '', locale: nil,
+                                                         account_verified?: false, notifiable?: false)
+      allow(metadata_no_email).to receive(:load_owner).and_return(blank_owner)
+      allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta789'])
+      allow(Onetime::Receipt).to receive(:load).with('meta789').and_return(metadata_no_email)
+
+      described_class.send(:process_expiring_secrets)
+
+      expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+      expect(metadata_no_email).to have_received(:unregister_from_expiration_notifications)
     end
 
     # The payload is an account notification: the secret's short id under

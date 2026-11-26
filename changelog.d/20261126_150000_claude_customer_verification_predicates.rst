@@ -8,10 +8,11 @@ Changed
 Fixed
 -----
 
-- The expiration warning now treats a blank owner email like a missing
-  one: no email is queued and the secret stays registered for expiration
-  warnings. Before, a verified owner with a blank email had a warning
-  queued to an empty address.
+- The expiration warning no longer queues a warning to an empty address.
+  A verified owner with a blank email is now treated like one with no
+  email: nothing is queued and the secret stays registered for expiration
+  warnings. A blank email on an unverified or anonymous account is dropped
+  from the warnings, as before.
 
 Deprecated
 ----------

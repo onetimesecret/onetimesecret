@@ -58,8 +58,10 @@ RSpec.describe 'Customer deprecated verification predicate guard' do
   IMPLICIT_SELF = /(?<![\w.:&@])(?:email_)?verified\?(?![\w?:])/
 
   def guard_source_files
+    # Matched on the repo-relative path, so a checkout under a directory
+    # named spec/ or try/ is still scanned.
     GUARD_GLOBS.flat_map { |glob| Dir.glob(File.join(GUARD_ROOT, glob)) }
-               .reject { |path| path.match?(GUARD_EXCLUDED) }
+               .reject { |path| "/#{path.delete_prefix("#{GUARD_ROOT}/")}".match?(GUARD_EXCLUDED) }
   end
 
   def offending?(line, in_customer_dir:)
@@ -71,6 +73,12 @@ RSpec.describe 'Customer deprecated verification predicate guard' do
     return true if line.match?(RECEIVER_CALL) || line.match?(ANY_EMAIL_VERIFIED) || line.match?(DYNAMIC_VERIFIED)
 
     in_customer_dir && line.match?(IMPLICIT_SELF)
+  end
+
+  it 'scans the customer model and the call sites (non-empty file set)' do
+    relatives = guard_source_files.map { |path| path.delete_prefix("#{GUARD_ROOT}/") }
+    expect(relatives).to include('lib/onetime/models/customer/features/status.rb',
+                                 'lib/onetime/jobs/scheduled/expiration_warning_job.rb')
   end
 
   it 'finds no calls to Customer#verified? or #email_verified? in lib/ and apps/' do
