@@ -3,6 +3,7 @@
   import { classifyError } from '@/schemas/errors';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import SettingsCard from '@/shared/components/ui/SettingsCard.vue';
+  import { useInheritedPassphraseRequirement } from '@/shared/composables/useInheritedPassphraseRequirement';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import type { Organization } from '@/types/organization';
   import { computed, ref, useId, watch } from 'vue';
@@ -12,6 +13,9 @@
   const emit = defineEmits<{ saved: [organization: Organization] }>();
   const { t } = useI18n();
   const store = useOrganizationStore();
+  // The installation can require a passphrase for every secret. The stored
+  // organization value is left as it is; only its display is locked.
+  const inheritedPassphrase = useInheritedPassphraseRequirement();
   const mode = ref(props.policy.recipient_email_mode);
   const domains = ref('');
   const required = ref(false);
@@ -27,6 +31,7 @@
     domains: `${uid}-domains`,
     domainsHint: `${uid}-domains-hint`,
     passphrase: `${uid}-passphrase`,
+    passphraseHint: `${uid}-passphrase-hint`,
     ttl: `${uid}-ttl`,
     ttlHint: `${uid}-ttl-hint`,
   };
@@ -144,17 +149,30 @@
             </p>
           </div>
 
-          <div class="flex items-center gap-3">
-            <input
-              :id="ids.passphrase"
-              v-model="required"
-              type="checkbox"
-              class="field-check rounded" />
-            <label
-              :for="ids.passphrase"
-              class="field-label">
-              {{ t('web.organizations.sharing_policy.require_passphrase') }}
-            </label>
+          <div>
+            <div class="flex items-center gap-3">
+              <input
+                :id="ids.passphrase"
+                :checked="required || inheritedPassphrase !== null"
+                :disabled="inheritedPassphrase !== null"
+                :aria-describedby="inheritedPassphrase ? ids.passphraseHint : undefined"
+                type="checkbox"
+                class="field-check rounded"
+                data-testid="sharing-policy-passphrase"
+                @change="required = ($event.target as HTMLInputElement).checked" />
+              <label
+                :for="ids.passphrase"
+                class="field-label">
+                {{ t('web.organizations.sharing_policy.require_passphrase') }}
+              </label>
+            </div>
+            <p
+              v-if="inheritedPassphrase"
+              :id="ids.passphraseHint"
+              class="mt-1 field-hint"
+              data-testid="sharing-policy-passphrase-inherited">
+              {{ t('web.organizations.sharing_policy.passphrase_required_by_instance') }}
+            </p>
           </div>
 
           <div class="sm:max-w-md">

@@ -1953,6 +1953,10 @@
     "text": "Require a passphrase for new secrets",
     "content_hash": "22a1dfba"
   },
+  "web.organizations.sharing_policy.passphrase_required_by_instance": {
+    "text": "This installation requires a passphrase for every secret, so this cannot be turned off here.",
+    "content_hash": "ab0202aa"
+  },
   "web.organizations.sharing_policy.max_ttl": {
     "text": "Maximum secret lifetime in seconds",
     "content_hash": "813d3263"

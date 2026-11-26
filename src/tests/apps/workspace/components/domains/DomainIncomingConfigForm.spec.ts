@@ -9,6 +9,8 @@ import { mount, type VueWrapper, flushPromises, DOMWrapper } from '@vue/test-uti
 import { describe, it, expect, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { createTestI18n } from '@tests/setup';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import DomainIncomingConfigForm from '@/apps/workspace/components/domains/DomainIncomingConfigForm.vue';
 import {
   emptyFormState,
@@ -397,5 +399,90 @@ describe('DomainIncomingConfigForm field labelling', () => {
     expect(wrapper.get(`#${lifetime.attributes('aria-describedby')}`).text()).toBe(
       'web.domains.incoming.max_ttl_hint',
     );
+  });
+});
+
+describe('DomainIncomingConfigForm when a higher level already requires a passphrase', () => {
+  const checkbox = '#incoming-passphrase-required';
+  const note = '[data-testid="incoming-passphrase-inherited"]';
+
+  function mountInherited(levels: { instance?: boolean; organization?: boolean; orgid?: string }) {
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    useBootstrapStore().$patch({
+      secret_options: {
+        default_ttl: 3600,
+        ttl_options: [3600],
+        passphrase: { required: !!levels.instance, minimum_length: 4, maximum_length: 128 },
+      },
+    });
+    useOrganizationStore().$patch({
+      organizations: [
+        {
+          extid: 'on-owner',
+          sharing_policy: {
+            recipient_email_mode: 'unrestricted',
+            recipient_email_domains: [],
+            passphrase_required: !!levels.organization,
+            max_ttl: null,
+          },
+        },
+      ] as never,
+    });
+    return mount(DomainIncomingConfigForm, {
+      props: {
+        formState: emptyFormState,
+        savedFormState: null,
+        ...(levels.orgid === undefined ? {} : { orgid: levels.orgid }),
+      },
+      global: { plugins: [pinia, i18n] },
+    });
+  }
+
+  it('shows the box checked and disabled with the installation note', () => {
+    const wrapper = mountInherited({ instance: true, orgid: 'on-owner' });
+    const box = wrapper.get<HTMLInputElement>(checkbox);
+
+    expect(emptyFormState.passphrase_required).toBe(false);
+    expect(box.element.checked).toBe(true);
+    expect(box.element.disabled).toBe(true);
+    // The test i18n renders keys.
+    expect(wrapper.get(note).text()).toBe('web.domains.incoming.passphrase_required_by_instance');
+    expect(box.attributes('aria-describedby')).toBe(wrapper.get(note).attributes('id'));
+    expect(wrapper.emitted('update:passphraseRequired')).toBeUndefined();
+  });
+
+  it('shows the box checked and disabled with the organization note', () => {
+    const wrapper = mountInherited({ organization: true, orgid: 'on-owner' });
+    const box = wrapper.get<HTMLInputElement>(checkbox);
+
+    expect(box.element.checked).toBe(true);
+    expect(box.element.disabled).toBe(true);
+    expect(wrapper.get(note).text()).toBe(
+      'web.domains.incoming.passphrase_required_by_organization'
+    );
+  });
+
+  it('names the installation when both levels require one', () => {
+    const wrapper = mountInherited({ instance: true, organization: true, orgid: 'on-owner' });
+    expect(wrapper.get(note).text()).toBe('web.domains.incoming.passphrase_required_by_instance');
+  });
+
+  it('leaves the box editable when neither level requires one', () => {
+    const wrapper = mountInherited({ orgid: 'on-owner' });
+    const box = wrapper.get<HTMLInputElement>(checkbox);
+
+    expect(box.element.checked).toBe(false);
+    expect(box.element.disabled).toBe(false);
+    expect(wrapper.find(note).exists()).toBe(false);
+  });
+
+  it('ignores the organization level for an organization the store has not loaded', () => {
+    const wrapper = mountInherited({ organization: true, orgid: 'on-other' });
+    expect(wrapper.get<HTMLInputElement>(checkbox).element.disabled).toBe(false);
+  });
+
+  it('ignores the organization level when no organization is given', () => {
+    const wrapper = mountInherited({ organization: true });
+    expect(wrapper.get<HTMLInputElement>(checkbox).element.disabled).toBe(false);
   });
 });

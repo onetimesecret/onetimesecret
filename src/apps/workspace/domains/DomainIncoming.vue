@@ -269,6 +269,7 @@ watch(canManageIncoming, allowed => {
               :has-unsaved-changes="hasUnsavedChanges"
               :max-recipients="maxRecipients"
               :error="incomingError?.message"
+              :orgid="props.orgid"
               @save="saveConfig"
               @delete="deleteConfig"
               @discard="discardChanges"

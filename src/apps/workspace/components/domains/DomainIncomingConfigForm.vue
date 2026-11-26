@@ -16,6 +16,7 @@ import { z } from 'zod';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import type { IncomingConfigFormState } from '@/shared/composables/useIncomingConfig';
+import { useInheritedPassphraseRequirement } from '@/shared/composables/useInheritedPassphraseRequirement';
 
 const emailSchema = z.string().email();
 
@@ -28,6 +29,8 @@ interface Props {
   hasUnsavedChanges?: boolean;
   maxRecipients?: number;
   error?: string;
+  /** The organization that owns the domain, whose sharing controls apply above this form. */
+  orgid?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -51,6 +54,11 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+// The installation or the owning organization can already require a
+// passphrase. The domain's stored value is left as it is; only its display is
+// locked.
+const inheritedPassphrase = useInheritedPassphraseRequirement(() => props.orgid);
 
 // ---------------------------------------------------------------------------
 // Local state for the add-recipient row
@@ -367,18 +375,33 @@ function updateMaxTtl(event: Event): void {
 
     <!-- Enabled Toggle -->
     <fieldset :disabled="isSaving || isDeleting" class="space-y-4">
-      <div class="flex items-center gap-3">
-        <input
-          id="incoming-passphrase-required"
-          type="checkbox"
-          :checked="formState.passphrase_required"
-          class="field-check rounded"
-          @change="emit('update:passphraseRequired', ($event.target as HTMLInputElement).checked)" />
-        <label
-          for="incoming-passphrase-required"
-          class="field-label">
-          {{ t('web.domains.passphrase_required_label') }}
-        </label>
+      <div>
+        <div class="flex items-center gap-3">
+          <input
+            id="incoming-passphrase-required"
+            type="checkbox"
+            :checked="formState.passphrase_required || inheritedPassphrase !== null"
+            :disabled="inheritedPassphrase !== null"
+            :aria-describedby="inheritedPassphrase ? 'incoming-passphrase-required-hint' : undefined"
+            class="field-check rounded"
+            @change="emit('update:passphraseRequired', ($event.target as HTMLInputElement).checked)" />
+          <label
+            for="incoming-passphrase-required"
+            class="field-label">
+            {{ t('web.domains.passphrase_required_label') }}
+          </label>
+        </div>
+        <p
+          v-if="inheritedPassphrase"
+          id="incoming-passphrase-required-hint"
+          class="mt-1 field-hint"
+          data-testid="incoming-passphrase-inherited">
+          {{
+            inheritedPassphrase === 'instance'
+              ? t('web.domains.incoming.passphrase_required_by_instance')
+              : t('web.domains.incoming.passphrase_required_by_organization')
+          }}
+        </p>
       </div>
       <div class="sm:max-w-md">
         <label

@@ -1905,6 +1905,14 @@
     "text": "To require SSO for all sign-ins on this domain, configure it in the domain's sign-in settings. SSO-only mode restricts the login page to the SSO provider configured here.",
     "content_hash": "d26627a5"
   },
+  "web.domains.incoming.passphrase_required_by_instance": {
+    "text": "This installation requires a passphrase for every secret, so this cannot be turned off here.",
+    "content_hash": "ab0202aa"
+  },
+  "web.domains.incoming.passphrase_required_by_organization": {
+    "text": "The organization's sharing controls require a passphrase, so this cannot be turned off here.",
+    "content_hash": "5f55b315"
+  },
   "web.domains.incoming.max_ttl": {
     "text": "Maximum secret lifetime in seconds",
     "content_hash": "813d3263"
