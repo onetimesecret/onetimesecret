@@ -221,8 +221,7 @@ suppress nor even observe them.
   single mailbox provider approaches 5k/day, or if slice-60 complaint rate
   trends toward 0.1%.
 - ~~**61 schedule-queue decision**~~ — **settled: retire `schedule_email` now**
-  (fitness finding C). This is a live-outage fix, not a wait-for-data item; do it
-  ahead of the epic.
+  (fitness finding C). Done ahead of the epic in 0.26.19 (#4844).
 
 ### Fitness of current mailer (verified against code, not assumed)
 
@@ -255,18 +254,16 @@ depend on them**, however:
   path**, not hypothetical — at least one region runs it.
 - **C — `schedule_email` was a live bug; decision: RETIRE it (settled; fixed
   in 0.26.19, #4844).**
-  `schedule_email` publishes to `email.message.schedule`, which has **no
-  consumer**; messages dead-letter (per-message expiry or the 24h queue TTL) and
+  `schedule_email` published to `email.message.schedule`, which had **no
+  consumer**; messages dead-lettered (per-message expiry or the 24h queue TTL) and
   `DlqEmailConsumerJob` **discards** everything except three auth templates. Its
-  only caller is `ExpirationWarningJob`, so **expiration-warning emails were
+  only caller was `ExpirationWarningJob`, so **expiration-warning emails were
   silently dropped in every jobs-enabled region before 0.26.19** (they only sent on
   jobs-disabled self-hosted, where the fallback ignores the delay and sends
-  immediately — the behavior we actually want). Decision: take slice 61 option
-  (b) — delete `schedule_email` + the `email.message.schedule` queue, and rewire
-  `ExpirationWarningJob` to send immediately via `enqueue_email` on the hourly
-  scan (matching the existing fallback behavior). This fixes a real outage and
-  removes the trap in one move; pull it forward out of 61 into its own small fix
-  ahead of the epic. Concrete steps in slice 61.
+  immediately). Decision taken: slice 61 option (b). 0.26.19 (#4844) deleted
+  `schedule_email` and retired the `email.message.schedule` queue, and
+  `ExpirationWarningJob` now sends via `enqueue_email` on the hourly scan. The
+  original steps are in slice 61.
 
 Two smaller precision notes, neither a blocker: the four existing Security rate
 limiters are **not** a uniform mold (only `invite_token` is a class with

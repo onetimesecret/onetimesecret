@@ -76,7 +76,7 @@ tests:
         assertion: has_attribute("aria-checked", "true")
       - description: API call updates notify_on_reveal preference
         api: POST /api/account/update-notification-preference
-        request: { field: notify_on_reveal, value: true }
+        body: { field: notify_on_reveal, value: true }
         assertion: json_path("$.record.notify_on_reveal", true)
       - description: No error alert appears on successful update
         # The error alert has no data-testid; it is the red bordered box.

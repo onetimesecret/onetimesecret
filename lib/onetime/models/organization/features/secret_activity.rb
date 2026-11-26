@@ -14,7 +14,8 @@ module Onetime::Organization::Features
   # from v1 and v2/v3 alike.
   # Creation and link/status fetch events come only from the v2/v3 logic
   # (BaseSecretAction#record_created_activity, AccessTelemetry); v1
-  # creations and v1 fetches do not feed the trail.
+  # creations, incoming-secret creations, and v1 fetches do not feed
+  # the trail.
   #
   # This backs the `audit_logs` entitlement (admin-tier; see
   # OrganizationMembership::ADMIN_ENTITLEMENTS and the billing catalog),
