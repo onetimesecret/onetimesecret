@@ -108,8 +108,19 @@
               </slot>
             </aside>
 
-            <!-- Main Content Area -->
-            <main class="min-w-0 flex-1">
+            <!--
+              Main Content Area. The footer is fixed at md+ (z-10) and the
+              mobile product nav is fixed below md (z-20). Page cards with
+              backdrop-blur are stacking contexts, so a menu inside one cannot
+              rise above the footer on its own z-index. While a popup trigger
+              in the page is expanded (Headless UI Listbox and Menu buttons,
+              SplitButton), lift the whole content column above both.
+            -->
+            <!-- prettier-ignore-attribute class -->
+            <main
+              class="min-w-0 flex-1
+                has-[[aria-haspopup][aria-expanded=true]]:relative
+                has-[[aria-haspopup][aria-expanded=true]]:z-30">
               <slot></slot>
 
               <!-- Mobile Quick Stats - Show below main content on small screens -->
