@@ -240,13 +240,16 @@ module Onetime::Secret::Features
       #   to the receipt's revealed! cascade (#3639); see {#revealed!}.
       # @return [void]
       def consume_after_reveal!(actor_context: nil)
-        # Read before destroy! so the notice does not depend on what the
-        # destroyed instance still holds in memory.
-        notice          = reveal_notice_snapshot
+        notice          = nil
         receipt_claimed = false
         begin
-          md              = load_receipt
-          receipt_claimed = md.revealed!(actor_context: actor_context) ? true : false unless md.nil?
+          md = load_receipt
+          unless md.nil?
+            # Read before destroy! so the notice does not depend on what the
+            # destroyed instance still holds in memory.
+            notice          = reveal_notice_snapshot(md)
+            receipt_claimed = md.revealed!(actor_context: actor_context) ? true : false
+          end
         ensure
           # Once claimed and decrypted, destruction is independent of receipt
           # bookkeeping. Preserve fail-closed error propagation, not a retry.
@@ -255,6 +258,10 @@ module Onetime::Secret::Features
           @passphrase_temp = nil
           destroy_terminal_record!
         end
+        # The receipt CAS is the single-winner gate for the notice. A reveal
+        # whose receipt is missing, or whose receipt another caller already
+        # moved, sends no notice: that is intended, so that one reveal never
+        # sends two.
         notify_owner_of_reveal(notice) if receipt_claimed && notice
         nil
       end
@@ -263,12 +270,16 @@ module Onetime::Secret::Features
       # the destroy, so it must not raise: a failure here skips the notice,
       # never the destroy.
       #
+      # @param receipt [Onetime::Receipt] this secret's loaded receipt, for
+      #   the domain_id and org_id recorded at creation
       # @return [Hash, nil] what #notify_owner_of_reveal needs, read up front
-      def reveal_notice_snapshot
+      def reveal_notice_snapshot(receipt)
         {
           owner_id: owner_id,
           shortid: shortid,
           share_domain: share_domain,
+          domain_id: receipt.domain_id,
+          org_id: receipt.org_id,
           verification: verification? || VERIFICATION_KINDS.include?(kind.to_s),
         }
       rescue StandardError => ex
@@ -280,8 +291,10 @@ module Onetime::Secret::Features
       #
       # The payload names the secret by its short id only: the secret and
       # receipt identifiers are bearer capabilities and never go by email.
-      # domain_id follows Receipt#deliver_by_email, so a secret shared from a
-      # custom domain is announced from that domain's sender. share_domain
+      # domain_id is the receipt's stored one, while it still names the same
+      # domain for the same organization (Receipt.sender_domain_id_for), so a
+      # secret shared from a custom domain is announced from that domain's
+      # sender and never from a later holder of the name. share_domain
       # itself stays out of the payload: it would move the layout's header
       # and footer links to the custom domain (brand_baseuri), while this
       # account notice links the owner to settings on the canonical host.
@@ -302,7 +315,9 @@ module Onetime::Secret::Features
 
         # Blank ("") locales are truthy and slip past a bare `||`.
         locale    = owner.locale.to_s.strip.empty? ? OT.default_locale : owner.locale
-        domain_id = Onetime::CustomDomain.resolve_domain_id(notice[:share_domain])
+        domain_id = Onetime::Receipt.sender_domain_id_for(
+          domain_id: notice[:domain_id], org_id: notice[:org_id], share_domain: notice[:share_domain],
+        )
 
         Onetime::Jobs::Publisher.enqueue_email(
           :secret_revealed,

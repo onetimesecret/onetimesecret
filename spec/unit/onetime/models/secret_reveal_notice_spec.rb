@@ -40,10 +40,17 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
     end
   end
 
+  let(:pairs) { [] }
+
   after do
+    pairs.each do |receipt, secret|
+      Onetime::Receipt.expiration_timeline.remove_element(receipt.identifier)
+      secret.destroy! if secret.exists?
+      receipt.destroy! if receipt.exists?
+    end
     owner.destroy! if owner.exists?
   rescue StandardError => ex
-    warn "[reveal-notice spec] owner cleanup failed: #{ex.class}"
+    warn "[reveal-notice spec] cleanup failed: #{ex.class}"
   end
 
   def notices
@@ -51,7 +58,9 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
   end
 
   def spawn(domain: nil, owner_id: owner.objid, **opts)
-    Onetime::Receipt.spawn_pair(owner_id, lifespan, 'reveal notice fixture', domain: domain, **opts)
+    Onetime::Receipt.spawn_pair(owner_id, lifespan, 'reveal notice fixture', domain: domain, **opts).tap do |pair|
+      pairs << pair
+    end
   end
 
   def on_timeline?(receipt)
@@ -127,6 +136,17 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
       expect(notices).to be_empty
     end
 
+    it "sends nothing for kind 'account_verification' with the verification flag unset" do
+      _receipt, secret = spawn
+      secret.kind = 'account_verification'
+      secret.save
+      fresh = Onetime::Secret.load(secret.identifier)
+      expect(fresh.verification?).to be(false)
+
+      expect(fresh.revealed!).to be(true)
+      expect(notices).to be_empty
+    end
+
     it 'sends nothing when the owner has not opted in' do
       owner.notify_on_reveal = 'false'
       owner.save
@@ -163,15 +183,66 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
       expect(notices.first[1][:locale]).to eq(OT.default_locale)
     end
 
-    it "passes the share domain's domain_id, as Receipt#deliver_by_email does" do
-      allow(Onetime::CustomDomain).to receive(:resolve_domain_id).and_call_original
-      allow(Onetime::CustomDomain).to receive(:resolve_domain_id).with('secrets.acme.example').and_return('cd-acme')
-      _receipt, secret = spawn(domain: 'secrets.acme.example')
+    # Sender: the receipt's stored domain_id, only while that CustomDomain
+    # still exists, carries the share domain, and belongs to the receipt's
+    # organization (Receipt.sender_domain_id_for). Otherwise nil, the
+    # default sender: a name that changed hands never sends from its new
+    # holder.
+    context 'sender domain' do
+      let(:share_domain) { 'secrets.acme.example' }
+      let(:stored) { { display_domain: share_domain, org_id: 'org-a' } }
 
-      secret.reveal!
-      _template, data, options = notices.first
-      expect(options).to eq(domain_id: 'cd-acme')
-      expect(data).not_to include(:share_domain)
+      before do
+        allow(Onetime::CustomDomain).to receive(:load).and_call_original
+        allow(Onetime::CustomDomain).to receive(:load).with('cd-acme') do
+          stored && instance_double(Onetime::CustomDomain, identifier: 'cd-acme', **stored)
+        end
+      end
+
+      def reveal_from_domain(org_id: 'org-a')
+        _receipt, secret = spawn(domain: share_domain, domain_id: 'cd-acme', org_id: org_id)
+        secret.reveal!
+        notices.first
+      end
+
+      it 'passes the stored domain_id when the domain still matches' do
+        _template, data, options = reveal_from_domain
+        expect(options).to eq(domain_id: 'cd-acme')
+        expect(data).not_to include(:share_domain)
+      end
+
+      context 'when the domain no longer exists' do
+        let(:stored) { nil }
+
+        it 'falls back to the default sender' do
+          expect(reveal_from_domain[2]).to eq(domain_id: nil)
+        end
+      end
+
+      context 'when the record now carries another display domain' do
+        let(:stored) { { display_domain: 'other.example', org_id: 'org-a' } }
+
+        it 'falls back to the default sender' do
+          expect(reveal_from_domain[2]).to eq(domain_id: nil)
+        end
+      end
+
+      context 'when the record belongs to another organization' do
+        let(:stored) { { display_domain: share_domain, org_id: 'org-b' } }
+
+        it 'falls back to the default sender' do
+          expect(reveal_from_domain[2]).to eq(domain_id: nil)
+        end
+      end
+
+      it 'falls back to the default sender for a receipt without org_id (incoming)' do
+        expect(reveal_from_domain(org_id: nil)[2]).to eq(domain_id: nil)
+      end
+
+      it 'gives the job the same answer through Receipt#sender_domain_id' do
+        receipt, _secret = spawn(domain: share_domain, domain_id: 'cd-acme', org_id: 'org-a')
+        expect(Onetime::Receipt.load(receipt.identifier).sender_domain_id).to eq('cd-acme')
+      end
     end
   end
 
@@ -181,6 +252,7 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
       receipt, secret = spawn
 
       expect(secret.reveal!).to eq('reveal notice fixture')
+      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).with(:secret_revealed, anything, domain_id: nil)
       expect(Onetime::Secret.load(secret.identifier)).to be_nil
       expect(Onetime::Receipt.load(receipt.identifier).state).to eq('revealed')
     end
@@ -190,7 +262,20 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
       _receipt, secret = spawn
 
       expect(secret.revealed!).to be(true)
+      expect(Onetime::Customer).to have_received(:load).with(owner.objid)
       expect(Onetime::Secret.load(secret.identifier)).to be_nil
+    end
+
+    # T5: a read in the snapshot raises. The snapshot rescues, the reveal
+    # completes and destroys the secret, and no notice is sent.
+    it 'does not fail the reveal when the notice snapshot raises' do
+      _receipt, secret = spawn
+      allow(secret).to receive(:verification?).and_raise(Familia::Problem, 'bad field')
+
+      expect(secret.reveal!).to eq('reveal notice fixture')
+      expect(secret).to have_received(:verification?)
+      expect(Onetime::Secret.load(secret.identifier)).to be_nil
+      expect(notices).to be_empty
     end
   end
 
@@ -211,6 +296,19 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
       expect(on_timeline?(receipt)).to be(false)
     end
 
+    # The receipt CAS loser: a second Receipt#revealed! on another loaded
+    # instance returns falsy and leaves a (re-added) entry alone.
+    it 'leaves the entry when a second Receipt#revealed! loses the CAS' do
+      receipt, _secret = spawn
+      first            = Onetime::Receipt.load(receipt.identifier)
+      second           = Onetime::Receipt.load(receipt.identifier)
+      expect(first.revealed!).to be(true)
+      Onetime::Receipt.expiration_timeline.add(receipt.identifier, Familia.now.to_f + 3600)
+
+      expect(second.revealed!).to be_falsy
+      expect(on_timeline?(receipt)).to be(true)
+    end
+
     it 'leaves the receipt when the reveal is lost' do
       receipt, secret = spawn
       loser           = Onetime::Secret.load(secret.identifier)
@@ -226,14 +324,26 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
     it 'does not fail the reveal when the removal raises' do
       receipt, secret = spawn
       # The sorted set is frozen; stub the class accessor that hands it out.
+      # Only the first removal (the reveal's) fails; later ones, such as the
+      # cleanup below and in the after hook, reach the real set.
+      real_timeline    = Onetime::Receipt.expiration_timeline
       failing_timeline = double('expiration_timeline')
-      allow(failing_timeline).to receive(:remove_element).and_raise(Redis::CannotConnectError, 'down')
+      removals         = 0
+      allow(failing_timeline).to receive(:remove_element) do |id|
+        removals += 1
+        raise Redis::CannotConnectError, 'down' if removals == 1
+
+        real_timeline.remove_element(id)
+      end
       allow(Onetime::Receipt).to receive(:expiration_timeline).and_return(failing_timeline)
 
       expect(secret.reveal!).to eq('reveal notice fixture')
       expect(failing_timeline).to have_received(:remove_element).with(receipt.identifier)
+      expect(real_timeline.score(receipt.identifier)).not_to be_nil
       expect(Onetime::Receipt.load(receipt.identifier).state).to eq('revealed')
       expect(notices.size).to eq(1)
+    ensure
+      real_timeline&.remove_element(receipt.identifier) if receipt
     end
 
     it 'keeps a pair created with expiration_notifications: false off the timeline' do

@@ -339,6 +339,45 @@ module Onetime
       LIVE_STATES.include?(state.to_s)
     end
 
+    # The custom domain whose sender an owner notice about this receipt
+    # should come from, or nil for the default sender. See
+    # .sender_domain_id_for.
+    #
+    # @return [String, nil]
+    def sender_domain_id
+      self.class.sender_domain_id_for(domain_id: domain_id, org_id: org_id, share_domain: share_domain)
+    end
+
+    # The domain_id an owner notice (secret_revealed, expiration_warning)
+    # passes to the mailer for its sender, from what the receipt recorded at
+    # creation, when the domain was validated for the creating organization.
+    #
+    # A domain name can change hands: organization A deletes it, and B later
+    # claims it and sets up a sender. Resolving the share domain at send time
+    # would then send A's owner mail from B's sender. The stored domain_id is
+    # used only while that record still exists, still carries the same
+    # display domain, and still belongs to the receipt's organization.
+    # Anything else, including a receipt with no org_id (an incoming
+    # secret), gets nil: the default sender.
+    #
+    # @param domain_id [String, nil] the receipt's stored CustomDomain objid
+    # @param org_id [String, nil] the receipt's stored organization objid
+    # @param share_domain [String, nil] the share domain the secret was made on
+    # @return [String, nil]
+    def self.sender_domain_id_for(domain_id:, org_id:, share_domain:)
+      return nil if domain_id.to_s.empty? || org_id.to_s.empty? || share_domain.to_s.empty?
+
+      domain = Onetime::CustomDomain.load(domain_id)
+      return nil if domain.nil?
+      return nil unless domain.display_domain.to_s.downcase == share_domain.to_s.downcase
+      return nil unless domain.org_id.to_s == org_id.to_s
+
+      domain.identifier
+    rescue StandardError => ex
+      OT.le "[sender-domain] lookup failed: #{ex.class}"
+      nil
+    end
+
     class << self
       def generate_id
         Familia.generate_id
