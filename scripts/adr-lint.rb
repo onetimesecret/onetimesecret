@@ -24,8 +24,8 @@ ADR_DIR = ENV.fetch('ADR_DIR', 'docs/adr')
 REFERENCE = /\bADR-(\d{3,})(?:#([a-z0-9][a-z0-9-]*))?/i
 
 # Skip binaries and anything that would produce noise.
-SKIP_EXT = %w[.png .jpg .jpeg .gif .pdf .zip .gz .ico .woff .woff2 .ttf .xlsx
-              .lock .min.js .map].to_set
+SKIP_EXT = %w[.png .jpg .jpeg .gif .pdf .zip .gz .ico .woff .woff2 .ttf
+              .lock .min.js .map .xlsx .xls .docx .pptx].to_set
 
 # Tiny Levenshtein for the "did you mean" hint.
 def levenshtein(a, b)
@@ -85,7 +85,7 @@ end
 
 def candidate_files(args)
   if args.empty?
-    `git ls-files -z`.split("\x0")
+    `git ls-files -z`.force_encoding(Encoding::UTF_8).split("\x0")
   else
     args.flat_map { |a| File.directory?(a) ? Dir.glob("#{a}/**/*") : [a] }
   end.reject do |f|
@@ -103,7 +103,9 @@ failures = []
 seen = 0
 
 candidate_files(ARGV).each do |file|
-  text = File.read(file, encoding: 'UTF-8', invalid: :replace, undef: :replace)
+  # File.read's invalid:/undef: options only apply when transcoding, so a
+  # non-UTF-8 file would still raise in match?. Scrub explicitly instead.
+  text = File.binread(file).force_encoding(Encoding::UTF_8).scrub
   next unless text.match?(REFERENCE)
   next if text.match?(/adr-lint:\s*ignore-file/i)
 
