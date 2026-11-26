@@ -200,12 +200,11 @@ Lifecycle and bookkeeping events call
 entirely:
 
 - `revealed`, `burned`, `orphaned`, `expired` —
-  `lib/onetime/models/receipt/features/deprecated_fields.rb`, in `revealed!`
-  (line 173), `burned!` (line 251), `orphaned!` (line 213) and `expired!`
-  (line 292)
+  `lib/onetime/models/receipt/features/deprecated_fields.rb`, in `revealed!`,
+  `burned!`, `orphaned!` and `expired!`
 - `reveal_failed_undecryptable` —
   `lib/onetime/models/secret/features/secret_state_management.rb`, in
-  `record_reveal_failed_undecryptable` (line 207)
+  `record_reveal_failed_undecryptable`
 - (likewise `created` and `receipt_viewed`, which reach the same seam from the
   create path and the receipt view)
 
