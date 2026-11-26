@@ -137,8 +137,9 @@ module Onetime
                 next
               end
 
-              # Mail goes only to a verified contact address (ADR-051
-              # decision 6). Dropped like the anonymous skip above, so an
+              # Mail goes only to a verified account (Customer#verified?;
+              # same rule as the reveal notice). Dropped like the anonymous
+              # skip above, so an
               # owner who never verifies does not hold a batch slot until
               # the secret expires.
               unless owner.verified?

@@ -14,6 +14,6 @@ Fixed
 - The expiration warning is no longer sent for a secret that was already
   revealed or burned, and never for an account verification link. (!5006)
 - The reveal notice and the expiration warning now go only to owners
-  whose email address is verified. Owners with an unverified address who
+  whose account is verified. Owners with an unverified account who
   received reveal notices from the v3 reveal route will no longer get
   them. (!5006)

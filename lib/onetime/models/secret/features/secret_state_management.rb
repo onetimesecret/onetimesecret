@@ -311,10 +311,10 @@ module Onetime::Secret::Features
         owner = Onetime::Customer.load(notice[:owner_id])
         return if owner.nil? || owner.anonymous?
         return if owner.email.to_s.empty?
-        # Mail goes only to an address the owner has proven they control
-        # (ADR-051 decision 6: notification flows send only when the
-        # contact address meets the verification policy). An unverified
-        # owner is a silent skip, never an error.
+        # Mail goes only to a verified account (Customer#verified?, the
+        # account-level flag; not the stricter mailbox_verified?). See the
+        # proposed ADR-051 decision 6 for the direction of this policy. An
+        # unverified owner is a silent skip, never an error.
         return unless owner.verified?
         return unless owner.notify_on_reveal?
 
