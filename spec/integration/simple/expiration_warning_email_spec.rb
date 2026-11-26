@@ -34,7 +34,7 @@ RSpec.describe 'Expiration warning email', type: :integration do
   end
 
   let(:owner) do
-    # Verified: the warning goes only to an owner with a verified email.
+    # Verified: the warning goes only to a verified account (Customer#verified?).
     Onetime::Customer.new(email: "expiring-owner-#{SecureRandom.hex(8)}@example.com").tap do |cust|
       cust.verified = 'true'
       cust.save
@@ -91,6 +91,32 @@ RSpec.describe 'Expiration warning email', type: :integration do
       expect(body).not_to include(secret.identifier)
       expect(body).not_to include('/secret/')
       expect(body).not_to include('/receipt/')
+    end
+  end
+
+  # An owner whose account is not verified (a real Customer with the flag
+  # left at its default) is not warned, and the entry is dropped.
+  context 'when the owner is not verified' do
+    let(:owner) do
+      Onetime::Customer.new(email: "expiring-unverified-#{SecureRandom.hex(8)}@example.com").tap(&:save)
+    end
+
+    it 'sends nothing and drops the timeline entry' do
+      enqueued = []
+      allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, *|
+        enqueued << template
+        true
+      end
+      expect(owner.verified?).to be(false)
+      expect(Onetime::Receipt.expiration_timeline.score(receipt.identifier)).not_to be_nil
+      allow(Onetime::Receipt).to receive(:expiring_within).and_return([receipt.identifier])
+
+      Onetime::Jobs::Scheduled::ExpirationWarningJob.send(:process_expiring_secrets)
+
+      expect(enqueued).not_to include(:expiration_warning)
+      expect(Onetime::Receipt.expiration_timeline.score(receipt.identifier)).to be_nil
+    ensure
+      Onetime::Receipt.expiration_timeline.remove_element(receipt.identifier)
     end
   end
 

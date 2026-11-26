@@ -147,8 +147,9 @@ RSpec.describe 'Owner reveal notice on every reveal route', type: :integration d
     end
   end
 
-  # Mail goes only to a verified owner. An opted-in owner whose email is
-  # not verified gets nothing; the reveal itself still succeeds.
+  # Mail goes only to a verified account (Customer#verified?). An opted-in
+  # owner whose account is not verified gets nothing; the reveal itself
+  # still succeeds.
   context 'when the opted-in owner is not verified' do
     let(:owner) do
       Onetime::Customer.new(email: "reveal-route-unv-#{SecureRandom.hex(8)}@integration-test.example.com").tap do |cust|

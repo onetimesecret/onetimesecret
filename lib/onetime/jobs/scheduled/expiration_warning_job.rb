@@ -138,10 +138,11 @@ module Onetime
               end
 
               # Mail goes only to a verified account (Customer#verified?;
-              # same rule as the reveal notice). Dropped like the anonymous
-              # skip above, so an
+              # same rule as the reveal notice). The entry is dropped so an
               # owner who never verifies does not hold a batch slot until
-              # the secret expires.
+              # the secret expires. Unlike anonymity this can change: an
+              # owner who verifies after the scan gets no warning for an
+              # entry already dropped.
               unless owner.verified?
                 receipt.unregister_from_expiration_notifications
                 skipped += 1
