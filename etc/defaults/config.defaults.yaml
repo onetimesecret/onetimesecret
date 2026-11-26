@@ -1777,7 +1777,8 @@ jobs:
     dns_propagation_window: '24h'  # Since v0.26.14
 
   # Expiration warning emails
-  # Send email notifications before secrets expire to warn recipients
+  # Send email notifications before secrets expire to warn their owners
+  # (anonymous secrets are skipped)
   expiration_warnings:
     # Enable/disable expiration warning emails
     enabled: false  # Since v0.24.0
