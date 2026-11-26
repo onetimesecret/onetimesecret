@@ -249,7 +249,7 @@ RSpec.describe 'RabbitMQ Publishing', :rabbitmq, type: :integration do
       queue = channel.queue(email_queue, passive: true)
 
       expires_at = Familia.now.to_i + 7200
-      owner      = instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'de', account_verified?: true)
+      owner      = instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'de', notifiable?: true)
       secret     = instance_double('Onetime::Secret', verification?: false)
       receipt    = instance_double(
         'Onetime::Receipt',
