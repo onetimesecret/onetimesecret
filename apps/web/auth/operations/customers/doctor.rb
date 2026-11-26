@@ -1345,7 +1345,10 @@ module Auth
         # reconciled the two — after_verify_account only fires in the email
         # verify flow, which an SSO user never traverses. The visible symptom is
         # an SSO-provisioned colonel who cannot exercise their role, because
-        # has_system_role? tests account_verified? BEFORE it reads the role.
+        # has_system_role? tests mailbox_verified? BEFORE it reads the role, and
+        # an unverified account is never mailbox_verified?. Healing the flag
+        # alone does not grant the role: 'sso' is not a mailbox provenance, so
+        # the colonel still needs mailbox proof (operator verify; #4735).
         #
         # The forward fix (config/hooks/omniauth.rb) stops new records drifting.
         # This check is the ONLY thing that heals records created before it, and

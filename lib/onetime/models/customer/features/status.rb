@@ -156,7 +156,7 @@ module Onetime::Customer::Features
       # working. An alias is a copy: a stub on verified? does not reach code
       # that calls account_verified?, so stub the new name. The static guard
       # in spec/unit/onetime/models/customer_verified_predicate_guard_spec.rb
-      # refuses new customer call sites in lib/ and apps/.
+      # flags new calls on customer-named receivers in lib/ and apps/.
       alias verified? account_verified?
 
       # The verified flag as the datastore holds it now, read without
@@ -200,20 +200,23 @@ module Onetime::Customer::Features
       # non-anonymous customer with a non-empty email whose account is
       # verified by any provenance.
       #
-      # The rule is account_verified?, the account-level flag, by owner decision
-      # (not the stricter mailbox_verified?). An SSO account qualifies: the
-      # address its IdP asserted is trusted for owner notifications, as it
-      # is for organization membership. mailbox_verified? stays reserved for
-      # gates where holding the mailbox grants authority.
+      # The rule is account_verified?, the account-level flag, by owner
+      # decision (2026-11-26; see ADR-051 decision 6), not the stricter
+      # mailbox_verified?. An SSO account qualifies: the address its IdP
+      # asserted is sufficient for delivering owner notifications.
+      # mailbox_verified? stays reserved for gates where holding the
+      # mailbox grants authority.
       #
-      # An SSO account whose IdP reported the address (or its domain owner)
+      # An SSO account provisioned at sign-in (JIT) while its IdP reported
+      # the address (or its domain owner)
       # as unverified, or whose email_verified claim could not be read,
       # carries a verification_hold (one of
       # Onetime::Customer::VERIFICATION_HOLDS). The OmniAuth JIT hook
       # (apps/web/auth/config/hooks/omniauth.rb, where sso_verified is
       # derived from the account status and the hold) leaves such an
       # account unverified, so it is not notifiable and gets no owner
-      # notices until an operator verifies it.
+      # notices until it is verified (for example by an operator; see
+      # #verification_held?).
       #
       # Per-notice preferences (notify_on_reveal?) and secret-side guards
       # (an 'anon' owner_id) stay with the callers. A false answer is a

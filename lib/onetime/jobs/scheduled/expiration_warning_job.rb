@@ -139,7 +139,7 @@ module Onetime
               end
 
               # Who may get owner mail at all: see Customer#notifiable?. The
-              # entry is dropped so an owner who never verifies does not hold
+              # entry is dropped so an owner who never verifies does not occupy
               # a batch slot until the secret expires. Unlike anonymity this
               # can change: an owner who verifies after the scan gets no
               # warning for an entry already dropped.
