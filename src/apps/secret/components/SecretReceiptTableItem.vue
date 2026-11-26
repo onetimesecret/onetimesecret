@@ -26,6 +26,7 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import type { ReceiptList } from '@/schemas/shapes/v3/receipt';
 import { formatTTL } from '@/utils/formatters';
+import { ttlPercentage } from '@/utils/ttlUrgency';
 import { formatDistanceToNow } from 'date-fns';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
@@ -107,10 +108,7 @@ const isRevealed = computed(() => props.secretReceipt.is_revealed);
 const isDestroyed = computed(() => props.secretReceipt.is_destroyed);
 
 // Calculate TTL percentage for urgency
-const getTtlPercentage = computed(() => {
-  const maxTtl = 604800; // 7 days
-  return Math.floor((props.secretReceipt.secret_ttl / maxTtl) * 100);
-});
+const getTtlPercentage = computed(() => ttlPercentage(props.secretReceipt.secret_ttl));
 
 /**
  * Determine item state based on receipt state.

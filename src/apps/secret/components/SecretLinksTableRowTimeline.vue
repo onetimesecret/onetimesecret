@@ -14,6 +14,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { shareLinkFor, type RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
   import { formatTTL } from '@/utils/formatters';
+  import { ttlPercentage } from '@/utils/ttlUrgency';
   import { formatDistanceToNow } from 'date-fns';
   import { storeToRefs } from 'pinia';
   import { ref, computed, nextTick } from 'vue';
@@ -110,10 +111,7 @@
   const isRevealed = computed(() => props.record.isRevealed);
 
   // Calculate TTL percentage for urgency
-  const getTtlPercentage = computed(() => {
-    const maxTtl = 604800; // 7 days
-    return Math.floor((props.record.ttl / maxTtl) * 100);
-  });
+  const getTtlPercentage = computed(() => ttlPercentage(props.record.ttl));
 
   /**
    * Determine item state based on receipt state.
