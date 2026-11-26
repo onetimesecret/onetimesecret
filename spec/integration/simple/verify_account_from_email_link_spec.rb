@@ -153,8 +153,22 @@ RSpec.describe 'Verify a simple-mode account from the emailed link without a cus
     it "verifies the account through #{route}" do
       cust, secret_id = sign_up
 
+      # The owner would get a reveal notice for an ordinary secret; the
+      # verification link is the owner's own and sends none. Nor is it on
+      # the expiration timeline: no warning that it is about to expire.
+      cust.notify_on_reveal = 'true'
+      cust.save
+      receipt_id = Onetime::Secret.load(secret_id).receipt_identifier
+      expect(Onetime::Receipt.expiration_timeline.score(receipt_id)).to be_nil
+      enqueued = []
+      allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, *|
+        enqueued << template
+        true
+      end
+
       token = anonymous_visit
       instance_exec(secret_id, token, &reveal)
+      expect(enqueued).not_to include(:secret_revealed)
 
       expect(last_response.status).to eq(200), "#{route}: #{last_response.status} #{last_response.body}"
       expect(last_response.body).to include('fortune cookie')

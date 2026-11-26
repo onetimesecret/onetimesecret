@@ -80,7 +80,10 @@ module V3
       end
 
       # Reveal a secret (decrypt and return value)
-      # Extended to notify owner when their secret is revealed
+      #
+      # The owner's reveal notice (secret_revealed) is not sent from here: it
+      # goes out from Secret#consume_after_reveal!, which every reveal path in
+      # every API version reaches, once per reveal.
       #
       # @api Retrieve and decrypt a secret value. The secret is permanently
       #   destroyed immediately after retrieval and cannot be accessed again.
@@ -94,39 +97,6 @@ module V3
         def raise_concerns
           require_guest_route_enabled!(:reveal)
           super
-        end
-
-        def process
-          result = super
-
-          # Only notify on actual reveal (not verification flow)
-          # show_secret is set in parent class when secret is actually shown
-          notify_owner_of_reveal if show_secret && !verification
-
-          result
-        end
-
-        private
-
-        # Send notification to secret owner if they have opted in
-        def notify_owner_of_reveal
-          owner = secret.load_owner
-          return if owner.nil? || owner.anonymous?
-          return if owner.email.to_s.empty?
-          return unless owner.notify_on_reveal?
-
-          Onetime::Jobs::Publisher.enqueue_email(
-            :secret_revealed,
-            {
-              recipient: owner.email,
-              secret_shortid: secret.shortid,
-              revealed_at: Time.now.utc.iso8601,
-              locale: owner.locale.to_s.empty? ? OT.default_locale : owner.locale,
-            },
-          )
-        rescue StandardError => ex
-          # Log but don't fail the reveal - notification is non-critical
-          secret_logger.error '[RevealSecret] Failed to notify owner', exception: ex
         end
       end
 
