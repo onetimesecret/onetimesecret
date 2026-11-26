@@ -61,27 +61,31 @@ tests:
     action:
       type: click
       element: Notify on reveal toggle switch
-      selector: '[data-testid="notify-on-reveal-toggle"]'
+      # NotificationSettings.vue has no data-testid on the switch; its
+      # aria-labelledby id starts with notify-on-reveal-label-.
+      selector: '[role="switch"][aria-labelledby^="notify-on-reveal-label-"]'
     verify:
       - description: Toggle switch visible with proper ARIA attributes
-        selector: '[data-testid="notify-on-reveal-toggle"]'
+        selector: '[role="switch"][aria-labelledby^="notify-on-reveal-label-"]'
         assertion: has_attribute("role", "switch")
       - description: Clicking toggle changes visual state
-        selector: '[data-testid="notify-on-reveal-toggle"]'
+        selector: '[role="switch"][aria-labelledby^="notify-on-reveal-label-"]'
         assertion: has_class("bg-brand-600")
       - description: aria-checked attribute updates to reflect new state
-        selector: '[data-testid="notify-on-reveal-toggle"]'
+        selector: '[role="switch"][aria-labelledby^="notify-on-reveal-label-"]'
         assertion: has_attribute("aria-checked", "true")
       - description: API call updates notify_on_reveal preference
-        api: GET /api/account/cust/preferences
-        assertion: json_path("$.notify_on_reveal", true)
-      - description: No error message appears on successful update
-        selector: '[data-testid="notification-error"]'
+        api: POST /api/account/update-notification-preference
+        request: { field: notify_on_reveal, value: true }
+        assertion: json_path("$.record.notify_on_reveal", true)
+      - description: No error alert appears on successful update
+        # The error alert has no data-testid; it is the red bordered box.
+        selector: '.border-red-200.bg-red-50'
         assertion: not_visible
       - description: Setting persists after page reload
         action: reload
-        api: GET /api/account/cust/preferences
-        assertion: json_path("$.notify_on_reveal", true)
+        api: GET /api/account
+        assertion: json_path("$.record.cust.notify_on_reveal", true)
     priority: high
     type: functional
     covers: [NotificationSettings.vue, accountStore.updateNotificationPreference]
