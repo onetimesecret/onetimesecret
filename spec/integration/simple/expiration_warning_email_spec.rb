@@ -89,4 +89,30 @@ RSpec.describe 'Expiration warning email', type: :integration do
       expect(body).not_to include('/receipt/')
     end
   end
+
+  # A revealed secret is never warned about. The reveal takes the receipt
+  # off the timeline; an entry put back (as one written before that fix, or
+  # left by a failed removal, would be) is skipped by the job as no longer
+  # live and dropped.
+  it 'sends nothing for a revealed secret and drops its timeline entry' do
+    enqueued = []
+    allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, *|
+      enqueued << template
+      true
+    end
+
+    expect(Onetime::Receipt.expiration_timeline.score(receipt.identifier)).not_to be_nil
+    expect(secret.reveal!).to eq('expiring secret')
+    expect(Onetime::Receipt.expiration_timeline.score(receipt.identifier)).to be_nil
+
+    Onetime::Receipt.expiration_timeline.add(receipt.identifier, Familia.now.to_f + 3600)
+    allow(Onetime::Receipt).to receive(:expiring_within).and_return([receipt.identifier])
+
+    Onetime::Jobs::Scheduled::ExpirationWarningJob.send(:process_expiring_secrets)
+
+    expect(enqueued).not_to include(:expiration_warning)
+    expect(Onetime::Receipt.expiration_timeline.score(receipt.identifier)).to be_nil
+  ensure
+    Onetime::Receipt.expiration_timeline.remove_element(receipt.identifier)
+  end
 end

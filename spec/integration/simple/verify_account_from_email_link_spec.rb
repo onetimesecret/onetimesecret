@@ -159,6 +159,10 @@ RSpec.describe 'Verify a simple-mode account from the emailed link without a cus
       cust.notify_on_reveal = 'true'
       cust.save
       receipt_id = Onetime::Secret.load(secret_id).receipt_identifier
+      # Guard the two negative checks below: a missing receipt would pass
+      # them without the link ever having one.
+      expect(receipt_id.to_s).not_to be_empty
+      expect(Onetime::Receipt.load(receipt_id)).not_to be_nil
       expect(Onetime::Receipt.expiration_timeline.score(receipt_id)).to be_nil
       enqueued = []
       allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, *|

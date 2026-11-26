@@ -121,8 +121,12 @@ module Onetime
                 next
               end
 
-              # Skip anonymous secrets (no owner to notify)
+              # Skip anonymous secrets (no owner to notify). Permanent, like
+              # the two skips below, so the entry is dropped: otherwise it
+              # takes a batch slot on every scan and can push a due warning
+              # into a later run.
               if receipt.anonymous?
+                receipt.unregister_from_expiration_notifications
                 skipped += 1
                 next
               end
@@ -139,6 +143,7 @@ module Onetime
               # their owner is not warned.
               secret = receipt.load_secret
               if secret.nil? || secret.verification?
+                receipt.unregister_from_expiration_notifications
                 skipped += 1
                 next
               end
@@ -170,13 +175,16 @@ module Onetime
           #
           # @return [Boolean] true if the email was enqueued, false on failure
           def enqueue_warning_email(receipt, owner)
-            # Sender: the same derivation as Receipt#deliver_by_email, so a
-            # secret shared from a custom domain is announced from that
-            # domain's sender. share_domain itself stays out of the payload:
-            # it would move the layout's header and footer links to the
-            # custom domain (brand_baseuri), while this account notice links
-            # the owner to the canonical host (ExpirationWarning#recent_uri).
-            domain_id = Onetime::CustomDomain.resolve_domain_id(receipt.share_domain)
+            # Sender: the receipt's stored domain_id, while it still names
+            # the same domain for the same organization
+            # (Receipt.sender_domain_id_for), so a secret shared from a
+            # custom domain is announced from that domain's sender and never
+            # from a later holder of the name. share_domain itself stays out
+            # of the payload: it would move the layout's header and footer
+            # links to the custom domain (brand_baseuri), while this account
+            # notice links the owner to the canonical host
+            # (ExpirationWarning#recent_uri).
+            domain_id = receipt.sender_domain_id
             # Blank ("") locales are truthy and slip past a bare `||`.
             locale    = owner.locale.to_s.strip.empty? ? OT.default_locale : owner.locale
 
@@ -197,11 +205,11 @@ module Onetime
               domain_id: domain_id,
             )
 
-            scheduler_logger.debug "[ExpirationWarningJob] Enqueued warning for #{receipt.identifier} " \
+            scheduler_logger.debug "[ExpirationWarningJob] Enqueued warning for #{receipt.shortid} " \
                                    "(expires: #{receipt.secret_expiration})"
             true
           rescue StandardError => ex
-            scheduler_logger.error "[ExpirationWarningJob] Failed to enqueue warning for #{receipt.identifier}: #{ex.message}"
+            scheduler_logger.error "[ExpirationWarningJob] Failed to enqueue warning for #{receipt.shortid}: #{ex.message}"
             false
           end
         end
