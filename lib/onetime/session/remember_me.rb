@@ -33,7 +33,8 @@ module Onetime
   #
   # The deadline is fixed at sign-in, as Rodauth's remember_deadline_interval
   # is, and never moves with activity. The absolute lifetime deadline
-  # (`site.session.absolute_timeout`, 30 days by default) still applies, on
+  # (`site.session.absolute_timeout`, 30 days by default, the same length as
+  # {DURATION}) still applies, on
   # the row and (from `authenticated_at`) on the blob, and so
   # does the colonel's absolute session bound (AdminSessionLifetime), which
   # is shorter.
@@ -65,8 +66,12 @@ module Onetime
     # Rack session key. String, the app-session convention.
     SESSION_KEY = 'remember_until'
 
-    # 14 days: Rodauth's remember_deadline_interval default.
-    DURATION = 14 * 86_400
+    # 30 days, the lifetime the sign-in form states
+    # (web.COMMON.remember_me_description). It equals the default absolute
+    # lifetime (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE), so by
+    # default the two deadlines fall together; a shorter
+    # `site.session.absolute_timeout` ends a remembered session first.
+    DURATION = 30 * 86_400
 
     # The login form's parameter (src/shared/composables/useAuth.ts).
     PARAM = 'remember-me'

@@ -23,6 +23,12 @@ RSpec.describe Onetime::RememberMe do
     end
   end
 
+  describe 'DURATION' do
+    it 'is the 30 days the sign-in form states' do
+      expect(described_class::DURATION).to eq(30 * 86_400)
+    end
+  end
+
   describe '.stamp' do
     it 'writes an integer epoch DURATION from now under the string key' do
       session = {}

@@ -293,7 +293,7 @@ module Auth::Config::Hooks
         session['awaiting_mfa'] = false
 
         # Remember me, when the password step asked for it
-        # (features/remember_me.rb). The 14 days run from here.
+        # (features/remember_me.rb). The 30 days run from here.
         remember_me_after_two_factor if respond_to?(:remember_me_after_two_factor)
 
         # Clean up correlation ID after successful completion

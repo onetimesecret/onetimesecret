@@ -161,7 +161,7 @@ module Core
           # read (ColonelAPI::Logic::Colonel::Elevation#elevation_record).
           session.delete('elevated_until')
 
-          # "Remember me" (Onetime::RememberMe): a fixed 14-day session
+          # "Remember me" (Onetime::RememberMe): a fixed 30-day session
           # instead of the rolling default, carried by the session store
           # alone; simple mode has no active-session row. Only this login's
           # choice counts. The cleared session no longer holds the previous

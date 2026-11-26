@@ -4,7 +4,7 @@
 
 # Auth::Config::Features::RememberMe (AUTH_REMEMBER_ME_ENABLED).
 #
-# The checkbox makes the session itself last a fixed 14 days
+# The checkbox makes the session itself last a fixed 30 days
 # (lib/onetime/session/remember_me.rb); Rodauth's :remember feature, whose
 # cookie nothing ever consumed, is no longer enabled. This spec pins the
 # configuration: no remember cookie machinery, and the two methods the login
