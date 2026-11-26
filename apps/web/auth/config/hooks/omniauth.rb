@@ -985,7 +985,7 @@ module Auth::Config::Hooks
         # that flow, so the Customer mirror stayed unverified forever while its
         # Rodauth account was already open. That is not cosmetic:
         # has_system_role? (authorization_policies.rb) returns false on
-        # `!cust.verified?` BEFORE it reads the role field, so an
+        # `!cust.account_verified?` BEFORE it reads the role field, so an
         # SSO-provisioned colonel could never exercise the role even after CLI
         # promotion.
         #

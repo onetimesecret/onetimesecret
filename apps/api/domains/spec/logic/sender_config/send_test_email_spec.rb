@@ -31,7 +31,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
       extid: 'ext-cust123',
       email: 'user@example.com',
       anonymous?: false,
-      verified?: true, mailbox_verified?: true,
+      account_verified?: true, mailbox_verified?: true,
     )
   end
 

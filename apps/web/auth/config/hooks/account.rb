@@ -180,7 +180,7 @@ module Auth::Config::Hooks
         # resolves to no record (customer_record_found: false). In
         # development, instances sharing one Redis.
         if leftover.nil? && Onetime::Customer.email_exists?(email)
-          customer = Onetime::Customer.find_by_email(email)
+          customer        = Onetime::Customer.find_by_email(email)
           diagnostic_hint = <<~HINT.strip
             Sign-up answered as a new one and nothing was created: a customer
             record exists for this address but no open auth account does, so
@@ -402,7 +402,7 @@ module Auth::Config::Hooks
             # RESIDUAL: in that verify-disabled config the immediate claim
             # happens with NO proof of email ownership — an attacker who knows a
             # subscriber's email could register it here and claim their pending
-            # federated subscription. We deliberately do not gate on verified?
+            # federated subscription. We deliberately do not gate on account_verified?
             # here (the Redis customer.verified flag never becomes true without
             # verify_account, so gating would disable federated claims entirely);
             # EnsureDefaultWorkspace instead emits a loud security-audit log for

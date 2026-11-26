@@ -43,7 +43,7 @@ RSpec.describe 'customers sync-auth-accounts', type: :cli do
       extid: extid,
       anonymous?: false,
       global?: false,
-      verified?: true,
+      account_verified?: true,
       closing?: closing,
     )
   end

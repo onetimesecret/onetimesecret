@@ -94,7 +94,7 @@ module Auth
       #   this flag from `Onetime.auth_config.verify_account_loaded?`, so when a
       #   deployment turns email verification OFF the flag is false and the claim
       #   still happens immediately with no proof of email ownership. Gating on
-      #   `verified?` cannot help there: with verify_account disabled the Redis
+      #   `account_verified?` cannot help there: with verify_account disabled the Redis
       #   `customer.verified` flag is never set true for standard signups and
       #   there is no `after_verify_account` hook to defer to, so requiring
       #   verification would silently disable federated claims for that config.
@@ -424,7 +424,7 @@ module Auth
       # without mailbox proof reaches the claim in exactly two cases: the
       # deployment's verify_account step is not loaded, so neither the
       # caller's flag nor Customer#federation_claim_deferred? deferred an
-      # unverified record (this residual); or the record is verified? with a
+      # unverified record (this residual); or the record is account_verified? with a
       # non-mailbox provenance ('autoverify', 'stripe_payment', 'legacy'),
       # which the predicate deliberately does not defer and which this
       # method does not report (see Customer#federation_claim_deferred?). On

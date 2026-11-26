@@ -1199,7 +1199,7 @@ module Auth
         # `login` IS the Customer objid, and `email_verified_at` records
         # mailbox proof for the row's address, so it is meant to agree with
         # Customer#mailbox_verified? (verified with a provenance in
-        # Onetime::Customer::MAILBOX_VERIFIED_BY), not with `verified?` alone:
+        # Onetime::Customer::MAILBOX_VERIFIED_BY), not with `account_verified?` alone:
         # a Customer verified by an IdP claim ('sso'), a payment, autoverify
         # or a 'legacy' stamp beside a NULL column is in step, which is what
         # the backfill writes for it. Report-only, three shapes:
@@ -1345,7 +1345,7 @@ module Auth
         # reconciled the two — after_verify_account only fires in the email
         # verify flow, which an SSO user never traverses. The visible symptom is
         # an SSO-provisioned colonel who cannot exercise their role, because
-        # has_system_role? tests verified? BEFORE it reads the role.
+        # has_system_role? tests account_verified? BEFORE it reads the role.
         #
         # The forward fix (config/hooks/omniauth.rb) stops new records drifting.
         # This check is the ONLY thing that heals records created before it, and
@@ -1374,7 +1374,7 @@ module Auth
         # the address verifies it by hand (colonel admin, or
         # `bin/ots customers verify`).
         def check_sso_customer_unverified(issues, repaired)
-          return if @customer.verified?
+          return if @customer.account_verified?
           return unless @customer.provisioning_origin.to_s == 'sso_jit'
 
           account = auth_account
@@ -1464,7 +1464,7 @@ module Auth
         # the strength of a lookup that just failed. An operator who has
         # confirmed the address verifies it by hand.
         def check_recovered_customer_unverified(issues)
-          return if @customer.verified?
+          return if @customer.account_verified?
           return unless @customer.provisioning_origin.to_s == 'login_recovery'
 
           account = auth_account
@@ -1489,7 +1489,7 @@ module Auth
         # A Customer recreated at login unverified beside a Verified accounts
         # row: check_recovered_customer_unverified's finding.
         def recovered_customer_unverified?(account)
-          !@customer.verified? &&
+          !@customer.account_verified? &&
             @customer.provisioning_origin.to_s == 'login_recovery' &&
             account[:status_id] == Auth::AccountStatuses::VERIFIED
         end
@@ -1514,7 +1514,7 @@ module Auth
           return if @customer.mailbox_verified?
 
           provenance = @customer.verified_by.to_s
-          state      = if !@customer.verified?
+          state      = if !@customer.account_verified?
                          'unverified'
                        elsif provenance.empty?
                          'verified with no provenance'

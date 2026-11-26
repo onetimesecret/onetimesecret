@@ -98,10 +98,10 @@ module Onetime
         puts format('  %-18s %s', 'role:', customer.role)
         puts format('  %-18s %s', 'planid:', customer.planid.to_s.empty? ? '(none)' : customer.planid)
         puts format('  %-18s %s', 'locale:', customer.locale.to_s.empty? ? '(default)' : customer.locale)
-        puts format('  %-18s %s', 'verified:', customer.verified?)
+        puts format('  %-18s %s', 'verified:', customer.account_verified?)
         puts format('  %-18s %s', 'verified_by:', customer.verified_by.to_s.empty? ? '(none)' : customer.verified_by)
         # Mailbox proof gates system roles and federation claims; an IdP stamp
-        # ('sso') satisfies verified? but not this (#4735).
+        # ('sso') satisfies account_verified? but not this (#4735).
         puts format('  %-18s %s', 'mailbox_verified:', customer.mailbox_verified?)
         puts format('  %-18s %s', 'created:', format_timestamp(customer.created))
         puts format('  %-18s %s', 'default_org:', default_org_label(customer, orgs))
@@ -139,7 +139,7 @@ module Onetime
           role: customer.role,
           planid: customer.planid,
           locale: customer.locale,
-          verified: customer.verified?,
+          verified: customer.account_verified?,
           verified_by: customer.verified_by,
           mailbox_verified: customer.mailbox_verified?,
           created: customer.created.to_f,

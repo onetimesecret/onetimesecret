@@ -26,7 +26,7 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
   # A plain (non-colonel) target: role/verified? are what the interlocks read,
   # and this one short-circuits both of them.
   let(:customer) do
-    double('Customer', extid: 'ur_v', objid: 'cust_v', role: 'customer', verified?: true, mailbox_verified?: true)
+    double('Customer', extid: 'ur_v', objid: 'cust_v', role: 'customer', account_verified?: true, mailbox_verified?: true)
   end
   let(:inner) { instance_double(Auth::Operations::SetCustomerVerification) }
 
@@ -174,11 +174,11 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
   describe 'unverify interlocks' do
     let(:colonel) do
       double('Customer', extid: 'ur_col_t', objid: 'cust_col_t', role: 'colonel',
-                         verified?: true, mailbox_verified?: true, verified_by: 'colonel_admin')
+                         account_verified?: true, mailbox_verified?: true, verified_by: 'colonel_admin')
     end
 
     let(:second_colonel) do
-      double('Customer', objid: 'cust_other', role: 'colonel', verified?: true, mailbox_verified?: true, exists?: true)
+      double('Customer', objid: 'cust_other', role: 'colonel', account_verified?: true, mailbox_verified?: true, exists?: true)
     end
 
     def stub_roster(*colonels)
@@ -234,9 +234,9 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
     it 'ignores drifted index members when counting the remaining colonels' do
       stub_roster(
         colonel,
-        double('Customer', objid: 'cust_gone', exists?: false, role: 'colonel', verified?: true, mailbox_verified?: true),
-        double('Customer', objid: 'cust_demoted', exists?: true, role: 'admin', verified?: true, mailbox_verified?: true),
-        double('Customer', objid: 'cust_unver', exists?: true, role: 'colonel', verified?: false, mailbox_verified?: false),
+        double('Customer', objid: 'cust_gone', exists?: false, role: 'colonel', account_verified?: true, mailbox_verified?: true),
+        double('Customer', objid: 'cust_demoted', exists?: true, role: 'admin', account_verified?: true, mailbox_verified?: true),
+        double('Customer', objid: 'cust_unver', exists?: true, role: 'colonel', account_verified?: false, mailbox_verified?: false),
       )
 
       expect(unverify(colonel)).to eq(:last_colonel)
@@ -316,7 +316,7 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
     describe 'a colonel-role target that was not an active colonel going in' do
       let(:stale) do
         double('Customer', extid: 'ur_stale', objid: 'cust_stale', role: 'colonel', exists?: true,
-                           verified?: false, mailbox_verified?: false, verified_by: 'cli_provision')
+                           account_verified?: false, mailbox_verified?: false, verified_by: 'cli_provision')
       end
 
       before { stub_roster }

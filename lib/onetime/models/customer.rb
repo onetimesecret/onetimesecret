@@ -25,7 +25,7 @@ module Onetime
   #
   # STATES:
   # - anonymous?: role == 'anonymous'
-  # - verified?: authenticated + verified == 'true'
+  # - account_verified?: authenticated + verified == 'true'
   # - active?: verified + role == 'customer'
   # - pending?: authenticated + !verified + role == 'customer'
   #
@@ -135,7 +135,7 @@ module Onetime
     # Consumers that mean "this person controls the mailbox" (system roles,
     # verification-secret display, pending-federation claims, signup resend
     # suppression) call Customer#mailbox_verified?, which reads this list.
-    # Consumers that only mean "the account is open" keep calling verified?.
+    # Consumers that only mean "the account is open" keep calling account_verified?.
     # VERIFIED_BY_VALUES above enumerates every provenance writer; keep the
     # two lists in step when adding one.
     MAILBOX_VERIFIED_BY = %w[email invite_token colonel_admin cli_provision].freeze

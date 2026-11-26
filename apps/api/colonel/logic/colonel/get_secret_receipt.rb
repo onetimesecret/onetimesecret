@@ -109,7 +109,7 @@ end,
     # revealed on interaction via RevealEmail.vue.
     email: owner.email,
     role: owner.role,
-    verified: owner.verified?,
+    verified: owner.account_verified?,
   }
 end,
             },

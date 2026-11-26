@@ -1077,7 +1077,7 @@ module Auth
         # The Customer reads verified and, in full auth mode, the accounts
         # row read before the swap was Verified.
         def self_service_proof_eligible?
-          return false unless @customer.verified?
+          return false unless @customer.account_verified?
           return true unless Auth::Operations::SetCustomerVerification.full_auth_mode?
 
           @auth_row_status == AccountStatuses::VERIFIED
@@ -1158,7 +1158,7 @@ module Auth
 
         # @return [Symbol] :unchanged | :cleared | :failed
         def clear_customer_verification!
-          # Decided on the PERSISTED field, never `@customer.verified?`. The
+          # Decided on the PERSISTED field, never `@customer.account_verified?`. The
           # wrapper assigns the attribute before saving
           # (set_customer_verification.rb:112-116), so when that save raises the
           # in-memory flag already reads false while the datastore still holds

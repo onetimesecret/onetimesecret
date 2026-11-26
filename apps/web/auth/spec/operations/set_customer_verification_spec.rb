@@ -32,7 +32,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       'Customer',
       extid: 'ur_test_123',
       email: 'user@example.com',
-      verified?: false,
+      account_verified?: false,
       verified_by: nil,
       mailbox_verified?: false,
       :verified= => nil,
@@ -59,7 +59,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
   describe 'idempotency' do
     it 'returns :no_change and writes nothing when already verified' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'cli_provision')
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'cli_provision')
 
       op = described_class.new(
         customer: customer,
@@ -72,7 +72,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'returns :no_change when already unverified' do
-      allow(customer).to receive(:verified?).and_return(false)
+      allow(customer).to receive(:account_verified?).and_return(false)
 
       op = described_class.new(
         customer: customer,
@@ -86,7 +86,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
     it 'does not touch the SQL database when no-op even in full mode' do
       allow(auth_config).to receive(:mode).and_return('full')
-      allow(customer).to receive_messages(verified?: true, verified_by: 'cli_provision')
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'cli_provision')
 
       op = described_class.new(
         customer: customer,
@@ -164,7 +164,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'unverifies: clears verified_by to nil, saves, no SQL' do
-      allow(customer).to receive(:verified?).and_return(true)
+      allow(customer).to receive(:account_verified?).and_return(true)
 
       op = described_class.new(
         customer: customer,
@@ -184,7 +184,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
   # their new address, so the stored stamp described the old one.
   describe 'new_address: true' do
     it 'replaces a stored mailbox-proof stamp instead of keeping it' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
 
       op = described_class.new(customer: customer, verified: true, verified_by: 'email', new_address: true)
 
@@ -194,7 +194,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'writes even when the stored stamp is already email: it proved the old address' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'email', mailbox_verified?: true)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'email', mailbox_verified?: true)
 
       op = described_class.new(customer: customer, verified: true, verified_by: 'email', new_address: true)
 
@@ -203,7 +203,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'without it, the same call keeps the stored stamp and writes nothing' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
 
       op = described_class.new(customer: customer, verified: true, verified_by: 'email')
 
@@ -224,7 +224,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     let(:redis) { double('Redis', eval: 1) }
 
     before do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', dbclient: redis, dbkey: 'customer:123:object')
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'sso', dbclient: redis, dbkey: 'customer:123:object')
       allow(customer).to receive(:serialize_value) { |value| JSON.generate(value) }
     end
 
@@ -378,7 +378,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'still respects idempotency' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'email')
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'email')
 
       op = described_class.new(
         customer: customer,
@@ -398,7 +398,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
   # is what has_system_role? and the federation claim gate on.
   describe 'provenance-only change (verified stays true)' do
     before do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'sso', mailbox_verified?: false)
     end
 
     it 'is not a no-op: rewrites verified_by and saves' do
@@ -452,7 +452,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
   # new fact: the stored stamp is kept, and only the claim retry runs.
   describe 'a verification retry on an account that already has mailbox proof' do
     before do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'email', mailbox_verified?: true)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'email', mailbox_verified?: true)
     end
 
     %w[cli_provision colonel_admin].each do |operator_tag|
@@ -500,7 +500,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     # 'cli_provision' (the pre-#4735 CLI stamped it regardless) is a state
     # change and writes as before.
     it 'still writes when the record is unverified despite a stale mailbox tag' do
-      allow(customer).to receive_messages(verified?: false, verified_by: 'cli_provision', mailbox_verified?: false)
+      allow(customer).to receive_messages(account_verified?: false, verified_by: 'cli_provision', mailbox_verified?: false)
 
       op = described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db)
 
@@ -543,7 +543,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'claims when an operator upgrades an IdP-asserted stamp (sso -> cli_provision)' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'sso')
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'sso')
       allow(customer).to receive(:mailbox_verified?).and_return(true)
 
       described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db).call
@@ -560,7 +560,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'retries the claim when one mailbox-proof stamp replaces another (colonel_admin -> cli_provision)' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
 
       described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db).call
 
@@ -572,7 +572,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       # transient Redis/billing error would otherwise strand the benefit: the
       # Rodauth hook fires once and the workspace already exists. Repeating
       # `customers verify` is the retry, and it writes nothing.
-      allow(customer).to receive_messages(verified?: true, verified_by: 'cli_provision', mailbox_verified?: true)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'cli_provision', mailbox_verified?: true)
 
       op = described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db)
 
@@ -585,7 +585,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     # the grant is the one effect such a call can have, so it is exposed
     # separately for the adapters that print and audit the call.
     it 'reports an applied claim on #federation_claimed? even when the verification was a :no_change' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'cli_provision', mailbox_verified?: true)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'cli_provision', mailbox_verified?: true)
 
       op = described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db)
 
@@ -594,7 +594,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'reports no claim when nothing was pending' do
-      allow(customer).to receive_messages(verified?: false, verified_by: nil, mailbox_verified?: true)
+      allow(customer).to receive_messages(account_verified?: false, verified_by: nil, mailbox_verified?: true)
       allow(workspace_op).to receive(:claim_pending_federation_for).and_return(false)
 
       op = described_class.new(customer: customer, verified: true, verified_by: 'email', db: db)
@@ -604,7 +604,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'reports no claim before #call and when the claim was never attempted' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'sso', mailbox_verified?: false)
 
       op = described_class.new(customer: customer, verified: true, verified_by: 'sso', db: db)
 
@@ -614,7 +614,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'does not claim on a :no_change verification without mailbox proof (sso -> sso)' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'sso', mailbox_verified?: false)
 
       op = described_class.new(customer: customer, verified: true, verified_by: 'sso', db: db)
 
@@ -623,7 +623,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'does not claim on unverify' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'email', mailbox_verified?: true)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'email', mailbox_verified?: true)
 
       described_class.new(customer: customer, verified: false, verified_by: nil, db: db).call
 
@@ -660,7 +660,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       end
 
       it 'runs no claim on a :no_change repeat either' do
-        allow(customer).to receive_messages(verified?: true, verified_by: 'email', mailbox_verified?: true)
+        allow(customer).to receive_messages(account_verified?: true, verified_by: 'email', mailbox_verified?: true)
 
         op = described_class.new(customer: customer, verified: true, verified_by: 'email', db: db,
           claim_pending_federation: false)
@@ -714,7 +714,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'keeps a stored mailbox-proof stamp on a repeat and still retries the claim' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
 
       expect(described_class.record_mailbox_proof(customer, link)).to eq(:no_change)
       expect(customer).not_to have_received(:verified_by=)
@@ -723,7 +723,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'upgrades a stamp that is not mailbox proof' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'stripe_payment', mailbox_verified?: false)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'stripe_payment', mailbox_verified?: false)
 
       expect(described_class.record_mailbox_proof(customer, link)).to eq(:success)
       expect(customer).to have_received(:verified_by=).with('email')
@@ -763,7 +763,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       end
 
       it 'runs no claim on the repeat an owner with mailbox proof reaches either' do
-        allow(customer).to receive_messages(verified?: true, verified_by: 'email', mailbox_verified?: true)
+        allow(customer).to receive_messages(account_verified?: true, verified_by: 'email', mailbox_verified?: true)
 
         expect(described_class.record_mailbox_proof(customer, link)).to eq(:no_change)
         expect(workspace_op).not_to have_received(:claim_pending_federation_for)

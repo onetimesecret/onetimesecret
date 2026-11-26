@@ -35,7 +35,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       objid: 'obj_c',
       extid: 'ur_c',
       role: role,
-      verified?: verified,
+      account_verified?: verified,
       verified_by: verified_by,
       mailbox_verified?: verified && Onetime::Customer::MAILBOX_VERIFIED_BY.include?(verified_by.to_s),
     )

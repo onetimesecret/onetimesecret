@@ -15,7 +15,7 @@
 # exact bug made the verification-resend branch in
 # apps/api/account/logic/account/create_account.rb unreachable for every
 # persisted customer until 2026-07-31. The correct read is the predicate:
-# `cust.verified?`.
+# `cust.account_verified?`.
 #
 # This spec is the lint the BooleanFieldType docs cannot be: it discovers
 # every declared boolean_field in the tree, then fails on any conditional
@@ -103,7 +103,7 @@ RSpec.describe 'boolean_field raw-read guard' do
 
         storage: :string  — the STRINGS 'true'/'false', so the condition is
                             ALWAYS truthy ("false" is truthy in Ruby). This
-                            is a bug. Use the predicate: `verified?`.
+                            is a bug. Use the predicate: `account_verified?`.
         storage: :native  — a real Ruby true/false/nil, so a bare read is
                             correct. Mark the line `# boolean_field native`
                             to say so; the guard skips any line containing

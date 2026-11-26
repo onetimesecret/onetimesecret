@@ -187,7 +187,7 @@ module Onetime
 
         customers.each do |customer|
           obscured = OT::Utils.obscure_email(customer.email)
-          verified = customer.verified? ? 'verified' : 'unverified'
+          verified = customer.account_verified? ? 'verified' : 'unverified'
           puts format('  %s (%s)', obscured, verified)
         end
 

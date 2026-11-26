@@ -47,7 +47,7 @@ module Onetime
       #   `'true'` / `'false'`, including `nil` → `'false'`. This is what
       #   Customer's `verified` / `suspended` already store; changing it would
       #   rewrite live rows, so it stays the default and those models keep their
-      #   `verified?` / `suspended?` predicates. Do not choose it for new fields.
+      #   `account_verified?` / `suspended?` predicates. Do not choose it for new fields.
       #
       # ## Familia integration
       #

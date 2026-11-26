@@ -32,7 +32,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       email: 'rec@example.com',
       objid: 'obj_r',
       extid: 'ur_r',
-      verified?: verified,
+      account_verified?: verified,
       provisioning_origin: provisioning_origin,
       closing?: false,
     )

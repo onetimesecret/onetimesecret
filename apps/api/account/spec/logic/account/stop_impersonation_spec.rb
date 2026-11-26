@@ -23,7 +23,7 @@ RSpec.describe AccountAPI::Logic::Account::StopImpersonation do
   let(:principal) do
     instance_double(Onetime::Customer,
       extid: 'ur_colonel', email: 'ops@example.com',
-      role: 'colonel', verified?: true, mailbox_verified?: true)
+      role: 'colonel', account_verified?: true, mailbox_verified?: true)
   end
 
   let(:session) { { 'external_id' => 'ur_colonel', 'role' => 'colonel' } }
@@ -113,7 +113,7 @@ RSpec.describe AccountAPI::Logic::Account::StopImpersonation do
     end
 
     it 'hides the endpoint when the principal has no mailbox proof (verified_by: sso)' do
-      allow(principal).to receive_messages(verified?: true, mailbox_verified?: false)
+      allow(principal).to receive_messages(account_verified?: true, mailbox_verified?: false)
 
       expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
     end

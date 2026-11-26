@@ -172,7 +172,7 @@ module Auth
             # FULL address (internal scope) — surfaces obscure client-side.
             email: customer.email,
             role: customer.role,
-            verified: customer.verified?,
+            verified: customer.account_verified?,
             suspended: customer.suspended?,
             suspended_at: customer.suspended_at,
             suspended_reason: customer.suspended_reason,

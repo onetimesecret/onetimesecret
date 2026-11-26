@@ -91,7 +91,7 @@ module ColonelAPI
               # obscures it client-side and reveals on interaction — RevealEmail.vue.
               email: cust.email,
               role: cust.role,
-              verified: cust.verified?,
+              verified: cust.account_verified?,
               suspended: cust.suspended?,
               created: cust.created,
               last_login: cust.last_login,

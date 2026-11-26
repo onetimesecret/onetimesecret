@@ -60,7 +60,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     # two disagree exactly when the fallback matters. The stored bytes
     # themselves are covered on a real record in
     # change_email_forced_clear_record_spec.rb.
-    allow(cust).to receive(:verified?).and_return(true)
+    allow(cust).to receive(:account_verified?).and_return(true)
     allow(cust).to receive(:stored_verified?).and_return(true)
     allow(cust).to receive(:verified=) { |value| trace << [:customer_verified_assigned, value] }
     allow(cust).to receive(:verified_by=)
@@ -1125,7 +1125,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       # reset that never happened — in simple mode, where Redis IS the login
       # authority. The guard must read the persisted field.
       context 'and the in-memory flag was already flipped before the save blew up' do
-        before { allow(customer).to receive(:verified?).and_return(false) }
+        before { allow(customer).to receive(:account_verified?).and_return(false) }
 
         it 'still clears the PERSISTED flag rather than trusting memory' do
           op.call
@@ -1325,7 +1325,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     context 'when the wrapper raised after flipping the flag in memory' do
       before do
         allow(verifier).to receive(:call).and_raise(StandardError, 'redis blip')
-        allow(customer).to receive(:verified?).and_return(false)
+        allow(customer).to receive(:account_verified?).and_return(false)
         allow(customer).to receive(:stored_verified?).and_return(true)
       end
 
@@ -1672,7 +1672,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     end
 
     it 'does not stamp a Customer that is not verified: verify_account stays its way in' do
-      allow(customer).to receive(:verified?).and_return(false)
+      allow(customer).to receive(:account_verified?).and_return(false)
 
       result = self_service_op.call
 

@@ -41,7 +41,7 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       objid: 'cust-test',
       extid: user_extid,
       anonymous?: false,
-      verified?: true, mailbox_verified?: true,
+      account_verified?: true, mailbox_verified?: true,
       role: 'user',
     )
   end
@@ -53,7 +53,7 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       objid: nil,
       extid: nil,
       anonymous?: true,
-      verified?: false, mailbox_verified?: false,
+      account_verified?: false, mailbox_verified?: false,
       role: nil,
     )
   end
