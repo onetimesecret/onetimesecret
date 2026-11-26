@@ -50,6 +50,24 @@ describe('SharingPolicyForm with an unreadable stored policy', () => {
   });
 });
 
+describe('SharingPolicyForm lifetime limit', () => {
+  // What the hint has to describe: a blank field is saved as no limit.
+  it('saves a blank lifetime field as max_ttl null, clearing the organization limit', async () => {
+    const { wrapper, store } = mountForm();
+    const lifetime = wrapper.get<HTMLInputElement>('input[type="number"]');
+    expect(lifetime.element.value).toBe('60');
+
+    await lifetime.setValue('');
+    await wrapper.find('form').trigger('submit');
+    await flushPromises();
+
+    expect(store.updateSharingPolicy).toHaveBeenCalledWith('on1abc', { ...strictest, max_ttl: null });
+    expect(wrapper.get(`#${lifetime.attributes('aria-describedby')}`).text()).toBe(
+      'web.organizations.sharing_policy.ttl_hint'
+    );
+  });
+});
+
 describe('SharingPolicyForm when the installation already requires a passphrase', () => {
   const open: SharingPolicy = {
     recipient_email_mode: 'unrestricted',
