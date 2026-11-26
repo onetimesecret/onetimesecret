@@ -3,8 +3,7 @@ Changed
 
 - The reveal notice and the expiration warning now share one rule for who
   may receive owner mail, ``Customer#notifiable?``: a non-anonymous account
-  with an email address, verified by any means. The recipients are the
-  same as before.
+  with an email address, verified by any means.
 - The expiration warning now treats a blank owner email like a missing
   one: no email is queued and the secret stays on the warning timeline.
 
