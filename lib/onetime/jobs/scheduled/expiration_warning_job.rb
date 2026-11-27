@@ -153,12 +153,13 @@ module Onetime
                 next
               end
 
-              # Skip when the secret is already gone, or is an account
-              # verification link. Verification links created before
-              # spawn_pair could leave them off the timeline are still on it;
-              # their owner is not warned.
+              # Skip when the secret is already gone, or is account mechanics
+              # (Secret#account_mechanics?: a verification, password-reset or
+              # email-change link; the same rule as the reveal notice).
+              # Verification links created before spawn_pair could leave them
+              # off the timeline are still on it; their owner is not warned.
               secret = receipt.load_secret
-              if secret.nil? || secret.verification?
+              if secret.nil? || secret.account_mechanics?
                 receipt.unregister_from_expiration_notifications
                 skipped += 1
                 next

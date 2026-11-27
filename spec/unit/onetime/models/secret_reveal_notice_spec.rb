@@ -148,6 +148,24 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
       expect(notices).to be_empty
     end
 
+    # Every account-mechanics kind, with and without the verification flag
+    # (Secret#account_mechanics?). password_reset and email_change secrets
+    # are minted without a receipt in production; spawning one here tests
+    # the rule, not a reachable path.
+    %w[password_reset email_change].product([true, false]).each do |kind, flag|
+      it "sends nothing for kind '#{kind}' with the verification flag #{flag ? 'set' : 'unset'}" do
+        _receipt, secret = spawn
+        secret.kind         = kind
+        secret.verification = flag ? 'true' : 'false'
+        secret.save
+        fresh = Onetime::Secret.load(secret.identifier)
+        expect(fresh.account_mechanics?).to be(true)
+
+        expect(fresh.revealed!).to be(true)
+        expect(notices).to be_empty
+      end
+    end
+
     it 'sends nothing when the owner has not opted in' do
       owner.notify_on_reveal = 'false'
       owner.save

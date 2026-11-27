@@ -31,6 +31,23 @@ module Onetime::Secret::Features
       # so it never sends a reveal notice.
       VERIFICATION_KINDS = %w[account_verification password_reset email_change].freeze
 
+      # Is this secret account mechanics (a verification, password-reset or
+      # email-change link) rather than a secret someone shared? True for any
+      # kind in VERIFICATION_KINDS and for the boolean verification flag,
+      # which legacy verification secrets carry without a kind. Such a
+      # secret sends its owner no reveal notice
+      # (#reveal_notice_snapshot) and no expiration warning
+      # (Onetime::Jobs::Scheduled::ExpirationWarningJob). Both read this one
+      # predicate so the two rules cannot drift.
+      #
+      # Today only account_verification secrets have a receipt and so could
+      # reach the expiration timeline; password_reset and email_change are
+      # minted with Secret.create! and have none. The full rule applies to
+      # both paths anyway.
+      def account_mechanics?
+        verification? || VERIFICATION_KINDS.include?(kind.to_s)
+      end
+
       def state?(guess)
         state.to_s.eql?(guess.to_s)
       end
@@ -280,7 +297,7 @@ module Onetime::Secret::Features
           share_domain: share_domain,
           domain_id: receipt.domain_id,
           org_id: receipt.org_id,
-          verification: verification? || VERIFICATION_KINDS.include?(kind.to_s),
+          verification: account_mechanics?,
         }
       rescue StandardError => ex
         OT.le "[reveal-notice] snapshot failed: #{ex.class}"
