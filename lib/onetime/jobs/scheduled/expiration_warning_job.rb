@@ -24,8 +24,9 @@ module Onetime
       #
       # Timing: the email is enqueued on the first scan that finds the secret
       # inside the warning window, so it goes out between warning_hours and
-      # (warning_hours - check_interval) before the secret expires, and the
-      # warnings_sent set keeps it to one per receipt. There is no delayed
+      # (warning_hours - check_interval) before the secret expires. A sent
+      # warning takes the receipt off the timeline, and the warnings_sent set
+      # stops a second one if that removal fails. There is no delayed
       # delivery. The job used to publish to email.message.schedule with a
       # per-message TTL so the mail would leave one hour before expiry, but
       # nothing consumed that queue: with jobs enabled the message expired
@@ -36,16 +37,28 @@ module Onetime
       # warning_hours.
       #
       # Data structures (in Receipt):
-      #   - expiration_timeline: Sorted set (score = expiration timestamp)
+      #   - expiration_timeline: Sorted set (score = expiration timestamp) of
+      #     receipts still to be warned or decided
       #   - warnings_sent: Set for deduplication
       #
       # Rate Limiting:
       #   The batch_size setting prevents queue overflow when many secrets expire
       #   simultaneously. Remaining secrets are processed in subsequent runs.
+      #   batch_size counts warnings sent and failed enqueues, not entries
+      #   skipped; timeline reads are capped separately at batch_size ×
+      #   SCAN_LIMIT_FACTOR (see process_expiring_secrets for why the order
+      #   matters).
       #   This is an application-level rate limit; RabbitMQ queue-level limits
       #   (x-max-length with x-overflow: reject-publish) require publisher confirms
       #   to provide feedback, which adds complexity. The batch approach is simpler
       #   and self-healing: capacity = batch_size × runs_per_day.
+      #
+      # Concurrency: runs never overlap within one scheduler process
+      # (overlap: false). A sent receipt leaves the timeline and its
+      # warnings_sent mark is then cleared by cleanup_orphaned_warnings, so
+      # two overlapping runs could both warn the same receipt. Like every
+      # scheduled job, this assumes one `bin/ots scheduler` per datastore
+      # (see DomainRefreshJob).
       #
       class ExpirationWarningJob < ScheduledJob
         # Grace period for cleanup: remove timeline entries that expired over 1 hour ago
@@ -53,6 +66,11 @@ module Onetime
 
         # Default batch size if not configured
         DEFAULT_BATCH_SIZE = 100
+
+        # Timeline entries read per run, as a multiple of batch_size. Bounds
+        # one run's Redis work when many entries are skipped but kept (for
+        # example owners with no email yet).
+        SCAN_LIMIT_FACTOR = 10
 
         class << self
           def schedule(scheduler)
@@ -62,7 +80,7 @@ module Onetime
 
             scheduler_logger.info "[ExpirationWarningJob] Scheduling with interval: #{interval}"
 
-            every(scheduler, interval, first_in: '30s') do
+            every(scheduler, interval, first_in: '30s', overlap: false) do
               process_expiring_secrets
             end
           end
@@ -84,49 +102,71 @@ module Onetime
           end
 
           def process_expiring_secrets
-            warning_window   = warning_hours * 3600
-            all_expiring_ids = Onetime::Receipt.expiring_within(warning_window)
-            total_found      = all_expiring_ids.size
+            warning_window = warning_hours * 3600
+            limit          = batch_size
+            scan_limit     = limit * SCAN_LIMIT_FACTOR
 
-            # Apply batch limit to prevent queue overflow
-            expiring_ids = all_expiring_ids.take(batch_size)
-
-            if total_found > batch_size
-              scheduler_logger.warn "[ExpirationWarningJob] Throttling: #{total_found} secrets expiring, " \
-                                    "processing #{batch_size} (remaining will be processed in next run)"
-            else
-              scheduler_logger.debug "[ExpirationWarningJob] Found #{total_found} secrets expiring within #{warning_hours}h"
-            end
-
+            # ORDER MATTERS. batch_size caps the warnings attempted per run
+            # (sent or failed), and scan_limit caps the timeline entries read
+            # per run, skipped ones included. A skipped entry must never use
+            # a batch_size slot. The job used to
+            # take batch_size entries off the front of the timeline and only
+            # then filter out receipts already warned. Warned receipts stayed
+            # on the timeline until they expired, so batch_size of them
+            # expiring sooner filled every slot: a receipt that became due
+            # later was not examined, and when more than batch_size receipts
+            # became due per check interval some were never warned at all.
+            # Nothing reported the loss. Now the window is read page by
+            # page, soonest first, and skipped entries do not count toward
+            # batch_size. A sent warning, and every entry that can never be
+            # mailed, leaves the timeline, so the next run does not read it
+            # again. Only entries that may still be mailed later (an owner
+            # with no email yet, a failed enqueue) or whose removal raised
+            # stay; the offset steps past them. If this loop ever goes back to filtering after
+            # taking a fixed slice, warnings for newer secrets are dropped
+            # with no error.
             processed = 0
             skipped   = 0
+            failed    = 0
+            scanned   = 0
+            offset    = 0 # entries before this position are kept on the timeline
+            # One window for the whole run: if each page took its own now, a
+            # kept entry crossing now mid-run would leave the window and the
+            # offset would step past an unread entry.
+            now       = Familia.now.to_f
 
-            expiring_ids.each do |receipt_id|
-              # Skip if warning already sent
-              if Onetime::Receipt.warning_sent?(receipt_id)
-                skipped += 1
-                next
+            while processed + failed < limit && scanned < scan_limit
+              count = [limit, scan_limit - scanned].min
+              page  = Onetime::Receipt.expiring_within(warning_window, offset: offset, count: count, now: now)
+              break if page.empty?
+
+              page.each do |receipt_id|
+                scanned += 1
+                case examine_entry(receipt_id)
+                when :sent
+                  processed += 1
+                when :dropped
+                  skipped += 1
+                when :kept
+                  skipped += 1
+                  offset  += 1
+                when :failed
+                  failed += 1
+                  offset += 1
+                end
+                break if processed + failed >= limit || scanned >= scan_limit
               end
 
-              receipt = Onetime::Receipt.load(receipt_id)
-              next unless receipt&.exists?
+              # A short page is the end of the window.
+              break if page.size < count
+            end
 
-              # Skip anonymous secrets (no owner to notify)
-              if receipt.anonymous?
-                skipped += 1
-                next
-              end
-
-              owner = receipt.load_owner
-              unless owner&.email
-                skipped += 1
-                next
-              end
-
-              if enqueue_warning_email(receipt, owner)
-                Onetime::Receipt.mark_warning_sent(receipt_id)
-                processed += 1
-              end
+            if processed + failed >= limit || scanned >= scan_limit
+              scheduler_logger.warn "[ExpirationWarningJob] Throttling: stopped after #{processed} warnings, " \
+                                    "#{failed} failed enqueues and " \
+                                    "#{scanned} entries read (batch_size #{limit}); the rest wait for the next run"
+            else
+              scheduler_logger.debug "[ExpirationWarningJob] Read #{scanned} entries expiring within #{warning_hours}h"
             end
 
             # Self-cleaning: remove entries that have already expired
@@ -136,7 +176,90 @@ module Onetime
             # This prevents unbounded growth of the warnings_sent set
             orphan_cleanup_count = Onetime::Receipt.cleanup_orphaned_warnings
 
-            scheduler_logger.info "[ExpirationWarningJob] Processed: #{processed}, Skipped: #{skipped}, Cleaned: #{cleanup_count}, Orphans: #{orphan_cleanup_count}"
+            scheduler_logger.info "[ExpirationWarningJob] Processed: #{processed}, Skipped: #{skipped}, Failed: #{failed}, Cleaned: #{cleanup_count}, Orphans: #{orphan_cleanup_count}"
+          end
+
+          # Decide one timeline entry. Returns:
+          #   :sent    - warning enqueued; marked warned and taken off the timeline
+          #   :dropped - can never be mailed; taken off the timeline
+          #   :kept    - not mailed now but may be later; left on the timeline
+          #   :failed  - enqueue failed; left on the timeline for the next run
+          #
+          # A Redis error outside the enqueue and the receipt removal (the
+          # warned check, a load, the id-only removal) is not rescued here:
+          # it aborts the run, cleanups included, and the next run retries.
+          def examine_entry(receipt_id)
+            # Already warned: a receipt marked before warned receipts left
+            # the timeline, or one whose removal failed. Drop the entry so it
+            # never takes a slot again; warnings_sent still prevents a second
+            # warning.
+            return drop(receipt_id) if Onetime::Receipt.warning_sent?(receipt_id)
+
+            # The receipt is gone (expired or deleted): nothing to warn about.
+            receipt = Onetime::Receipt.load(receipt_id)
+            return drop(receipt_id) unless receipt&.exists?
+
+            # Only a secret that is still unconsumed can expire. A reveal or
+            # burn takes the receipt off the timeline, but an entry written
+            # before that existed (or left by a failed removal) can remain.
+            # Drop it so later scans do not load it again.
+            return drop(receipt) unless receipt.live?
+
+            # Skip anonymous secrets (no owner to notify). Permanent, like
+            # the two skips below, so the entry is dropped and later runs do
+            # not read it again.
+            return drop(receipt) if receipt.anonymous?
+
+            # The owner record is gone (purged, or expired after deletion):
+            # nobody can ever be mailed, so the entry is dropped. An owner
+            # with no email yet is kept, since they can still add one.
+            owner = receipt.load_owner
+            return drop(receipt) if owner.nil?
+            return :kept unless owner.email
+
+            # Mail goes only to a verified account (Customer#verified?;
+            # same rule as the reveal notice, so IdP-asserted SSO
+            # addresses qualify; see Secret#notify_owner_of_reveal). The
+            # entry is dropped so later runs do not read it again for an
+            # owner who never verifies. Unlike anonymity this can change: an
+            # owner who verifies after the scan gets no warning for an entry
+            # already dropped.
+            return drop(receipt) unless owner.verified?
+
+            # Skip when the secret is already gone, or is account mechanics
+            # (Secret#account_mechanics?: a verification, password-reset or
+            # email-change link; the same rule as the reveal notice).
+            # Verification links created before spawn_pair could leave them
+            # off the timeline are still on it; their owner is not warned.
+            secret = receipt.load_secret
+            return drop(receipt) if secret.nil? || secret.account_mechanics?
+
+            return :failed unless enqueue_warning_email(receipt, owner)
+
+            # Mark first, then leave the timeline: if the removal fails, the
+            # mark still stops a second warning and the next scan drops the
+            # entry.
+            Onetime::Receipt.mark_warning_sent(receipt_id)
+            receipt.unregister_from_expiration_notifications
+            :sent
+          end
+
+          # Take an entry off the timeline. :dropped when it is off; :kept when
+          # the receipt's removal raised (unregister_from_expiration_notifications
+          # rescues and returns false), so the caller's offset steps past an
+          # entry still in place instead of reading it again in this run. The
+          # id-only removal does not rescue: an error there aborts the run.
+          #
+          # @param receipt_or_id [Onetime::Receipt, String]
+          # @return [Symbol] :dropped or :kept
+          def drop(receipt_or_id)
+            removed = if receipt_or_id.is_a?(String)
+                        Onetime::Receipt.remove_from_expiration_timeline(receipt_or_id)
+                        true
+                      else
+                        receipt_or_id.unregister_from_expiration_notifications
+                      end
+            removed == false ? :kept : :dropped
           end
 
           # Enqueue the warning email for immediate delivery.
@@ -150,6 +273,19 @@ module Onetime
           #
           # @return [Boolean] true if the email was enqueued, false on failure
           def enqueue_warning_email(receipt, owner)
+            # Sender: the receipt's stored domain_id, while it still names
+            # the same domain for the same organization
+            # (Receipt.sender_domain_id_for), so a secret shared from a
+            # custom domain is announced from that domain's sender and never
+            # from a later holder of the name. share_domain itself stays out
+            # of the payload: it would move the layout's header and footer
+            # links to the custom domain (brand_baseuri), while this account
+            # notice links the owner to the canonical host
+            # (ExpirationWarning#recent_uri).
+            domain_id = receipt.sender_domain_id
+            # Blank ("") locales are truthy and slip past a bare `||`.
+            locale    = owner.locale.to_s.strip.empty? ? OT.default_locale : owner.locale
+
             Onetime::Jobs::Publisher.enqueue_email(
               :expiration_warning,
               {
@@ -162,14 +298,16 @@ module Onetime
                 # ownership check and returns the share link).
                 secret_shortid: receipt.secret_shortid,
                 expires_at: receipt.secret_expiration,
+                locale: locale,
               },
+              domain_id: domain_id,
             )
 
-            scheduler_logger.debug "[ExpirationWarningJob] Enqueued warning for #{receipt.identifier} " \
+            scheduler_logger.debug "[ExpirationWarningJob] Enqueued warning for #{receipt.shortid} " \
                                    "(expires: #{receipt.secret_expiration})"
             true
           rescue StandardError => ex
-            scheduler_logger.error "[ExpirationWarningJob] Failed to enqueue warning for #{receipt.identifier}: #{ex.message}"
+            scheduler_logger.error "[ExpirationWarningJob] Failed to enqueue warning for #{receipt.shortid}: #{ex.message}"
             false
           end
         end

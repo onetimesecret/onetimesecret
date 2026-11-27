@@ -34,7 +34,11 @@ RSpec.describe 'Expiration warning email', type: :integration do
   end
 
   let(:owner) do
-    Onetime::Customer.new(email: "expiring-owner-#{SecureRandom.hex(8)}@example.com").tap(&:save)
+    # Verified: the warning goes only to a verified account (Customer#verified?).
+    Onetime::Customer.new(email: "expiring-owner-#{SecureRandom.hex(8)}@example.com").tap do |cust|
+      cust.verified = 'true'
+      cust.save
+    end
   end
 
   # Two days: not below the default min_ttl_hours (48), so spawn_pair puts the
@@ -46,8 +50,8 @@ RSpec.describe 'Expiration warning email', type: :integration do
 
   it 'enqueues the secret short id and links to the sign-in page, never an identifier' do
     enqueued = []
-    allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |*args|
-      enqueued << args
+    allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |*args, **options|
+      enqueued << [*args, options]
       true
     end
     # The timeline is shared with every other receipt in the datastore; this
@@ -56,9 +60,10 @@ RSpec.describe 'Expiration warning email', type: :integration do
 
     Onetime::Jobs::Scheduled::ExpirationWarningJob.send(:process_expiring_secrets)
 
-    # Template and payload, nothing else: no delay option and no fallback
-    # override, so the mail goes to email.message.send like every other
-    # notification.
+    # Template, payload and the sender's domain_id (nil: no custom domain),
+    # nothing else: no delay option and no fallback override, so the mail
+    # goes to email.message.send like every other notification. The owner
+    # has no locale, so the default applies.
     expect(enqueued).to eq([
       [
         :expiration_warning,
@@ -66,7 +71,9 @@ RSpec.describe 'Expiration warning email', type: :integration do
           recipient: owner.email,
           secret_shortid: secret.shortid,
           expires_at: receipt.secret_expiration,
+          locale: OT.default_locale,
         },
+        { domain_id: nil },
       ],
     ])
     payload = enqueued.first[1]
@@ -85,5 +92,57 @@ RSpec.describe 'Expiration warning email', type: :integration do
       expect(body).not_to include('/secret/')
       expect(body).not_to include('/receipt/')
     end
+  end
+
+  # An owner whose account is not verified (a real Customer with the flag
+  # left at its default) is not warned, and the entry is dropped.
+  context 'when the owner is not verified' do
+    let(:owner) do
+      Onetime::Customer.new(email: "expiring-unverified-#{SecureRandom.hex(8)}@example.com").tap(&:save)
+    end
+
+    it 'sends nothing and drops the timeline entry' do
+      enqueued = []
+      allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, *|
+        enqueued << template
+        true
+      end
+      expect(owner.verified?).to be(false)
+      expect(Onetime::Receipt.expiration_timeline.score(receipt.identifier)).not_to be_nil
+      allow(Onetime::Receipt).to receive(:expiring_within).and_return([receipt.identifier])
+
+      Onetime::Jobs::Scheduled::ExpirationWarningJob.send(:process_expiring_secrets)
+
+      expect(enqueued).not_to include(:expiration_warning)
+      expect(Onetime::Receipt.expiration_timeline.score(receipt.identifier)).to be_nil
+    ensure
+      Onetime::Receipt.expiration_timeline.remove_element(receipt.identifier)
+    end
+  end
+
+  # A revealed secret is never warned about. The reveal takes the receipt
+  # off the timeline; an entry put back (as one written before that fix, or
+  # left by a failed removal, would be) is skipped by the job as no longer
+  # live and dropped.
+  it 'sends nothing for a revealed secret and drops its timeline entry' do
+    enqueued = []
+    allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |template, *|
+      enqueued << template
+      true
+    end
+
+    expect(Onetime::Receipt.expiration_timeline.score(receipt.identifier)).not_to be_nil
+    expect(secret.reveal!).to eq('expiring secret')
+    expect(Onetime::Receipt.expiration_timeline.score(receipt.identifier)).to be_nil
+
+    Onetime::Receipt.expiration_timeline.add(receipt.identifier, Familia.now.to_f + 3600)
+    allow(Onetime::Receipt).to receive(:expiring_within).and_return([receipt.identifier])
+
+    Onetime::Jobs::Scheduled::ExpirationWarningJob.send(:process_expiring_secrets)
+
+    expect(enqueued).not_to include(:expiration_warning)
+    expect(Onetime::Receipt.expiration_timeline.score(receipt.identifier)).to be_nil
+  ensure
+    Onetime::Receipt.expiration_timeline.remove_element(receipt.identifier)
   end
 end

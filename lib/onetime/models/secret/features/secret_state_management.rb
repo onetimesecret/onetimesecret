@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../../jobs/publisher'
+
 module Onetime::Secret::Features
   module SecretStateManagement
     Familia::Base.add_feature self, :secret_state_management
@@ -24,6 +26,29 @@ module Onetime::Secret::Features
     end
 
     module InstanceMethods
+      # Secret kinds that are account mechanics rather than shared secrets.
+      # Their reveal is the owner's own action (or a link sent to the owner),
+      # so it never sends a reveal notice.
+      VERIFICATION_KINDS = %w[account_verification password_reset email_change].freeze
+
+      # Is this secret account mechanics (a verification, password-reset or
+      # email-change link) rather than a secret someone shared? Every mint
+      # site sets the boolean verification flag and records a kind from
+      # VERIFICATION_KINDS beside it; legacy secrets carry the flag alone.
+      # Either one is enough, so a record with only one still counts. Such a
+      # secret sends its owner no reveal notice
+      # (#reveal_notice_snapshot) and no expiration warning
+      # (Onetime::Jobs::Scheduled::ExpirationWarningJob). Both read this one
+      # predicate so the two rules cannot drift.
+      #
+      # Today only account_verification secrets have a receipt and so could
+      # reach the expiration timeline; password_reset and email_change are
+      # minted with Secret.create! and have none. The full rule applies to
+      # both paths anyway.
+      def account_mechanics?
+        verification? || VERIFICATION_KINDS.include?(kind.to_s)
+      end
+
       def state?(guess)
         state.to_s.eql?(guess.to_s)
       end
@@ -211,8 +236,17 @@ module Onetime::Secret::Features
       end
 
       # Post-claim consumption shared by {#revealed!} and {#reveal!}: cascade
-      # the receipt to revealed and destroy the record. Assumes the caller has
-      # already won the claim via {#win_reveal_claim!}.
+      # the receipt to revealed, destroy the record, then send the owner's
+      # reveal notice. Assumes the caller has already won the claim via
+      # {#win_reveal_claim!}.
+      #
+      # This is the single point every reveal path reaches (v1 ShowSecret,
+      # v2/v3 RevealSecret and ShowSecret, account verification), so the
+      # secret_revealed notice is sent here rather than in each controller.
+      # It goes out only when the receipt's own CAS reports this caller as
+      # the one that moved it to revealed, so one reveal sends one notice.
+      # It is sent after destroy_terminal_record!, outside the MULTI/EXEC
+      # that destroy! runs, and never raises (#notify_owner_of_reveal).
       #
       # The in-memory state is set to 'revealed' even though the record is about
       # to be destroyed: state drives viewable?, so leaving it revealable would
@@ -224,15 +258,108 @@ module Onetime::Secret::Features
       #   to the receipt's revealed! cascade (#3639); see {#revealed!}.
       # @return [void]
       def consume_after_reveal!(actor_context: nil)
-        md = load_receipt
-        md.revealed!(actor_context: actor_context) unless md.nil?
-      ensure
-        # Once claimed and decrypted, destruction is independent of receipt
-        # bookkeeping. Preserve fail-closed error propagation, not a retry.
-        @state           = 'revealed'
-        @ciphertext      = nil
-        @passphrase_temp = nil
-        destroy_terminal_record!
+        notice          = nil
+        receipt_claimed = false
+        begin
+          md = load_receipt
+          unless md.nil?
+            # Read before destroy! so the notice does not depend on what the
+            # destroyed instance still holds in memory.
+            notice          = reveal_notice_snapshot(md)
+            receipt_claimed = md.revealed!(actor_context: actor_context) ? true : false
+          end
+        ensure
+          # Once claimed and decrypted, destruction is independent of receipt
+          # bookkeeping. Preserve fail-closed error propagation, not a retry.
+          @state           = 'revealed'
+          @ciphertext      = nil
+          @passphrase_temp = nil
+          destroy_terminal_record!
+        end
+        # The receipt CAS is the single-winner gate for the notice. A reveal
+        # whose receipt is missing, or whose receipt another caller already
+        # moved, sends no notice: that is intended, so that one reveal never
+        # sends two.
+        notify_owner_of_reveal(notice) if receipt_claimed && notice
+        nil
+      end
+
+      # Reads in-memory fields only. It runs after the claim is won and before
+      # the destroy, so it must not raise: a failure here skips the notice,
+      # never the destroy.
+      #
+      # @param receipt [Onetime::Receipt] this secret's loaded receipt, for
+      #   the domain_id and org_id recorded at creation
+      # @return [Hash, nil] what #notify_owner_of_reveal needs, read up front
+      def reveal_notice_snapshot(receipt)
+        {
+          owner_id: owner_id,
+          shortid: shortid,
+          share_domain: share_domain,
+          domain_id: receipt.domain_id,
+          org_id: receipt.org_id,
+          verification: account_mechanics?,
+        }
+      rescue StandardError => ex
+        OT.le "[reveal-notice] snapshot failed: #{ex.class}"
+        nil
+      end
+
+      # Email the owner that their secret was revealed, when they opted in.
+      #
+      # The payload names the secret by its short id only: the secret and
+      # receipt identifiers are bearer capabilities and never go by email.
+      # domain_id is the receipt's stored one, while it still names the same
+      # domain for the same organization (Receipt.sender_domain_id_for), so a
+      # secret shared from a custom domain is announced from that domain's
+      # sender and never from a later holder of the name. share_domain
+      # itself stays out of the payload: it would move the layout's header
+      # and footer links to the custom domain (brand_baseuri), while this
+      # account notice links the owner to settings on the canonical host.
+      #
+      # A failure is logged and swallowed: the reveal has already happened
+      # and its response must not depend on a notification.
+      #
+      # @param notice [Hash] from #reveal_notice_snapshot
+      # @return [void]
+      def notify_owner_of_reveal(notice)
+        return if notice[:verification]
+        return if notice[:owner_id].to_s.empty? || notice[:owner_id].to_s == 'anon'
+
+        owner = Onetime::Customer.load(notice[:owner_id])
+        return if owner.nil? || owner.anonymous?
+        return if owner.email.to_s.empty?
+        # Mail goes only to a verified account: Customer#verified?, the
+        # account-level flag, by owner decision (not the stricter
+        # mailbox_verified?). An SSO account qualifies: the address its IdP
+        # asserted is trusted for owner notifications, as it is for
+        # organization membership. mailbox_verified? stays reserved for
+        # gates where holding the mailbox grants authority. An SSO account
+        # with a verification_hold (the IdP reported the address
+        # unverified) is not verified? and gets no mail. An unverified
+        # owner is a silent skip, never an error.
+        return unless owner.verified?
+        return unless owner.notify_on_reveal?
+
+        # Blank ("") locales are truthy and slip past a bare `||`.
+        locale    = owner.locale.to_s.strip.empty? ? OT.default_locale : owner.locale
+        domain_id = Onetime::Receipt.sender_domain_id_for(
+          domain_id: notice[:domain_id], org_id: notice[:org_id], share_domain: notice[:share_domain],
+        )
+
+        Onetime::Jobs::Publisher.enqueue_email(
+          :secret_revealed,
+          {
+            recipient: owner.email,
+            secret_shortid: notice[:shortid],
+            revealed_at: Time.now.utc.iso8601,
+            locale: locale,
+          },
+          domain_id: domain_id,
+        )
+      rescue StandardError => ex
+        OT.le "[reveal-notice] #{ex.class}: #{ex.message} (secret=#{notice&.dig(:shortid)})"
+        nil
       end
 
       # Destroys the record after a terminal claim. Clearing @ciphertext above

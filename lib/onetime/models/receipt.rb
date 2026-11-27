@@ -110,6 +110,12 @@ module Onetime
     # every terminal state, plus 'previewed' and its legacy name 'viewed'.
     SECRET_WITHDRAWN_STATES = (TERMINAL_STATES + %w[previewed viewed]).freeze
 
+    # States in which the secret has not been revealed, burned or otherwise
+    # consumed: the ones an expiration warning may still be about. 'viewed' is
+    # the legacy name for 'previewed'; a receipt stored with it still points
+    # at an unconsumed secret. Read by ExpirationWarningJob.
+    LIVE_STATES = %w[new previewed viewed].freeze
+
     # Provenance gate on the share link, by :source value. See
     # #shows_share_link?; class-level so a serializer working from a raw field
     # hash (V1 receipt_hsh) applies the same rule.
@@ -310,6 +316,70 @@ module Onetime
       true
     end
 
+    # Take this receipt off the expiration timeline once its secret is gone
+    # (revealed or burned), so ExpirationWarningJob never warns about it.
+    # Called from the won-CAS branch of #revealed! and #burned!. Best effort:
+    # it runs after the transition is committed, and a failure must not turn
+    # a completed reveal or burn into an error. The job's live-state check
+    # covers an entry left behind.
+    #
+    # @return [Boolean] true if the entry was removed or absent, false on error
+    def unregister_from_expiration_notifications
+      self.class.remove_from_expiration_timeline(identifier)
+      true
+    rescue StandardError => ex
+      OT.le "[expiration-timeline] removal failed: #{ex.class} (receipt=#{shortid})"
+      false
+    end
+
+    # Whether the receipt's secret is still unconsumed (see LIVE_STATES).
+    #
+    # @return [Boolean]
+    def live?
+      LIVE_STATES.include?(state.to_s)
+    end
+
+    # The custom domain whose sender an owner notice about this receipt
+    # should come from, or nil for the default sender. See
+    # .sender_domain_id_for.
+    #
+    # @return [String, nil]
+    def sender_domain_id
+      self.class.sender_domain_id_for(domain_id: domain_id, org_id: org_id, share_domain: share_domain)
+    end
+
+    # The domain_id an owner notice (secret_revealed, expiration_warning)
+    # passes to the mailer for its sender, from what the receipt recorded at
+    # creation, when the domain was validated for the creating organization.
+    #
+    # A domain name can change hands: organization A deletes it, and B later
+    # claims it and sets up a sender. Resolving the share domain at send time
+    # would then send A's owner mail from B's sender. The stored domain_id is
+    # used only while that record still exists, still carries the same
+    # display domain, and still belongs to the receipt's organization.
+    # Anything else, including a receipt with no org_id (an incoming
+    # secret), gets nil: the default sender.
+    #
+    # @param domain_id [String, nil] the receipt's stored CustomDomain objid
+    # @param org_id [String, nil] the receipt's stored organization objid
+    # @param share_domain [String, nil] the share domain the secret was made on
+    # @return [String, nil]
+    def self.sender_domain_id_for(domain_id:, org_id:, share_domain:)
+      return nil if domain_id.to_s.empty? || org_id.to_s.empty? || share_domain.to_s.empty?
+
+      domain = Onetime::CustomDomain.load(domain_id)
+      return nil if domain.nil?
+      # Same name comparison as record_for_display_domain: share_domain from
+      # the Host header is an A-label, display_domain may be stored in Unicode.
+      return nil unless Onetime::CustomDomain.display_domain_names_record?(share_domain, domain.display_domain)
+      return nil unless domain.org_id.to_s == org_id.to_s
+
+      domain.identifier
+    rescue StandardError => ex
+      OT.le "[sender-domain] lookup failed: #{ex.class}"
+      nil
+    end
+
     class << self
       def generate_id
         Familia.generate_id
@@ -379,7 +449,7 @@ module Onetime
       # @raise [Onetime::SecretCreationFailed] unless EXEC confirms the commit
       def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil, display_type: nil,
                      source: nil, memo: nil, recipients: nil, recipient_name: nil, domain_id: nil, org_id: nil,
-                     &registrations)
+                     expiration_notifications: true, &registrations)
         Onetime::SecretVerifier.ensure_writes_allowed!
 
         # Coerce at the single creation choke point so lifespan is always stored
@@ -428,16 +498,24 @@ module Onetime
 
         commit_pair(receipt, secret, &registrations)
 
-        creation_followup(:expiration_notifications, receipt) do
-          receipt.register_for_expiration_notifications
+        # expiration_notifications: false keeps a secret that is account
+        # mechanics (the verification link) off the expiration timeline: its
+        # owner is never warned that it is about to expire.
+        if expiration_notifications
+          creation_followup(:expiration_notifications, receipt) do
+            receipt.register_for_expiration_notifications
+          end
         end
 
-        # Maintain the owner's live-secret counter at THE single secret-creation
-        # chokepoint (#60). Every path that mints a secret — the API secret
-        # actions, incoming secrets, password-reset and billing-welcome secrets —
+        # Maintain the owner's live-secret counter at the single receipt-backed
+        # secret-creation chokepoint (#60). Every path that mints a secret with
+        # a receipt — the v1/v2 API secret actions, incoming secrets, and the
+        # account verification link (Logic::Base#send_verification_email) —
         # funnels through spawn_pair, so counting here (rather than in each Logic
-        # class) guarantees exactly one increment per created secret and no path
-        # is missed. Anonymous/ownerless creates are skipped inside the helper.
+        # class) gives exactly one increment per receipt-backed secret.
+        # Password-reset and email-change secrets are created with
+        # Secret.create!, have no receipt, and are not counted here.
+        # Anonymous/ownerless creates are skipped inside the helper.
         # The mirror decrement fires at the single early-destruction chokepoint
         # (Secret#destroy! — reveal, burn, and admin delete all funnel through
         # it). The remaining drift source is TTL expiry, where Redis drops the
@@ -495,19 +573,51 @@ module Onetime
         hours * 3600
       end
 
-      # Find receipt IDs for secrets expiring within the given time window
+      # Find receipt IDs for secrets expiring within the given time window,
+      # soonest first. With offset and count, one page of them
+      # (ZRANGEBYSCORE ... LIMIT offset count), so a caller can walk a large
+      # window without loading all of it.
       # @param seconds [Integer] Time window in seconds from now
+      # @param offset [Integer, nil] entries to skip (paged read)
+      # @param count [Integer, nil] page size (paged read)
+      # @param now [Float, nil] window start; a paged caller passes one value
+      #   for every page so the window does not move under its offset
       # @return [Array<String>] Receipt identifiers
-      def expiring_within(seconds)
-        now = Familia.now.to_f
-        expiration_timeline.rangebyscore(now, now + seconds)
+      def expiring_within(seconds, offset: nil, count: nil, now: nil)
+        now ||= Familia.now.to_f
+        opts  = count ? { limit: [offset.to_i, count] } : {}
+        expiration_timeline.rangebyscore(now, now + seconds, opts)
       end
 
-      # Check if a warning has already been sent for this receipt
+      # Both stored spellings of an identifier. Familia writes a String
+      # member JSON-quoted ("\"abc\""); older migration scripts wrote it raw,
+      # and `bin/ots migrations dedupe-instances --run` rewrites quoted
+      # members raw. Either may be on the timeline and in warnings_sent.
+      # @param receipt_id [String] Receipt identifier
+      # @return [Array<String>] [raw, quoted]
+      def stored_member_forms(receipt_id)
+        raw = receipt_id.to_s
+        [raw, Familia::JsonSerializer.dump(raw)]
+      end
+
+      # Take one entry off the expiration timeline by identifier, without
+      # loading the receipt. Removes both stored spellings (see
+      # stored_member_forms): ExpirationWarningJob's paged scan counts on a
+      # dropped entry being gone, and a removal that missed a raw member
+      # would leave it at the front of the window, read again on every page.
+      # @param receipt_id [String] Receipt identifier
+      # @return [Boolean] true when an entry was removed
+      def remove_from_expiration_timeline(receipt_id)
+        expiration_timeline.dbclient.zrem(expiration_timeline.dbkey, stored_member_forms(receipt_id)).to_i.positive?
+      end
+
+      # Check if a warning has already been sent for this receipt, in either
+      # stored spelling (see stored_member_forms).
       # @param receipt_id [String] Receipt identifier
       # @return [Boolean]
       def warning_sent?(receipt_id)
-        warnings_sent.member?(receipt_id)
+        client = warnings_sent.dbclient
+        stored_member_forms(receipt_id).any? { |form| client.sismember(warnings_sent.dbkey, form) }
       end
 
       # Mark that a warning has been sent for this receipt

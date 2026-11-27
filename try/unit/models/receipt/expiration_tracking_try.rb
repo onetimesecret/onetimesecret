@@ -94,6 +94,53 @@ results = Onetime::Receipt.expiring_within(600)
 results.include?(@test_expiring_id)
 #=> false
 
+## expiring_within pages the window soonest first with offset and count
+@page_ids = Array.new(3) { |n| "test_page_#{n}_#{rand(100_000)}" }
+base = Familia.now.to_f + 60
+@page_ids.each_with_index { |id, n| Onetime::Receipt.expiration_timeline.add(id, base + n) }
+all   = Onetime::Receipt.expiring_within(120)
+mine  = all.select { |id| @page_ids.include?(id) }
+start = all.index(@page_ids.first)
+page  = Onetime::Receipt.expiring_within(120, offset: start + 1, count: 2)
+[mine, page]
+#=> [@page_ids, @page_ids[1, 2]]
+
+## expiring_within reads against a given window start
+Onetime::Receipt.expiring_within(120, now: Familia.now.to_f + 3600).include?(@page_ids.first)
+#=> false
+
+## remove_from_expiration_timeline takes one entry off by identifier
+removed = Onetime::Receipt.remove_from_expiration_timeline(@page_ids[0])
+[removed, @page_ids.map { |id| Onetime::Receipt.expiration_timeline.member?(id) }]
+#=> [true, [false, true, true]]
+
+## remove_from_expiration_timeline returns false for an absent identifier
+Onetime::Receipt.remove_from_expiration_timeline(@page_ids[0])
+#=> false
+
+## remove_from_expiration_timeline removes a raw (unquoted) member too
+# dedupe-instances --run rewrites quoted members raw; Familia's own
+# remove_element would miss them.
+@raw_id = "test_raw_#{rand(100_000)}"
+tl = Onetime::Receipt.expiration_timeline
+tl.dbclient.zadd(tl.dbkey, Familia.now.to_f + 60, @raw_id)
+removed = Onetime::Receipt.remove_from_expiration_timeline(@raw_id)
+[removed, tl.dbclient.zscore(tl.dbkey, @raw_id)]
+#=> [true, nil]
+
+## warning_sent? finds a raw (unquoted) mark
+ws = Onetime::Receipt.warnings_sent
+ws.dbclient.sadd(ws.dbkey, @raw_id)
+found = Onetime::Receipt.warning_sent?(@raw_id)
+ws.dbclient.srem(ws.dbkey, @raw_id)
+found
+#=> true
+
+## clean up the paged-read ids
+@page_ids.each { |id| Onetime::Receipt.remove_from_expiration_timeline(id) }
+@page_ids.count { |id| Onetime::Receipt.expiration_timeline.member?(id) }
+#=> 0
+
 ## warning_sent? returns false for new receipt
 test_id2 = "test_warning_#{rand(10000)}"
 Onetime::Receipt.warning_sent?(test_id2)
