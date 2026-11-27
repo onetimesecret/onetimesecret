@@ -336,7 +336,7 @@ jobs:
     steps:
       - *checkout-step
 
-      - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
+      - uses: ruby/setup-ruby@f9c4492e86def3e644ab32a0ef185eda5b0c20d0 # v1.342.0
         with:
           ruby-version: '.ruby-version' # this pin has no ruby-version-file input
           bundler-cache: false # DEBUG: disabled to rule out stale cache
