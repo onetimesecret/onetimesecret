@@ -74,6 +74,7 @@ const {
   hasNext,
   hasPrev,
   isCapped,
+  retention,
   fetchPage,
   next,
   prev,
@@ -134,7 +135,8 @@ const actorLabel = (actor: string): string =>
 const decoratedEvents = computed(() =>
   records.value.map((event) => ({
     event,
-    key: `${event.at.getTime()}-${event.nonce}`,
+    // Row id from the server; older backends send only the nonce.
+    key: event.id ?? `${event.at.getTime()}-${event.nonce}`,
     label: kindLabel(event.kind),
     icon: kindIcon(event.kind),
     absolute: formatDisplayDateTime(event.at),
@@ -150,7 +152,26 @@ const decoratedEvents = computed(() =>
     // Gated column (#3989): computed unconditionally (cheap), rendering is
     // what's gated by showCountry — see the th/td v-if in the template.
     countryLabel: event.net_country ?? t('web.organizations.audit.country_unknown'),
+    // Identical fetches in one coalesce window share a row; the badge shows
+    // how many, and its tooltip when the first and last happened.
+    repeatTitle:
+      event.count > 1
+        ? t('web.organizations.audit.repeat_tooltip', {
+            count: event.count,
+            first: formatDisplayDateTime(event.first_at ?? event.at),
+            last: formatDisplayDateTime(event.last_at ?? event.at),
+          })
+        : null,
   }))
+);
+
+// Capped notice caps: from the response when the backend sends them (each
+// partition has its own), else the bootstrap member cap for both.
+const cappedMaxLabel = computed(
+  () => retention.value?.max_events.toLocaleString() ?? maxEventsLabel
+);
+const cappedGuestMaxLabel = computed(
+  () => retention.value?.max_guest_events.toLocaleString() ?? maxEventsLabel
 );
 
 // "Showing X–Y of Z" — 1-based, from the server-echoed clamped offset.
@@ -289,7 +310,12 @@ watch(orgExtid, () => {
           name="information-circle"
           class="size-4 shrink-0"
           aria-hidden="true" />
-        {{ t('web.organizations.audit.capped_notice', { max: maxEventsLabel }) }}
+        {{
+          t('web.organizations.audit.capped_notice', {
+            max: cappedMaxLabel,
+            guest_max: cappedGuestMaxLabel,
+          })
+        }}
       </div>
 
       <!--
@@ -342,7 +368,7 @@ watch(orgExtid, () => {
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800/50">
             <tr
-              v-for="{ event, key, label, icon, absolute, relative, actorLabel: rowActor, actorIdentity, countryLabel } in decoratedEvents"
+              v-for="{ event, key, label, icon, absolute, relative, actorLabel: rowActor, actorIdentity, countryLabel, repeatTitle } in decoratedEvents"
               :key="key"
               data-testid="org-audit-row">
               <td class="px-6 py-4 whitespace-nowrap">
@@ -354,6 +380,14 @@ watch(orgExtid, () => {
                     aria-hidden="true" />
                   <span class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ label }}
+                  </span>
+                  <span
+                    v-if="repeatTitle"
+                    :title="repeatTitle"
+                    :aria-label="repeatTitle"
+                    data-testid="org-audit-repeat"
+                    class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                    {{ t('web.organizations.audit.repeat_badge', { count: event.count }) }}
                   </span>
                 </div>
               </td>
