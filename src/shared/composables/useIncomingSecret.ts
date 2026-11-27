@@ -2,6 +2,8 @@
 
 import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { IncomingSecretPayload, IncomingSecretResponse } from '@/schemas/api/incoming';
+import { reportedPassphraseIssue } from '@/shared/composables/usePassphraseRules';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useIncomingStore } from '@/shared/stores/incomingStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { ref, computed } from 'vue';
@@ -66,8 +68,21 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
     () => incomingStore.config?.passphrase_input_required ?? false
   );
   const defaultTtl = computed(() => incomingStore.defaultTtl);
-  const isFormValid = computed(() => Boolean(form.value.secret.trim() && form.value.recipientId &&
-    (!passphraseRequired.value || form.value.passphrase.trim())));
+  // The server checks a required passphrase against the instance rules
+  // (length, complexity); check the same rules here so the sender sees why
+  // instead of a refused submit.
+  const bootstrap = useBootstrapStore();
+  const passphraseValid = computed(
+    () =>
+      !passphraseRequired.value ||
+      !reportedPassphraseIssue(form.value.passphrase, {
+        required: true,
+        config: bootstrap.secret_options?.passphrase,
+      })
+  );
+  const isFormValid = computed(() =>
+    Boolean(form.value.secret.trim() && form.value.recipientId && passphraseValid.value)
+  );
 
   // Two separate handlers because useAsyncHandler doesn't support per-call
   // option overrides. Consider adding wrap(operation, overrides?) signature

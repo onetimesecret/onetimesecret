@@ -119,11 +119,20 @@ export function passphraseIssueMessage(issue: PassphraseIssue, t: Translate): st
  * validation reads, so the chip cannot accept what submit refuses.
  *
  * @param value - the current passphrase
+ * @param options.required - whether a passphrase is required, for a form
+ *   whose requirement does not come from the sharing controls (the incoming
+ *   secrets form reads it from its own config).
  */
-export function usePassphraseRules(value: () => string) {
+export function usePassphraseRules(
+  value: () => string,
+  options: { required?: () => boolean } = {}
+) {
   const { t } = useI18n();
   const { secret_options } = storeToRefs(useBootstrapStore());
-  const { passphraseRequired } = useSharingControls();
+  const sharingControls = useSharingControls();
+  const passphraseRequired = computed(() =>
+    options.required ? options.required() : sharingControls.passphraseRequired.value
+  );
 
   const config = computed<PassphraseRulesConfig>(() => secret_options.value?.passphrase ?? {});
 

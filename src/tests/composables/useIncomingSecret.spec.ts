@@ -1,6 +1,7 @@
 // src/tests/composables/useIncomingSecret.spec.ts
 
 import { useIncomingSecret } from '@/shared/composables/useIncomingSecret';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useIncomingStore } from '@/shared/stores/incomingStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { Router, useRouter } from 'vue-router';
@@ -104,6 +105,22 @@ describe('useIncomingSecret', () => {
       form.value.recipientId = 'abc123';
 
       expect(isFormValid.value).toBe(false);
+    });
+
+    it('is false when a required passphrase breaks the instance rules', () => {
+      mockIncomingStore.config.passphrase_input_required = true;
+      useBootstrapStore().$patch({
+        secret_options: { passphrase: { minimum_length: 8 } },
+      } as never);
+      const { form, isFormValid } = useIncomingSecret();
+
+      form.value.secret = 'my secret';
+      form.value.recipientId = 'abc123';
+      form.value.passphrase = 'short';
+      expect(isFormValid.value).toBe(false);
+
+      form.value.passphrase = 'long enough';
+      expect(isFormValid.value).toBe(true);
     });
 
     it('is true when both secret and recipientId are set', () => {

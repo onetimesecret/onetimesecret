@@ -1,8 +1,11 @@
 // src/tests/apps/secret/components/IncomingSecretFormBody.spec.ts
 
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { createTestingPinia } from '@pinia/testing';
 import { mount } from '@vue/test-utils';
-import { describe, expect, it, vi } from 'vitest';
-import { ref } from 'vue';
+import { setActivePinia } from 'pinia';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { nextTick, ref } from 'vue';
 
 // Renders `key{json params}` so the duration handed to the expiry line is
 // visible; a plural call renders `key#n`.
@@ -15,8 +18,9 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
-const { defaultTtl } = vi.hoisted(() => ({
+const { defaultTtl, passphraseRequired } = vi.hoisted(() => ({
   defaultTtl: { value: null as number | null },
+  passphraseRequired: { value: false },
 }));
 
 vi.mock('@/shared/composables/useIncomingSecret', () => ({
@@ -26,7 +30,7 @@ vi.mock('@/shared/composables/useIncomingSecret', () => ({
     isSubmitting: ref(false),
     memoMaxLength: ref(50),
     secretMaxLength: ref(1000),
-    passphraseRequired: ref(false),
+    passphraseRequired: ref(passphraseRequired.value),
     // Read at mount: each test sets the value before mounting.
     defaultTtl: ref(defaultTtl.value),
     recipients: ref([]),
@@ -55,6 +59,12 @@ import IncomingSecretFormBody from '@/apps/secret/components/incoming/IncomingSe
 const hour = '{"count":1,"unit":"web.UNITS.ttl.time.hour#1"}';
 const twoSeconds = '{"count":2,"unit":"web.UNITS.ttl.time.second#2"}';
 
+beforeEach(() => {
+  setActivePinia(createTestingPinia({ createSpy: vi.fn, stubActions: false }));
+  defaultTtl.value = null;
+  passphraseRequired.value = false;
+});
+
 describe('IncomingSecretFormBody expiry line', () => {
   it('is absent when the config has no default lifetime', () => {
     defaultTtl.value = null;
@@ -80,5 +90,41 @@ describe('IncomingSecretFormBody expiry line', () => {
     expect(wrapper.text()).toContain(
       `incoming.expires_after_duration${JSON.stringify({ duration: compound })}`
     );
+  });
+});
+
+describe('IncomingSecretFormBody passphrase rules', () => {
+  const rules = { minimum_length: 8, enforce_complexity: true };
+
+  function mountRequired() {
+    passphraseRequired.value = true;
+    useBootstrapStore().$patch({
+      secret_options: { default_ttl: 3600, ttl_options: [3600], passphrase: rules },
+    } as never);
+    return mount(IncomingSecretFormBody);
+  }
+
+  it('shows the minimum length and complexity hints for a required passphrase', () => {
+    const wrapper = mountRequired();
+    expect(wrapper.find('[data-testid="incoming-passphrase-min-hint"]').text()).toContain(
+      'web.secrets.passphraseMinimumLengthRequired'
+    );
+    expect(wrapper.find('[data-testid="incoming-passphrase-complexity-hint"]').exists()).toBe(true);
+  });
+
+  it('reports a too-short passphrase as the user types', async () => {
+    const wrapper = mountRequired();
+    const input = wrapper.find('[data-testid="incoming-passphrase-input"]');
+    await input.setValue('short');
+    await nextTick();
+    expect(wrapper.find('[data-testid="incoming-passphrase-error"]').text()).toContain(
+      'web.secrets.error_passphrase_too_short'
+    );
+    expect(input.attributes('aria-invalid')).toBe('true');
+  });
+
+  it('does not flag the empty required passphrase before the user touches it', () => {
+    const wrapper = mountRequired();
+    expect(wrapper.find('[data-testid="incoming-passphrase-error"]').exists()).toBe(false);
   });
 });
