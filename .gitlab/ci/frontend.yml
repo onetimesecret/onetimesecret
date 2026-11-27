@@ -1,0 +1,31 @@
+# .gitlab/ci/frontend.yml
+#
+# The frontend build (docs/planning/2026-1110-gitlab-ci-migration-plan.md,
+# §4.6): one job per pipeline, whose public/web/dist/ the Ruby lanes take as
+# an artifact. GitHub's build-assets job, with the same two steps.
+#
+# It runs whenever a job that needs it does, so its rules are the three rule
+# sets of the lane jobs together. A lane job selected in a pipeline that has
+# no frontend-build would make GitLab refuse to create the pipeline.
+frontend-build:
+  extends: .ruby-job
+  stage: build
+  needs: []
+  timeout: 15m
+  # No gems are installed here, so the bundle cache is not restored.
+  cache: []
+  rules:
+    - !reference [.rules, ruby-lanes]
+    - !reference [.rules, auth-lanes]
+    - !reference [.rules, nightly-lanes]
+  script:
+    - bin/ci toolchain
+    - bin/ci prepare pnpm
+    # The committed favicon and icon text assets must match
+    # scripts/branding/mark.mjs (docs/customization/branding-favicon.md).
+    - pnpm run gen:favicons:check
+    - pnpm run build
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - public/web/dist/

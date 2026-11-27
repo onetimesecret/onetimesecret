@@ -125,17 +125,19 @@ Facts that shape the design:
 - The project exists at `gitlab.com/onetimesecret/onetimesecret` (project id
   88874403). Development is there (§8). `main` and `develop` are protected
   branches, and `v*` is a protected tag that only Maintainers can create.
-- `.gitlab-ci.yml` has the workflow rules of §4.1 and two sets of jobs: the
+- `.gitlab-ci.yml` has the workflow rules of §4.1 and four sets of jobs: the
   TypeScript pilot (unit tests and test type checking,
-  `saas-linux-medium-amd64`, `ci/typescript-pilot/`, #4932) and
+  `saas-linux-medium-amd64`, `ci/typescript-pilot/`, #4932);
   `.gitlab/ci/lint.yml`, the jobs of `static-analysis.yml` on
-  `saas-linux-small-amd64` (Phase 2). Secret detection, dependency scanning
-  and advanced SAST jobs (`*-profile-*`) also run in merge request
-  pipelines; they are not defined in the repository and are allowed to
-  fail.
+  `saas-linux-small-amd64` (Phase 2); `.gitlab/ci/frontend.yml`, the
+  frontend build; and `.gitlab/ci/ruby.yml`, RuboCop and the Ruby lanes
+  (Phase 3). Secret detection, dependency scanning and advanced SAST jobs
+  (`*-profile-*`) also run in merge request pipelines; they are not defined
+  in the repository and are allowed to fail.
 - "Pipelines must succeed" is on, so a merge request merges only with a
-  green pipeline. The jobs above are the whole gate; the Ruby lanes and the
-  e2e suites run on GitHub after the merge (§2.4, Phase 3).
+  green pipeline. The jobs above are the whole gate. The e2e suites, and the
+  jobs of `ci.yml` that Phase 3 lists as open, run on GitHub after the merge
+  (§2.4).
 - `.agents/skills/merge/SKILL.md` (#4940) merges through GitLab merge
   requests with merge commits and treats `main` as protected.
 - Branch `ci-pilot/typescript` compared GitLab, CircleCI and GitHub runners for
@@ -1565,19 +1567,62 @@ full-auth and tenant-connect. `docs/development/auth-ci.md` asks for CI,
 full-auth e2e and tenant-connect e2e to be green on a commit before it is
 tagged.
 
-State on 2026-11-14:
+State on 2026-11-27:
 
-- In place: the `smoke-lane` job in `ruby.yml`, the first Ruby job on
-  GitLab. It runs `tests/lanes/run smoke` on `saas-linux-medium-amd64` with
-  the S1 daemon recipe, as five `bin/ci` steps: `toolchain`, `docker up`,
-  `services up`, `prepare` and `lane` (`tools/ci/`, which has only those
-  commands). It needs no frontend build and waits on no other job.
-- Selection: three path lists in `rules.yml`, `ci`, `ruby` and
-  `typescript`. `tools/testsuite/gitlab-rules-paths-test.sh` fails when
-  `ruby` or `typescript` differs from the `ci.yml` filter of the same name by
-  more than the `/**` rewrite (§4.4).
-- Open: the other lanes, the selection tests for fixture scenarios (§4.4),
-  and the toolchain image, which replaces `bin/ci toolchain`.
+- In place, in `ruby.yml`: `rubocop`, and one job per lane and overlay pair
+  that `ci.yml` runs. `smoke-lane`; `ruby-lanes` (`unit`, `harness`,
+  `billing`, `api`, `full-sqlite`, `full-pg`, `disabled`, `strategies`) and
+  `ruby-lane-simple`, which first runs the API v3 fresh-schema check;
+  `ruby-auth-lanes` (`full-pg-agnostic`, `full-mfa`, `full-saml-platform`,
+  `full-webauthn-verify`) and `ruby-auth-browser`; `ruby-billing-lanes`
+  (`billing-integration`, and `full-sqlite`, `full-pg` and
+  `full-pg-agnostic` with the billing overlay). Each lane job runs
+  `tests/lanes/run` on `saas-linux-medium-amd64` with the S1 daemon recipe,
+  through `bin/ci`: `toolchain`, `docker up`, `services up`, `prepare` and
+  `lane` (`tools/ci/`). `rubocop` runs on `saas-linux-small-amd64` and
+  needs only `bin/ci prepare bundle`. `harness` is a job of its own; on
+  GitHub it is a second step of the unit job.
+- `bin/ci prepare` removes group and other write access from the checkout
+  root and the directories above it, where the job's user owns them and
+  they are not sticky. GitLab's Docker executor fetches the
+  sources with umask 0000, and `bin/setup --doctor --bundle`, which the unit
+  lane runs, refuses to write under a directory other users can write to
+  (`bundle_check_output_path` in `tools/setup/setup.sh`).
+- In place, in `frontend.yml`: `frontend-build`, the favicon check and the
+  build of GitHub's `build-assets`. Every lane job except `smoke-lane` takes
+  its `public/web/dist/` as an artifact. No lane waits on `rubocop`.
+- Selection: four path lists in `rules.yml` (`ci`, `ruby`, `typescript`,
+  `auth`) and three rule sets. `ruby-lanes`: a Ruby or pipeline change.
+  `auth-lanes`: in a merge request, an auth path or the `ci:auth` label; on
+  a push to `main` or `develop`, any Ruby change. `nightly-lanes`:
+  scheduled, web, API and tag pipelines. On GitHub a push ran every job
+  whatever it changed (`ci.yml:159`); here a push that changes no Ruby path
+  runs no lane. `tools/testsuite/gitlab-rules-paths-test.sh` fails when a
+  list differs from its GitHub source by more than the `/**` rewrite
+  (§4.4), when a job uses another rule set, or when a lane under
+  `tests/lanes/` is in no job.
+- Not on GitLab, so with no run before a merge: the `ci.yml` jobs
+  `typescript-lint` (`pnpm type-check`, `pnpm lint`), `i18n-validate`,
+  `host-proxy-wire`, `hygiene` and `check-oci-image`. The first three and
+  the last still run on GitHub on mirrored pushes; `hygiene` runs only on
+  pull requests, so nowhere (§2.4).
+- The other `ci.yml` jobs: `typescript-unit` is the pilot job. `changes`
+  and `ci-verdict` have no job here; `rules` and the pipeline status do
+  their work (§4.4, §4.5). `publish-oci` stays in `ci.yml`: it is the only
+  path from a `v*` tag to the image workflow, and it needs `ci-verdict`.
+- Not ported from the lane jobs: the RSpec results as JUnit reports and the
+  aggregate report (§4.7), the CI metrics (D10), and the unit job's
+  non-blocking hash-mismatch probe.
+- No pipeline schedule exists, so `ruby-billing-lanes` runs only in manual
+  and tag pipelines until one does.
+- On GitHub, every Ruby job of `ci.yml` has been skipped on `develop` since
+  2026-11-23: `ruby/setup-ruby` at the pinned v1.319.0 does not know Ruby
+  3.4.13, `ruby-lint` fails, and the jobs that need it are skipped (run
+  45954526125). The parity measurements in the exit criteria below need
+  that pin raised first.
+- Open: the jobs and reports above, migrations, `e2e.yml`, the selection
+  tests for fixture scenarios (§4.4), and the toolchain image, which
+  replaces `bin/ci toolchain`.
 
 Exit, measured on the same commits on both hosts:
 

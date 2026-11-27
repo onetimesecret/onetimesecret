@@ -20,12 +20,12 @@ ci_usage_error() {
 }
 
 # toolchain, prepare and the daemon start change the machine they run on:
-# system packages, mounts, cgroups, iptables and the checkout's
-# .bundle/config. They run only in a GitLab CI job, whose container is
-# discarded when the job ends.
+# system packages, mounts, cgroups, iptables, directory modes and the
+# checkout's .bundle/config. They run only in a GitLab CI job, whose
+# container is discarded when the job ends.
 ci_require_gitlab_job() { # <what>
   if [ "${GITLAB_CI:-}" != true ]; then
-    ci_die "$1 changes the machine it runs on (packages, mounts, cgroups, .bundle/config), so it runs only in a GitLab CI job (GITLAB_CI=true)"
+    ci_die "$1 changes the machine it runs on (packages, mounts, cgroups, directory modes, .bundle/config), so it runs only in a GitLab CI job (GITLAB_CI=true)"
   fi
 }
 

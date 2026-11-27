@@ -1,30 +1,109 @@
 # .gitlab/ci/ruby.yml
 #
-# Ruby test lanes (docs/planning/2026-1110-gitlab-ci-migration-plan.md, §4.2).
-# GitHub runs every lane on the commits the push mirror delivers to it, after
-# the merge (plan §2.4); the jobs here run before it.
+# RuboCop and the Ruby test lanes
+# (docs/planning/2026-1110-gitlab-ci-migration-plan.md, §4.2). These jobs run
+# in merge request pipelines, before the merge, and on main and develop after
+# it; .gitlab/ci/rules.yml has the rule sets that select them.
 #
 # A lane job runs the lane through tests/lanes/run with the services from
 # compose.test.yml, the same command and services as a local run. The daemon
 # for those services runs inside the job container (bin/ci docker up, plan
 # §4.3). Each step is one bin/ci command (tools/ci/README.md).
+#
+# Each lane is its own job, as on GitHub, and no lane waits on RuboCop or on
+# another lane: a red job fails the pipeline, and the pipeline is the gate.
+# The lanes other than smoke wait for frontend-build
+# (.gitlab/ci/frontend.yml), because they need public/web/dist/
+# (tests/lanes/README.md, "Prerequisites").
+
+# The image spike S1 ran the lanes on. Its Ruby is the .ruby-version pin
+# (scripts/check-version-pins.sh reads the image line below). Every job that
+# calls bin/ci toolchain or installs the bundle uses it, so the gems in the
+# shared cache are built against one set of libraries.
+.ruby-job:
+  image: ruby:3.4.13-bookworm@sha256:a3d6cdfcefbf681f482be2ad848207f42193745d35695abe3a56327f45bdb515
+  tags: [saas-linux-medium-amd64]
+  cache:
+    # The image name is in the prefix so that gems built against another
+    # image's libraries are never restored here. Lane jobs only read the
+    # cache; rubocop and smoke-lane, which run on every Ruby change, write it.
+    key:
+      files:
+        - Gemfile.lock
+        - .ruby-version
+      prefix: bundle-ruby-bookworm
+    paths:
+      - vendor/bundle/
+    policy: pull
+
+# One lane. LANE is a directory under tests/lanes/. LANE_OVERLAY, when set, is
+# a file under tests/lanes/overlays/. LANE_EXTRA_SERVICES names what the lane
+# needs from compose.test.yml beyond valkey and rabbitmq, which base.env gives
+# every lane. A job leaves the last two unset when it has none.
+.lane:
+  extends: .ruby-job
+  stage: test
+  needs:
+    - job: frontend-build
+      artifacts: true
+  # The longest lane job on GitHub (the unit lane) has a 15 minute limit; a
+  # job here also installs its toolchain and starts a daemon.
+  timeout: 20m
+  variables:
+    # The daemon bin/ci docker up starts; see tools/ci/docker.sh.
+    DOCKER_HOST: unix:///var/run/docker.sock
+  before_script:
+    - bin/ci toolchain
+    - bin/ci docker up
+    - bin/ci services up valkey rabbitmq $LANE_EXTRA_SERVICES
+    - bin/ci prepare
+  script:
+    - bin/ci lane $LANE $LANE_OVERLAY
+  artifacts:
+    when: always
+    expire_in: 3 days
+    # mail.log stays behind: it is raw email content that no log scrubbing
+    # has seen (as in the run-test-lane action).
+    paths:
+      - tmp/ci/
+      - tmp/lanes/*/*/app.log
+      - tmp/lanes/*/*/last.log
+      - tmp/rspec_*_results*.json
+
+# RuboCop with the options of GitHub's ruby-lint job (bin/ci rubocop). It
+# needs Ruby and the bundle, not the toolchain or the test services, and a
+# small runner is enough for it.
+rubocop:
+  extends: .ruby-job
+  stage: lint
+  tags: [saas-linux-small-amd64]
+  needs: []
+  timeout: 10m
+  rules:
+    - !reference [.rules, ruby-lanes]
+  cache:
+    policy: pull-push
+  script:
+    - bin/ci prepare bundle
+    - bin/ci rubocop
+  artifacts:
+    when: always
+    expire_in: 3 days
+    paths:
+      - tmp/rubocop_results.json
 
 # The smoke lane (tests/lanes/smoke): the curated SMOKE_SPEC_GROUPS in
 # lib/tasks/spec.rake and the Vitest list in src/tests/smoke-files.ts. It
 # waits on no other job. Selected by the same paths as GitHub's smoke-test
 # job (any Ruby or TypeScript change) and by a change to the pipeline.
 #
-# Differences from GitHub's smoke-test job, on purpose:
-#   - no frontend build: the lane passes in a checkout with no
-#     public/web/dist/ (without the Vite manifest, the page helper renders an
-#     error script tag in place of the asset tags), so the job neither builds
-#     the frontend nor waits for a job that does;
-#   - no RuboCop prerequisite: GitLab has no RuboCop job yet.
+# No frontend build, unlike GitHub's smoke-test job and the other lanes here:
+# the lane passes in a checkout with no public/web/dist/ (without the Vite
+# manifest, the page helper renders an error script tag in place of the asset
+# tags), so the job neither builds the frontend nor waits for the job that
+# does.
 smoke-lane:
-  stage: test
-  # The image spike S1 ran the lanes on. Its Ruby is the .ruby-version pin.
-  image: ruby:3.4.13-bookworm@sha256:a3d6cdfcefbf681f482be2ad848207f42193745d35695abe3a56327f45bdb515
-  tags: [saas-linux-medium-amd64]
+  extends: .lane
   needs: []
   # A cold run (no Bundler cache) is the longest. Tighten once measured.
   timeout: 15m
@@ -33,31 +112,72 @@ smoke-lane:
     - changes: !reference [.changes, ruby]
     - changes: !reference [.changes, typescript]
   variables:
-    # The daemon bin/ci docker up starts; see tools/ci/docker.sh.
-    DOCKER_HOST: unix:///var/run/docker.sock
+    LANE: smoke
   cache:
-    # The image name is in the prefix so that gems built against another
-    # image's libraries are never restored here.
-    key:
-      files:
-        - Gemfile.lock
-        - .ruby-version
-      prefix: bundle-ruby-bookworm
-    paths:
-      - vendor/bundle/
+    policy: pull-push
+
+# The lanes every Ruby change runs. `harness` is the lane runner's own specs,
+# which GitHub runs as a second step of its unit job. `simple` is below: it
+# has a step of its own.
+ruby-lanes:
+  extends: .lane
+  rules:
+    - !reference [.rules, ruby-lanes]
+  parallel:
+    matrix:
+      - LANE: [unit, harness, billing, api, full-sqlite, disabled, strategies]
+      - LANE: full-pg
+        LANE_EXTRA_SERVICES: postgres
+
+# The simple lane, after the check that fresh Ruby payloads still match the
+# TypeScript schemas. Same job and same order as GitHub's
+# ruby-integration-simple; the check runs one spec of the lane and reads what
+# it captured.
+ruby-lane-simple:
+  extends: .lane
+  rules:
+    - !reference [.rules, ruby-lanes]
+  variables:
+    LANE: simple
   script:
-    - bin/ci toolchain
-    - bin/ci docker up
-    - bin/ci services up valkey rabbitmq
-    - bin/ci prepare
-    - bin/ci lane smoke
-  artifacts:
-    when: always
-    expire_in: 3 days
-    # mail.log stays behind: it is raw email content that no log scrubbing
-    # has seen (as in the run-test-lane action).
-    paths:
-      - tmp/ci/
-      - tmp/lanes/smoke/base/app.log
-      - tmp/lanes/smoke/base/last.log
-      - tmp/rspec_smoke_results*.json
+    - bash .github/scripts/check-api-v3-fresh-schemas.sh
+    - bin/ci lane $LANE
+
+# Auth coverage: the database-agnostic full-mode suite a second time, on
+# PostgreSQL, and the three feature-specific boots.
+ruby-auth-lanes:
+  extends: .lane
+  rules:
+    - !reference [.rules, auth-lanes]
+  parallel:
+    matrix:
+      - LANE: [full-mfa, full-saml-platform, full-webauthn-verify]
+      - LANE: full-pg-agnostic
+        LANE_EXTRA_SERVICES: postgres
+
+# The SAML browser lane. Its tasks refuse to start without the Playwright
+# browsers; --with-deps also installs their OS packages.
+ruby-auth-browser:
+  extends: .lane
+  rules:
+    - !reference [.rules, auth-lanes]
+  variables:
+    LANE: browser
+  script:
+    - pnpm exec playwright install --with-deps chromium firefox webkit
+    - bin/ci lane $LANE
+
+# The billing configurations: billing's own integration tests, and the three
+# full-mode lanes repeated with the billing overlay (BILLING_ENABLED=true).
+ruby-billing-lanes:
+  extends: .lane
+  rules:
+    - !reference [.rules, nightly-lanes]
+  parallel:
+    matrix:
+      - LANE: billing-integration
+      - LANE: full-sqlite
+        LANE_OVERLAY: billing
+      - LANE: [full-pg, full-pg-agnostic]
+        LANE_OVERLAY: billing
+        LANE_EXTRA_SERVICES: postgres

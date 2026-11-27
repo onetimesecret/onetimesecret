@@ -1,6 +1,6 @@
 # GitLab CI. The design is docs/planning/2026-1110-gitlab-ci-migration-plan.md
-# (§4); GitHub still runs the full suite on the commits the push mirror
-# delivers to it (§2.4).
+# (§4). The Ruby lanes, RuboCop and the frontend build run here; the jobs of
+# GitHub's ci.yml that have no job here yet are listed in that plan (Phase 3).
 #
 # Pipelines run for merge requests; for pushes to main, develop and v* tags;
 # and for scheduled, web and API runs. A topic branch gets its pipeline
@@ -21,6 +21,7 @@ workflow:
 
 stages:
   - lint
+  - build
   - test
 
 default:
@@ -29,6 +30,7 @@ default:
 include:
   - local: .gitlab/ci/rules.yml
   - local: .gitlab/ci/lint.yml
+  - local: .gitlab/ci/frontend.yml
   - local: .gitlab/ci/ruby.yml
 
 # TypeScript unit tests and test type checking, from the pilot
