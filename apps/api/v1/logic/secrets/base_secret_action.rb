@@ -402,10 +402,31 @@ module V1::Logic
       # The legacy custid field stored email addresses; owner_id stores objid.
       # See: Onetime::Receipt.spawn_pair in lib/onetime/models/receipt.rb
       #
+      # The receipt is stamped with the organization and custom domain the
+      # same way the v2/v3 path stamps it, so a v1 secret's events (created,
+      # viewed, revealed, burned, expired) reach the organization's Secret
+      # Activity trail. Keep logically parallel with the V2 implementation.
       def create_secret_pair
+        # Load the scope records before the commit opens: reads inside
+        # spawn_pair's transaction return futures, not values.
+        # Resolved once and kept: record_created_activity runs after the
+        # commit and must not repeat the load, whose failure would then fail
+        # a creation that has already been stored.
+        @receipt_org  = receipt_organization
+        org           = @receipt_org
+        domain_record = receipt_custom_domain
+
         @receipt, @secret = Onetime::Receipt.spawn_pair(
-          cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain, kind: kind
-        )
+          cust&.objid, ttl, secret_value,
+          passphrase: passphrase,
+          domain: share_domain,
+          kind: kind,
+          org_id: org&.objid,
+          domain_id: domain_record&.objid,
+          domain_org_id: domain_record&.org_id
+        ) do |pending_receipt|
+          index_receipt(pending_receipt, org, domain_record)
+        end
 
         @greenlighted = receipt.valid? && secret.valid?
       end
@@ -414,16 +435,80 @@ module V1::Logic
         return raise_form_error 'Could not store your secret' unless greenlighted
 
         update_stats
+        record_created_activity
         send_email_to_recipient
       end
 
+      # Required registrations, queued inside the spawn_pair commit so the
+      # pair never exists without them. Same rules as V2: the domain index
+      # applies to guests too; the owner's receipt list and the organization
+      # index apply to authenticated creators.
+      def index_receipt(pending_receipt, org, domain_record)
+        pending_receipt.add_to_custom_domain_receipts(domain_record) if domain_record
+        return if anonymous_creator?
+
+        cust.add_receipt pending_receipt
+        pending_receipt.add_to_organization_receipts(org) if org
+      end
+
+      # The organization the receipt is stamped with: the authenticated
+      # creator's context (auth_org, set by V1::ControllerBase from the
+      # OrganizationLoader), or for a guest the organization that owns the
+      # custom domain the secret is shared on. A guest on the canonical host or
+      # a link-pool host has none.
+      def receipt_organization
+        return guest_receipt_organization if anonymous_creator?
+
+        auth_org
+      end
+
+      # The organization owning the custom domain a guest shares on, or nil.
+      # An archived organization can still own its domains
+      # (Organization#archive! leaves them attached), so it is skipped here
+      # as OrganizationLoader skips it for members.
+      def guest_receipt_organization
+        org = receipt_custom_domain&.primary_organization
+        org unless org.nil? || org.archived?
+      end
+
+      # The registered custom domain the secret is shared on, or nil for the
+      # canonical host or a link-pool host (set by validate_domain_access).
+      def receipt_custom_domain
+        @selected_sharing_domain
+      end
+
+      def anonymous_creator?
+        cust.nil? || cust.anonymous?
+      end
+
       def update_stats
-        unless cust.nil? || cust.anonymous?
-          cust.add_receipt receipt
-          cust.increment_field :secrets_created # cust.secrets_created.increment
+        # Best-effort, as in V2: a failing counter must not stop the link
+        # from returning or the 'created' event from recording.
+        unless anonymous_creator?
+          Onetime::Receipt.creation_followup(:customer_stats, receipt) do
+            cust.increment_field :secrets_created
+          end
         end
         # TODO:
         # Onetime::Customer.global.increment_field :secrets_created # Customer.secrets_created.increment
+      end
+
+      # The organization trail's 'created' event. Best-effort: a failure is
+      # logged by creation_followup and never fails a committed creation.
+      # Mirrors V2 BaseSecretAction#record_created_activity.
+      def record_created_activity
+        org = @receipt_org
+        return unless org
+
+        actor_attrs = if anonymous_creator?
+                        { 'actor' => 'anonymous' }
+                      else
+                        { 'actor' => 'creator', 'actor_id' => cust.objid }
+                      end
+
+        Onetime::Receipt.creation_followup(:created_activity, receipt) do
+          receipt.record_org_secret_activity_event('created', organization: org, **actor_attrs)
+        end
       end
 
       def send_email_to_recipient

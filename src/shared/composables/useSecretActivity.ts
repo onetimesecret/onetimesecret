@@ -26,6 +26,7 @@ import {
   secretActivityResponseSchema,
   type SecretActivityActorsMap,
   type SecretActivityEvent,
+  type SecretActivityRetention,
 } from '@/schemas/api/organizations';
 import { classifyError } from '@/schemas/errors';
 import { useApi } from '@/shared/composables/useApi';
@@ -56,18 +57,23 @@ export function useSecretActivity(orgExtid: Ref<string>) {
   const offset = ref(0);
   const limit = ref(DEFAULT_LIMIT);
   const total = ref(0);
+  /** details.retention from the last response; null for older backends. */
+  const retention = ref<SecretActivityRetention | null>(null);
 
   let abortController: AbortController | null = null;
 
   const count = computed(() => records.value.length);
   const hasNext = computed(() => offset.value + count.value < total.value);
   const hasPrev = computed(() => offset.value > 0);
-  // Per-org retention cap — features.secret_activity.max_events from the
-  // bootstrap payload (#3990; SECRET_ACTIVITY_MAX_EVENTS, default 10,000).
-  // When `total` saturates at the cap the trail has been trimmed — older
-  // events are gone and the UI should say so rather than imply a complete
-  // history.
-  const isCapped = computed(() => total.value >= getSecretActivityMaxEvents());
+  // Whether older events have been trimmed. The server reports it per
+  // partition (details.retention.trimmed): members and guests each have
+  // their own cap, so `total` can pass one cap without anything being
+  // trimmed. Older backends send no retention; for them, `total` reaching
+  // the bootstrap cap (features.secret_activity.max_events, #3990) is the
+  // signal. Either way the UI says so rather than imply a complete history.
+  const isCapped = computed(
+    () => retention.value?.trimmed ?? total.value >= getSecretActivityMaxEvents()
+  );
 
   /** Abort the in-flight request, if any. */
   function abort() {
@@ -106,6 +112,7 @@ export function useSecretActivity(orgExtid: Ref<string>) {
         // Contract mismatch: do NOT degrade to an empty list (see header note).
         records.value = [];
         actors.value = {};
+        retention.value = null;
         validationError.value = true;
         error.value = null;
         return;
@@ -113,6 +120,7 @@ export function useSecretActivity(orgExtid: Ref<string>) {
 
       records.value = result.data.records;
       actors.value = result.data.details.actors ?? {};
+      retention.value = result.data.details.retention ?? null;
       total.value = result.data.total;
       // Echo the server's clamped paging values so the range display and
       // next/prev math always agree with what was actually returned.
@@ -149,6 +157,7 @@ export function useSecretActivity(orgExtid: Ref<string>) {
     limit,
     total,
     count,
+    retention,
 
     // Derived
     hasNext,

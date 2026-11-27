@@ -117,6 +117,13 @@ interface ResponseOverrides {
   limit?: number;
   /** Read-time resolution map (details.actors); omitted = older backend. */
   actors?: Record<string, { email: string; extid: string }>;
+  /** details.retention; omitted = older backend. */
+  retention?: {
+    max_events: number;
+    max_guest_events: number;
+    coalesce_window: number;
+    trimmed: boolean;
+  };
 }
 
 const buildResponse = ({
@@ -125,13 +132,14 @@ const buildResponse = ({
   offset = 0,
   limit = 50,
   actors,
+  retention,
 }: ResponseOverrides = {}) => ({
   user_id: 'usr_123',
   organization_id: 'org_123',
   records,
   count: records.length,
   total,
-  details: { offset, limit, ...(actors ? { actors } : {}) },
+  details: { offset, limit, ...(actors ? { actors } : {}), ...(retention ? { retention } : {}) },
 });
 
 const respondWith = (response: object) => {
@@ -450,6 +458,70 @@ describe('SecretActivityTable', () => {
     });
   });
 
+  describe('repeated events', () => {
+    const FIRST_UNIX = AT_UNIX_SECONDS - 1800;
+
+    it('shows a count badge with first and last times when count > 1', async () => {
+      respondWith(
+        buildResponse({
+          records: [
+            buildEvent({
+              kind: 'secret_get',
+              id: 'e1:0123456789abcdef0123',
+              nonce: undefined,
+              count: 4,
+              first_at: FIRST_UNIX,
+              last_at: AT_UNIX_SECONDS,
+            }),
+          ],
+        })
+      );
+      wrapper = await mountComponent();
+
+      const badge = wrapper.find('[data-testid="org-audit-repeat"]');
+      expect(badge.exists()).toBe(true);
+      expect(badge.text()).toBe('web.organizations.audit.repeat_badge');
+      expect(badge.attributes('title')).toBe('web.organizations.audit.repeat_tooltip');
+    });
+
+    it('passes the count and both times to the badge strings', async () => {
+      const realEn = JSON.parse(
+        readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
+      );
+      const realI18n = createI18n({ legacy: false, locale: 'en', messages: { en: realEn } });
+      respondWith(
+        buildResponse({
+          records: [
+            buildEvent({ kind: 'secret_get', id: 'e1:aa', count: 4, first_at: FIRST_UNIX, last_at: AT_UNIX_SECONDS }),
+          ],
+        })
+      );
+      wrapper = mount(SecretActivityTable, {
+        props: { orgExtid: 'on1abc123' },
+        global: { plugins: [realI18n] },
+      });
+      await flushPromises();
+
+      const badge = wrapper.find('[data-testid="org-audit-repeat"]');
+      expect(badge.text()).toContain('4');
+      const title = badge.attributes('title') ?? '';
+      expect(title).toContain(`DT:${new Date(FIRST_UNIX * 1000).toISOString()}`);
+      expect(title).toContain(`DT:${AT_ISO}`);
+    });
+
+    it('shows no badge for a single event, or a legacy event without count', async () => {
+      respondWith(
+        buildResponse({
+          records: [buildEvent({ id: 'e1:bb', count: 1 }), buildEvent({ nonce: 'legacy-2' })],
+        })
+      );
+      wrapper = await mountComponent();
+
+      expect(wrapper.findAll('[data-testid="org-audit-row"]')).toHaveLength(2);
+      expect(wrapper.find('[data-testid="org-audit-repeat"]').exists()).toBe(false);
+    });
+  });
+
   describe('timestamps', () => {
     it('renders a <time> element with the ISO datetime attribute', async () => {
       wrapper = await mountComponent();
@@ -619,6 +691,44 @@ describe('SecretActivityTable', () => {
      * The cap is 10,000 rather than a small number so the thousands separator
      * from toLocaleString() is part of the contract under test.
      */
+    it('follows details.retention.trimmed over the total when the backend sends it', async () => {
+      // Members and guests each have their own cap, so total can pass the
+      // member cap with nothing trimmed.
+      const retention = { max_events: 10_000, max_guest_events: 10_000, coalesce_window: 3600 };
+      respondWith(buildResponse({ total: 15_000, retention: { ...retention, trimmed: false } }));
+      wrapper = await mountComponent();
+      expect(wrapper.find('[data-testid="org-audit-capped"]').exists()).toBe(false);
+      wrapper.unmount();
+
+      respondWith(buildResponse({ total: 120, retention: { ...retention, trimmed: true } }));
+      wrapper = await mountComponent();
+      expect(wrapper.find('[data-testid="org-audit-capped"]').exists()).toBe(true);
+    });
+
+    it('interpolates both partition caps from details.retention', async () => {
+      const realEn = JSON.parse(
+        readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
+      );
+      const realI18n = createI18n({ legacy: false, locale: 'en', messages: { en: realEn } });
+      respondWith(
+        buildResponse({
+          total: 12_000,
+          retention: { max_events: 5_000, max_guest_events: 7_000, coalesce_window: 3600, trimmed: true },
+        })
+      );
+
+      wrapper = mount(SecretActivityTable, {
+        props: { orgExtid: 'on1abc123' },
+        global: { plugins: [realI18n] },
+      });
+      await flushPromises();
+
+      const text = wrapper.find('[data-testid="org-audit-capped"]').text();
+      expect(text).toContain((5_000).toLocaleString());
+      expect(text).toContain((7_000).toLocaleString());
+      expect(text).not.toContain('{guest_max}');
+    });
+
     it('interpolates the configured cap into the capped notice (#3990)', async () => {
       const realEn = JSON.parse(
         readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')

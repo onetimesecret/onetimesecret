@@ -5,6 +5,7 @@
 require_relative '../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'onetime/security/request_context'
+require 'onetime/operations/domains/transfer'
 
 # Audit-fidelity coverage for the organization audit trail (#3633).
 #
@@ -15,8 +16,8 @@ require 'onetime/security/request_context'
 #     transitions, creation) with org context lands in the trail exactly
 #     once; guarded transitions cannot double-record.
 #   ACCURACY - events carry the right kind, timestamp, and shortid context;
-#     two identical events in the same second are both retained (the nonce
-#     prevents silent ZADD overwrites).
+#     identical fetches in one coalesce window share a row and its count
+#     goes up; lifecycle events never share a row.
 #   ISOLATION - events land only in the owning org's trail; receipts
 #     without org context write nowhere and raise nothing.
 #   CONTAINMENT - a failing trail write never breaks or reverts the
@@ -49,22 +50,32 @@ RSpec.describe Onetime::Organization, type: :integration do
     receipt.save_fields(:org_id)
   end
 
-  # Familia freezes a related field's definition once an instance of the class
-  # exists, and after that configure! refuses a different cap. Earlier
-  # examples have created organizations, so swap in an unfrozen copy to put
-  # the definition back in its boot-time state.
-  def thaw_secret_activity_definition!
-    described_class.related_fields_mutex.synchronize do
-      definition = described_class.related_fields[:secret_activity_events]
-      described_class.related_fields[:secret_activity_events] = definition.with(opts: definition.opts.dup)
-    end
+  let(:feature) { Onetime::Organization::Features::SecretActivity }
+
+  # Runs the block with the given caps/window in force, restoring the
+  # previous settings afterwards. The settings are read at write time, so
+  # they apply to every organization at once.
+  def with_secret_activity_settings(**overrides)
+    saved = feature.settings
+    merged = saved.merge(overrides)
+    feature.configure!(merged[:max_events], max_guest_events: merged[:max_guest_events],
+      coalesce_window: merged[:coalesce_window])
+    yield
+  ensure
+    feature.configure!(saved[:max_events], max_guest_events: saved[:max_guest_events],
+      coalesce_window: saved[:coalesce_window])
   end
 
-  def reset_secret_activity_cap!
-    thaw_secret_activity_definition!
-    Onetime::Organization::Features::SecretActivity.configure!(
-      Onetime::Organization::Features::SecretActivity::DEFAULT_MAX_EVENTS,
-    )
+  # Everything the trail stores for an organization, as raw bytes: the
+  # detail JSON, the partition members (ids) and the legacy set.
+  def raw_details(organization)
+    detail = organization.secret_activity_detail
+    client = detail.dbclient
+    [
+      *client.hvals(detail.dbkey),
+      *[organization.secret_activity_member, organization.secret_activity_guest,
+        organization.secret_activity_events].flat_map { |zset| client.zrange(zset.dbkey, 0, -1) },
+    ].join("\n")
   end
 
   describe '#record_secret_activity_event (accuracy)' do
@@ -91,44 +102,48 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(org.secret_activity_event_count).to eq(0)
     end
 
-    it 'retains two identical events in the same second (no silent overwrite)' do
+    it 'counts two identical fetches in one window as one row (no silent loss)' do
       at = Familia.now.to_f
       org.record_secret_activity_event('secret_get', at: at, 'receipt' => 'abc123')
-      org.record_secret_activity_event('secret_get', at: at, 'receipt' => 'abc123')
+      org.record_secret_activity_event('secret_get', at: at + 1, 'receipt' => 'abc123')
+
+      expect(org.secret_activity_event_count).to eq(1)
+      event = org.secret_activity_events_page.first
+      expect(event['count']).to eq(2)
+      expect(event['first_at']).to be_within(0.001).of(at)
+      expect(event['last_at']).to be_within(0.001).of(at + 1)
+      expect(event['at']).to eq(event['last_at'])
+    end
+
+    it 'retains two identical lifecycle events in the same second as two rows' do
+      at = Familia.now.to_f
+      org.record_secret_activity_event('revealed', at: at, 'receipt' => 'abc123')
+      org.record_secret_activity_event('revealed', at: at, 'receipt' => 'abc123')
 
       expect(org.secret_activity_event_count).to eq(2)
+      expect(org.secret_activity_events_page.map { |e| e['count'] }).to eq([1, 1])
     end
 
     it 'evicts only the oldest events past the retention cap' do
-      feature = Onetime::Organization::Features::SecretActivity
+      with_secret_activity_settings(max_events: 5) do
+        # configure! clamps to the MIN_MAX_EVENTS floor.
+        expect(feature.max_events).to eq(feature::MIN_MAX_EVENTS)
 
-      # configure! clamps to the MIN_MAX_EVENTS floor, so the smallest
-      # testable cap is the floor itself — pin the clamp while we're here.
-      thaw_secret_activity_definition!
-      expect(feature.configure!(5)).to eq(feature::MIN_MAX_EVENTS)
+        cap  = feature::MIN_MAX_EVENTS
+        base = Familia.now.to_f - 200
+        (cap + 3).times { |i| org.record_secret_activity_event('revealed', at: base + i) }
 
-      # configure! is boot-time-only: only an org built after it ran carries
-      # the new cap, so use a FRESH org here.
-      capped_org = described_class.new(
-        display_name: 'Capped Trail Org',
-        contact_email: "audit-cap-#{SecureRandom.hex(6)}@example.com",
-      ).tap(&:save)
-
-      cap  = feature::MIN_MAX_EVENTS
-      base = Familia.now.to_f - 200
-      (cap + 3).times { |i| capped_org.record_secret_activity_event('secret_get', at: base + i) }
-
-      expect(capped_org.secret_activity_event_count).to eq(cap)
-      ats = capped_org.secret_activity_events_page(limit: 200).map { |e| e['at'] }
-      expect(ats.min).to be_within(0.001).of(base + 3)
-      expect(ats.max).to be_within(0.001).of(base + cap + 2)
-    ensure
-      reset_secret_activity_cap!
+        expect(org.secret_activity_event_count).to eq(cap)
+        expect(org.secret_activity_trimmed?).to be(true)
+        ats = org.secret_activity_events_page(limit: 200).map { |e| e['at'] }
+        expect(ats.min).to be_within(0.001).of(base + 3)
+        expect(ats.max).to be_within(0.001).of(base + cap + 2)
+      end
     end
 
     it 'clamps pagination inputs and windows correctly' do
       base = Familia.now.to_f - 100
-      5.times { |i| org.record_secret_activity_event('secret_get', at: base + i) }
+      5.times { |i| org.record_secret_activity_event('revealed', at: base + i) }
 
       page = org.secret_activity_events_page(offset: 2, limit: 2)
       expect(page.size).to eq(2)
@@ -177,7 +192,10 @@ RSpec.describe Onetime::Organization, type: :integration do
         .and_return(OT::Config.wrap(conf_with_collect_flag('collect' => false)))
 
       expect(org.record_secret_activity_event('secret_get')).to be_nil
+      expect(org.record_secret_activity_event('created', partition: :guest)).to be_nil
       expect(org.secret_activity_event_count).to eq(0)
+      expect(org.secret_activity_detail.dbclient.exists(org.secret_activity_detail.dbkey)).to eq(0)
+      expect(org.secret_activity_count.dbclient.exists(org.secret_activity_count.dbkey)).to eq(0)
     end
 
     it "keeps recording on the string 'true'" do
@@ -204,81 +222,290 @@ RSpec.describe Onetime::Organization, type: :integration do
     end
   end
 
-  # Retention-cap configuration (SECRET_ACTIVITY_MAX_EVENTS, #3990). The cap
-  # lives on the stored related-field definition; configure! is the single
-  # boot-time mutation point (ConfigureSecretActivity initializer).
-  describe '.configure! (retention cap)' do
-    let(:feature) { Onetime::Organization::Features::SecretActivity }
-
-    def stored_cap
-      Onetime::Organization.related_fields[:secret_activity_events].opts[:max_length]
-    end
-
-    before { thaw_secret_activity_definition! }
-    after { reset_secret_activity_cap! }
+  # Retention caps and coalescing window (SECRET_ACTIVITY_MAX_EVENTS,
+  # _MAX_GUEST_EVENTS, _COALESCE_WINDOW). configure! is the single mutation
+  # point (ConfigureSecretActivity initializer); the values apply at write
+  # time to every organization.
+  describe '.configure!' do
+    around { |example| with_secret_activity_settings { example.run } }
 
     it 'applies and returns a cap above the floor' do
       expect(feature.configure!(2_500)).to eq(2_500)
-      expect(stored_cap).to eq(2_500)
+      expect(feature.max_events).to eq(2_500)
     end
 
-    it 'clamps values below the floor to MIN_MAX_EVENTS' do
+    it 'clamps caps below the floor to MIN_MAX_EVENTS' do
       expect(feature.configure!(99)).to eq(feature::MIN_MAX_EVENTS)
-      expect(feature.configure!(1)).to eq(feature::MIN_MAX_EVENTS)
-      expect(feature.configure!(0)).to eq(feature::MIN_MAX_EVENTS)
-      expect(feature.configure!(-10)).to eq(feature::MIN_MAX_EVENTS)
-      expect(stored_cap).to eq(feature::MIN_MAX_EVENTS)
+      expect(feature.configure!(-10, max_guest_events: 1)).to eq(feature::MIN_MAX_EVENTS)
+      expect(feature.max_guest_events).to eq(feature::MIN_MAX_EVENTS)
     end
 
-    it 'accepts the floor itself unclamped' do
-      expect(feature.configure!(feature::MIN_MAX_EVENTS)).to eq(feature::MIN_MAX_EVENTS)
+    it 'coerces integer-shaped strings (ENV/hand-edited YAML deliver them)' do
+      feature.configure!('500', max_guest_events: '700', coalesce_window: '60')
+      expect(feature.settings).to eq(max_events: 500, max_guest_events: 700, coalesce_window: 60)
     end
 
-    it 'coerces an integer-shaped string (ENV/hand-edited YAML deliver one)' do
-      expect(feature.configure!('500')).to eq(500)
-      expect(stored_cap).to eq(500)
+    it 'floors a negative window at 0 (coalescing off)' do
+      feature.configure!(500, coalesce_window: -5)
+      expect(feature.coalesce_window).to eq(0)
     end
 
-    it 'raises on non-integer input before mutating anything (initializer owns the fallback)' do
+    it 'raises on non-integer input before changing anything (initializer owns the fallback)' do
+      before_settings = feature.settings
       expect { feature.configure!('unbounded') }.to raise_error(ArgumentError)
       expect { feature.configure!(nil) }.to raise_error(TypeError)
-      # Integer() raised before the definition was touched: cap unchanged.
-      expect(stored_cap).to eq(feature::DEFAULT_MAX_EVENTS)
+      expect { feature.configure!(500, coalesce_window: 'x') }.to raise_error(ArgumentError)
+      expect(feature.settings).to eq(before_settings)
     end
 
-    # BOOT-ORDERING: Familia freezes the definition when the first
-    # organization materializes, so configure! reaches only organizations
-    # built after it runs. This is why ConfigureSecretActivity must run at
-    # boot, before any org traffic.
-    it 'reaches organizations materialized after it runs' do
-      feature.configure!(2_500)
+    it 'reaches organizations that already exist' do
+      org.record_secret_activity_event('revealed')
+      feature.configure!(feature::MIN_MAX_EVENTS)
 
-      fresh_org = described_class.new(
-        display_name: 'Materialized After Configure',
-        contact_email: "audit-fresh-#{SecureRandom.hex(6)}@example.com",
-      ).tap(&:save)
+      base = Familia.now.to_f
+      (feature::MIN_MAX_EVENTS + 1).times { |i| org.record_secret_activity_event('revealed', at: base + i) }
+      expect(org.secret_activity_event_count).to eq(feature::MIN_MAX_EVENTS)
+    end
+  end
 
-      expect(fresh_org.secret_activity_events.max_length).to eq(2_500)
+  # Deterministic ids: what makes two events "identical".
+  describe '.event_id' do
+    let(:attrs) do
+      { 'receipt' => 'abc12345', 'secret' => 'def67890', 'actor' => 'anonymous',
+        'net_ip_hash' => 'a' * 64, 'net_ua_partial' => 'Chrome/119', 'domain_id' => 'dom12345' }
+    end
+    let(:at) { 1_795_000_000.0 }
+
+    def id_for(kind = 'secret_get', overrides = {}, at: self.at, window: 3600)
+      feature.event_id(kind, attrs.merge(overrides), at: at, window: window)
     end
 
-    it 'refuses a different cap once an organization has materialized (boot-time-only)' do
-      stale_org = described_class.new(
-        display_name: 'Materialized Before Configure',
-        contact_email: "audit-stale-#{SecureRandom.hex(6)}@example.com",
-      ).tap(&:save)
-      expect(stale_org.secret_activity_events.max_length).to eq(feature::DEFAULT_MAX_EVENTS)
-
-      expect { feature.configure!(2_500) }.to raise_error(Familia::RelatedFieldFrozenError)
-      expect(stored_cap).to eq(feature::DEFAULT_MAX_EVENTS)
+    it 'is e1: plus 20 hex characters' do
+      expect(id_for).to match(/\Ae1:[0-9a-f]{20}\z/)
     end
 
-    it 'accepts the cap already in force after materialization (repeat boot)' do
-      described_class.new(
-        display_name: 'Materialized Before Repeat Boot',
-        contact_email: "audit-reboot-#{SecureRandom.hex(6)}@example.com",
-      )
+    it 'is the same for the same identity in one window' do
+      window_start = (at / 3600).floor * 3600
+      expect(id_for(at: window_start)).to eq(id_for(at: window_start + 3599))
+    end
 
-      expect(feature.configure!(feature::DEFAULT_MAX_EVENTS)).to eq(feature::DEFAULT_MAX_EVENTS)
+    it 'differs across windows' do
+      window_start = (at / 3600).floor * 3600
+      expect(id_for(at: window_start)).not_to eq(id_for(at: window_start + 3600))
+    end
+
+    it 'differs when the network, actor, kind, secret or domain differs' do
+      base = id_for
+      expect(id_for('secret_get', { 'net_ip_hash' => 'b' * 64 })).not_to eq(base)
+      expect(id_for('secret_get', { 'net_ua_partial' => 'Firefox/120' })).not_to eq(base)
+      expect(id_for('secret_get', { 'actor' => 'creator', 'actor_id' => 'cust1' })).not_to eq(base)
+      expect(id_for('status_get')).not_to eq(base)
+      expect(id_for('secret_get', { 'secret' => 'other123' })).not_to eq(base)
+      expect(id_for('secret_get', { 'domain_id' => 'other123' })).not_to eq(base)
+    end
+
+    it 'never coalesces lifecycle kinds' do
+      %w[created receipt_viewed revealed burned expired orphaned unknown].each do |kind|
+        expect(id_for(kind)).not_to eq(id_for(kind)), kind
+      end
+    end
+
+    it 'coalesces every listed fetch kind' do
+      feature::COALESCIBLE_KINDS.each do |kind|
+        expect(id_for(kind)).to eq(id_for(kind)), kind
+      end
+    end
+
+    it 'never coalesces when the window is 0' do
+      expect(id_for(window: 0)).not_to eq(id_for(window: 0))
+    end
+  end
+
+  # The Lua write: one atomic step adds the row, bumps its count and trims
+  # the partition, deleting evicted ids from both hashes.
+  describe 'storage (write and trim)' do
+    def hash_size(field)
+      field.dbclient.hlen(field.dbkey)
+    end
+
+    it 'trims the detail and count hashes with the partition' do
+      with_secret_activity_settings(max_events: feature::MIN_MAX_EVENTS) do
+        base = Familia.now.to_f - 500
+        (feature::MIN_MAX_EVENTS + 5).times { |i| org.record_secret_activity_event('revealed', at: base + i) }
+
+        expect(org.secret_activity_member.element_count).to eq(feature::MIN_MAX_EVENTS)
+        expect(hash_size(org.secret_activity_detail)).to eq(feature::MIN_MAX_EVENTS)
+        expect(hash_size(org.secret_activity_count)).to eq(feature::MIN_MAX_EVENTS)
+        expect(hash_size(org.secret_activity_first_at)).to eq(feature::MIN_MAX_EVENTS)
+      end
+    end
+
+    it 'is not trimmed at the cap exactly, and stays trimmed after the cap is raised' do
+      cap  = feature::MIN_MAX_EVENTS
+      base = Familia.now.to_f - 500
+      with_secret_activity_settings(max_events: cap) do
+        cap.times { |i| org.record_secret_activity_event('revealed', at: base + i) }
+        expect(org.secret_activity_event_count).to eq(cap)
+        expect(org.secret_activity_trimmed?).to be(false)
+
+        org.record_secret_activity_event('revealed', at: base + cap)
+        expect(org.secret_activity_trimmed?).to be(true)
+        expect(org.secret_activity_trim.dbclient.hget(org.secret_activity_trim.dbkey, 'member:evicted')).to eq('1')
+      end
+
+      with_secret_activity_settings(max_events: cap * 2) do
+        org.record_secret_activity_event('revealed', at: base + cap + 1)
+        expect(org.secret_activity_trimmed?).to be(true)
+      end
+    end
+
+    it 'caps each partition separately, so a guest flood cannot evict member events' do
+      with_secret_activity_settings(max_events: feature::MIN_MAX_EVENTS,
+        max_guest_events: feature::MIN_MAX_EVENTS) do
+        base = Familia.now.to_f - 1000
+        3.times { |i| org.record_secret_activity_event('created', at: base + i, 'actor' => 'creator') }
+        (feature::MIN_MAX_EVENTS * 2).times do |i|
+          org.record_secret_activity_event('created', at: base + 10 + i, partition: :guest, 'actor' => 'anonymous')
+        end
+
+        expect(org.secret_activity_member.element_count).to eq(3)
+        expect(org.secret_activity_trimmed?).to be(true)
+        expect(org.secret_activity_guest.element_count).to eq(feature::MIN_MAX_EVENTS)
+        expect(hash_size(org.secret_activity_detail)).to eq(feature::MIN_MAX_EVENTS + 3)
+      end
+    end
+
+    it 'keeps the newer time as last_at when an older repeat arrives late' do
+      at = (Familia.now.to_f / 3600).floor * 3600 + 100
+      org.record_secret_activity_event('secret_get', at: at + 50, 'receipt' => 'abc123')
+      org.record_secret_activity_event('secret_get', at: at, 'receipt' => 'abc123')
+
+      event = org.secret_activity_events_page.first
+      expect(event['count']).to eq(2)
+      expect(event['first_at']).to be_within(0.001).of(at)
+      expect(event['last_at']).to be_within(0.001).of(at + 50)
+    end
+
+    it 'returns the recorded row with its id and count' do
+      event = org.record_secret_activity_event('secret_get', 'receipt' => 'abc123')
+      expect(event).to include('kind' => 'secret_get', 'count' => 1, 'receipt' => 'abc123')
+      expect(event['id']).to start_with('e1:')
+    end
+  end
+
+  # Reads merge both partitions newest-first.
+  describe 'read merge' do
+    it 'merges member and guest rows newest-first and pages across them' do
+      base = Familia.now.to_f - 100
+      org.record_secret_activity_event('revealed', at: base + 2, 'receipt' => 'mem12345')
+      org.record_secret_activity_event('created', at: base + 3, partition: :guest, 'receipt' => 'gst12345')
+      org.record_secret_activity_event('created', at: base + 4, 'receipt' => 'mem12345')
+
+      page = org.secret_activity_events_page(limit: 10)
+      expect(page.map { |e| e['receipt'] }).to eq(%w[mem12345 gst12345 mem12345])
+      expect(org.secret_activity_events_page(offset: 1, limit: 1).map { |e| e['receipt'] }).to eq(%w[gst12345])
+    end
+
+    it 'returns every tied row exactly once across a page boundary' do
+      at = Familia.now.to_f - 50
+      5.times { |i| org.record_secret_activity_event('revealed', at: at, 'receipt' => "tie#{i}xxxx") }
+      2.times { |i| org.record_secret_activity_event('created', at: at, partition: :guest, 'receipt' => "gtie#{i}xxx") }
+
+      paged = (0...7).flat_map { |offset| org.secret_activity_events_page(offset: offset, limit: 1) }
+      ids   = paged.map { |e| e['id'] }
+      expect(ids.size).to eq(7)
+      expect(ids.uniq.size).to eq(7)
+      expect(ids).to eq(org.secret_activity_events_page(limit: 10).map { |e| e['id'] })
+
+      pairs = (0...7).step(2).flat_map { |offset| org.secret_activity_events_page(offset: offset, limit: 2) }
+      expect(pairs.map { |e| e['id'] }).to eq(ids)
+    end
+
+    # The base revision's client schema requires a string nonce, a number
+    # at and a string kind on every record. A tab still running that bundle
+    # during the rollout must keep parsing both row types.
+    it 'keeps the previous client contract (string nonce) on new and migrated rows' do
+      base = Familia.now.to_f - 100
+      org.secret_activity_events.add({ 'kind' => 'burned', 'at' => base, 'nonce' => 'abcd1234' }, base)
+      org.record_secret_activity_event('secret_get', at: base + 1, 'receipt' => 'mem12345')
+
+      rows = org.secret_activity_events_page(limit: 10)
+      expect(rows.size).to eq(2)
+      rows.each do |row|
+        expect(row['nonce']).to be_a(String).and(satisfy { |n| !n.empty? })
+        expect(row['at']).to be_a(Numeric)
+        expect(row['kind']).to be_a(String)
+      end
+      new_row, legacy_row = rows
+      expect(new_row['nonce']).to eq(new_row['id'])
+      expect(legacy_row['nonce']).to eq('abcd1234')
+    end
+  end
+
+  # The pre-coalescing trail moves into the member partition on first use,
+  # so the member cap covers it.
+  describe 'legacy trail migration' do
+    def add_legacy(count, base)
+      count.times do |i|
+        org.secret_activity_events.add(
+          { 'kind' => 'revealed', 'at' => base + i, 'nonce' => format('n%07d', i), 'receipt' => 'old12345' },
+          base + i,
+        )
+      end
+    end
+
+    it 'keeps 100 rows when 100 legacy rows meet one new event under a cap of 100' do
+      cap  = feature::MIN_MAX_EVENTS
+      base = Familia.now.to_f - 1000
+      with_secret_activity_settings(max_events: cap) do
+        add_legacy(cap, base)
+        org.record_secret_activity_event('created', at: base + 500, 'receipt' => 'new12345')
+
+        expect(org.secret_activity_events.exists?).to be(false)
+        expect(org.secret_activity_event_count).to eq(cap)
+        rows = org.secret_activity_events_page(limit: 200)
+        expect(rows.size).to eq(cap)
+        expect(rows.map { |e| e['nonce'] }).not_to include('n0000000')
+        expect(rows.first['receipt']).to eq('new12345')
+        expect(org.secret_activity_trimmed?).to be(true)
+      end
+    end
+
+    it 'migrates a legacy row as count 1 with its original nonce and times' do
+      base = Familia.now.to_f - 100
+      add_legacy(1, base)
+
+      row = org.secret_activity_events_page.first
+      expect(row).to include('id' => 'l1:n0000000', 'nonce' => 'n0000000', 'count' => 1, 'kind' => 'revealed',
+        'receipt' => 'old12345')
+      expect(row['first_at']).to be_within(0.001).of(base)
+      expect(row['last_at']).to be_within(0.001).of(base)
+      expect(row['at']).to be_within(0.001).of(base)
+      expect(org.secret_activity_events.exists?).to be(false)
+    end
+
+    it 'trims migrated rows on the next write after the cap is lowered' do
+      cap  = feature::MIN_MAX_EVENTS
+      base = Familia.now.to_f - 1000
+      add_legacy(cap + 20, base)
+      expect(org.migrate_legacy_secret_activity!).to eq(cap + 20)
+      expect(org.secret_activity_event_count).to eq(cap + 20)
+
+      with_secret_activity_settings(max_events: cap) do
+        org.record_secret_activity_event('created', at: base + 900)
+        expect(org.secret_activity_event_count).to eq(cap)
+      end
+    end
+
+    it 'is a no-op when run twice' do
+      base = Familia.now.to_f - 100
+      add_legacy(3, base)
+
+      expect(org.migrate_legacy_secret_activity!).to eq(3)
+      before = raw_details(org)
+      expect(org.migrate_legacy_secret_activity!).to eq(0)
+      expect(raw_details(org)).to eq(before)
+      expect(org.secret_activity_event_count).to eq(3)
     end
   end
 
@@ -304,7 +531,8 @@ RSpec.describe Onetime::Organization, type: :integration do
       link_to_org!(receipt, org)
       receipt.record_access_event('secret_get')
 
-      raw = org.secret_activity_events.membersraw.join
+      raw = raw_details(org)
+      expect(raw).to include(receipt.shortid)
       expect(raw).not_to include(secret.identifier)
       expect(raw).not_to include(receipt.identifier)
     end
@@ -363,7 +591,8 @@ RSpec.describe Onetime::Organization, type: :integration do
           receipt.record_access_event('secret_get', context: real_context)
         end
 
-        raw = org.secret_activity_events.membersraw.join
+        raw = raw_details(org)
+        expect(raw).to include(receipt.shortid)
 
         # No raw dotted-quad IPv4, no full IPv6, no full UA, no version token.
         expect(raw).not_to include(raw_ip)
@@ -406,7 +635,8 @@ RSpec.describe Onetime::Organization, type: :integration do
         # Country is the COARSEST geo signal; capturing it must not relax the
         # IP stance -- the raw dotted-quad still never reaches the trail.
         expect(event.to_json).not_to include(raw_ip)
-        expect(org.secret_activity_events.membersraw.join).not_to include(raw_ip)
+        expect(raw_details(org)).to include(receipt.shortid)
+        expect(raw_details(org)).not_to include(raw_ip)
       end
 
       it 'records a stable, keyed correlation hash across two events from the same source' do
@@ -433,9 +663,11 @@ RSpec.describe Onetime::Organization, type: :integration do
       5.times { receipt.record_access_event('status_get') }
 
       # The receipt's own timeline saturates at the cap, and fan-out stops
-      # with it: other receipts' history in the org trail stays safe.
+      # with it: other receipts' history in the org trail stays safe. The
+      # three fanned-out fetches are identical, so they share one row.
       expect(receipt.access_count).to eq(3)
-      expect(org.secret_activity_event_count).to eq(3)
+      expect(org.secret_activity_event_count).to eq(1)
+      expect(org.secret_activity_events_page.first['count']).to eq(3)
 
       # Lifecycle transitions are not subject to the fetch bound.
       receipt.revealed!
@@ -648,7 +880,8 @@ RSpec.describe Onetime::Organization, type: :integration do
       event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('creator')
       expect(event).not_to have_key('actor_id')
-      expect(org.secret_activity_events.membersraw.join).not_to include('person@example.com')
+      expect(raw_details(org)).to include(receipt.shortid)
+      expect(raw_details(org)).not_to include('person@example.com')
     end
 
     it 'drops a blank actor_id rather than storing an empty token' do
@@ -705,6 +938,178 @@ RSpec.describe Onetime::Organization, type: :integration do
   # and the public FQDN. Default-domain shares carry neither key -- absent,
   # not null. The guard is domain_id: share_domain can be set even when no
   # CustomDomain record resolved, and alone it must not imply one.
+  # Which partition a receipt's events go to, and the second write to the
+  # domain owner's trail when the domain belongs to another organization.
+  describe 'partition and domain-owner fan-out' do
+    let(:owner) { Onetime::Customer.create!(email: "fanout-#{SecureRandom.hex(6)}@example.com") }
+    let(:other_org) do
+      described_class.new(display_name: 'Domain Owner Org',
+        contact_email: "owner-#{SecureRandom.hex(6)}@example.com").tap(&:save)
+    end
+
+    after do
+      @domains&.each { |d| d.destroy! if d.exists? }
+      other_org.destroy! if other_org.exists?
+      @new_owner.destroy! if @new_owner&.exists?
+      owner.destroy! if owner.exists?
+    end
+
+    def domain_owned_by(organization)
+      domain = Onetime::CustomDomain.create!("fanout-#{SecureRandom.hex(4)}.example.com", organization.objid)
+      (@domains ||= []) << domain
+      domain
+    end
+
+    def member_owned!(receipt)
+      receipt.owner_id = owner.objid
+      receipt.save_fields(:owner_id)
+    end
+
+    # As spawn_pair stamps it: domain_org_id only when the domain's owner
+    # is not the receipt's organization. Call after link_to_org!.
+    def on_domain!(receipt, domain)
+      receipt.domain_id     = domain.objid
+      receipt.share_domain  = domain.display_domain
+      receipt.domain_org_id = domain.org_id unless domain.org_id.to_s == receipt.org_id.to_s
+      receipt.save_fields(:domain_id, :share_domain, :domain_org_id)
+    end
+
+    def transfer!(domain, to_org)
+      Onetime::Operations::Domains::Transfer.new(domain: domain, to_org: to_org, actor: 'spec-admin',
+        dry_run: false).call
+    end
+
+    it "records a guest receipt's events in the guest partition" do
+      link_to_org!(receipt, org)
+      receipt.record_org_secret_activity_event('created', 'actor' => 'anonymous')
+
+      expect(org.secret_activity_guest.element_count).to eq(1)
+      expect(org.secret_activity_member.element_count).to eq(0)
+    end
+
+    it "records an owned receipt's events in the member partition" do
+      member_owned!(receipt)
+      link_to_org!(receipt, org)
+      receipt.record_org_secret_activity_event('created', 'actor' => 'creator', 'actor_id' => owner.objid)
+
+      expect(org.secret_activity_member.element_count).to eq(1)
+      expect(org.secret_activity_guest.element_count).to eq(0)
+    end
+
+    it "also records to the domain owner's trail when another org owns the domain" do
+      member_owned!(receipt)
+      link_to_org!(receipt, org)
+      on_domain!(receipt, domain_owned_by(other_org))
+
+      receipt.record_org_secret_activity_event('created', 'actor' => 'creator', 'actor_id' => owner.objid)
+
+      [org, other_org].each do |trail_org|
+        events = trail_org.secret_activity_events_page
+        expect(events.size).to eq(1)
+        expect(events.first).to include('kind' => 'created', 'receipt' => receipt.shortid)
+      end
+      expect(other_org.secret_activity_member.element_count).to eq(1)
+    end
+
+    it 'records once when the domain belongs to the same org' do
+      member_owned!(receipt)
+      link_to_org!(receipt, org)
+      on_domain!(receipt, domain_owned_by(org))
+
+      receipt.record_org_secret_activity_event('created', 'actor' => 'creator', 'actor_id' => owner.objid)
+
+      expect(org.secret_activity_event_count).to eq(1)
+    end
+
+    it 'records once for a guest on the domain org (org_id is the domain owner)' do
+      domain = domain_owned_by(org)
+      link_to_org!(receipt, org)
+      on_domain!(receipt, domain)
+
+      receipt.record_org_secret_activity_event('created', 'actor' => 'anonymous')
+
+      expect(org.secret_activity_event_count).to eq(1)
+    end
+
+    it 'gives no second write to a receipt without the creation-time binding' do
+      member_owned!(receipt)
+      link_to_org!(receipt, org)
+      domain = domain_owned_by(other_org)
+      receipt.domain_id = domain.objid
+      receipt.save_fields(:domain_id)
+
+      receipt.record_org_secret_activity_event('created', 'actor' => 'creator', 'actor_id' => owner.objid)
+
+      expect(other_org.secret_activity_event_count).to eq(0)
+    end
+
+    context 'after a domain transfer' do
+      # Destroyed by the group's after hook, once its domains are gone.
+      let(:new_owner) do
+        @new_owner = described_class.new(display_name: 'New Domain Owner',
+          contact_email: "new-owner-#{SecureRandom.hex(6)}@example.com").tap(&:save)
+      end
+
+      it 'keeps sending an earlier receipt to the original owner, never the new one' do
+        domain = domain_owned_by(other_org)
+        member_owned!(receipt)
+        link_to_org!(receipt, org)
+        on_domain!(receipt, domain)
+
+        expect(transfer!(domain, new_owner).status).to eq(:transferred)
+        expect(Onetime::CustomDomain.load(domain.objid).org_id).to eq(new_owner.objid)
+
+        receipt.record_org_secret_activity_event('secret_get', 'actor' => 'creator', 'actor_id' => owner.objid)
+        receipt.expired!
+
+        expect(new_owner.secret_activity_event_count).to eq(0)
+        expect(other_org.secret_activity_events_page.map { |e| e['kind'] }).to include('secret_get')
+        expect(org.secret_activity_event_count).to be >= 1
+      end
+
+      it 'sends a receipt created after the transfer to the new owner' do
+        domain = domain_owned_by(other_org)
+        transfer!(domain, new_owner)
+
+        later, _secret = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'later value',
+          org_id: org.objid, domain_id: domain.objid,
+          domain_org_id: Onetime::CustomDomain.load(domain.objid).org_id)
+        expect(later.domain_org_id).to eq(new_owner.objid)
+
+        later.record_org_secret_activity_event('created', 'actor' => 'creator', 'actor_id' => owner.objid)
+
+        expect(new_owner.secret_activity_event_count).to eq(1)
+        expect(other_org.secret_activity_event_count).to eq(0)
+      end
+    end
+
+    it 'skips an archived domain owner' do
+      member_owned!(receipt)
+      link_to_org!(receipt, org)
+      on_domain!(receipt, domain_owned_by(other_org))
+      other_org.archive!
+
+      receipt.record_org_secret_activity_event('created', 'actor' => 'creator', 'actor_id' => owner.objid)
+
+      expect(org.secret_activity_event_count).to eq(1)
+      expect(other_org.secret_activity_event_count).to eq(0)
+    end
+
+    it "keeps the primary write when the domain owner's write fails" do
+      member_owned!(receipt)
+      link_to_org!(receipt, org)
+      on_domain!(receipt, domain_owned_by(other_org))
+      allow(Onetime::Organization).to receive(:load).and_call_original
+      allow(Onetime::Organization).to receive(:load).with(other_org.objid).and_raise(Redis::CannotConnectError)
+
+      expect(receipt.record_org_secret_activity_event('created', 'actor' => 'creator',
+        'actor_id' => owner.objid)).to include('kind' => 'created')
+      expect(org.secret_activity_event_count).to eq(1)
+      # The after hook loads organizations to clean up.
+      allow(Onetime::Organization).to receive(:load).and_call_original
+    end
+  end
+
   describe 'domain context on custom-domain shares (#3642)' do
     # Realistic CustomDomain objid: long enough that the 8-char slice
     # differs from the full value, so leakage is detectable.
@@ -768,7 +1173,7 @@ RSpec.describe Onetime::Organization, type: :integration do
 
       receipt.record_org_secret_activity_event('secret_get')
 
-      raw = org.secret_activity_events.membersraw.join
+      raw = raw_details(org)
       expect(raw).to include(domain_id[0, 8])
       expect(raw).not_to include(domain_id)
     end

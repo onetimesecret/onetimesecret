@@ -206,6 +206,74 @@ describe('useSecretActivity — retention cap (isCapped, #3990)', () => {
   });
 });
 
+describe('useSecretActivity — coalesced rows and retention details', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockMaxEvents.value = 10_000;
+  });
+
+  const retention = { max_events: 10_000, max_guest_events: 10_000, coalesce_window: 3600 };
+
+  it('parses id, count and first/last times into Dates', async () => {
+    const event = buildEvent({
+      kind: 'secret_get',
+      nonce: undefined,
+      id: 'e1:0123456789abcdef0123',
+      count: 3,
+      first_at: 1754046000,
+      last_at: 1754049600,
+    });
+    mockApi.get.mockResolvedValue({ data: buildResponse({ offset: 0, limit: 50 }, [event]) });
+
+    const { records, validationError, fetchPage } = useSecretActivity(ref('on1abc123'));
+    await fetchPage(0);
+    await flushPromises();
+
+    expect(validationError.value).toBe(false);
+    const [row] = records.value;
+    expect(row.id).toBe('e1:0123456789abcdef0123');
+    expect(row.count).toBe(3);
+    expect(row.first_at).toEqual(new Date(1754046000 * 1000));
+    expect(row.last_at).toEqual(new Date(1754049600 * 1000));
+  });
+
+  it('defaults count to 1 for events from an older backend', async () => {
+    mockApi.get.mockResolvedValue({ data: buildResponse() });
+
+    const { records, fetchPage } = useSecretActivity(ref('on1abc123'));
+    await fetchPage(0);
+    await flushPromises();
+
+    expect(records.value[0].count).toBe(1);
+    expect(records.value[0].first_at).toBeUndefined();
+  });
+
+  it('uses details.retention.trimmed for isCapped when present', async () => {
+    mockApi.get.mockResolvedValue({
+      data: { ...buildResponse({ offset: 0, limit: 50, retention: { ...retention, trimmed: false } }), total: 15_000 },
+    });
+
+    const { isCapped, retention: exposed, fetchPage } = useSecretActivity(ref('on1abc123'));
+    await fetchPage(0);
+    await flushPromises();
+
+    expect(isCapped.value).toBe(false);
+    expect(exposed.value).toEqual({ ...retention, trimmed: false });
+  });
+
+  it('treats a non-boolean trimmed as a contract mismatch', async () => {
+    mockApi.get.mockResolvedValue({
+      data: buildResponse({ offset: 0, limit: 50, retention: { ...retention, trimmed: 'yes' } }),
+    });
+
+    const { validationError, fetchPage } = useSecretActivity(ref('on1abc123'));
+    await fetchPage(0);
+    await flushPromises();
+
+    expect(validationError.value).toBe(true);
+  });
+});
+
 describe('useSecretActivity — abort and superseded-request handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();

@@ -6,21 +6,14 @@ module Onetime
   module Initializers
     # ConfigureSecretActivity initializer
     #
-    # Applies features.secret_activity.max_events to the organization
-    # secret-activity trail's retention cap. Must run at boot, before any
-    # Organization instance materializes (see SecretActivity.configure!):
-    # Familia freezes the field definition at that point, and a different
-    # cap requested afterwards raises Familia::RelatedFieldFrozenError and
-    # fails the boot.
+    # Applies features.secret_activity.max_events, .max_guest_events and
+    # .coalesce_window to the organization secret-activity trail (see
+    # SecretActivity.configure!). A value that is not an integer falls back
+    # to that setting's default.
     #
-    # Needs no datastore connection — it only replaces the stored field
-    # definition — so it also runs under connect_to_db=false boots (tryouts)
-    # and is deliberately absent from boot!'s skip-list. The model constants
-    # it touches are safe there: lib/onetime.rb requires lib/onetime/models
-    # eagerly at load time (a prerequisite of calling OT.boot! at all), so
-    # Organization.related_fields[:secret_activity_events] exists whether or
-    # not a connection was opened. connect_to_db gates connections, not
-    # model loading.
+    # Needs no datastore connection, so it also runs under
+    # connect_to_db=false boots (tryouts) and is deliberately absent from
+    # boot!'s skip-list.
     #
     class ConfigureSecretActivity < Onetime::Boot::Initializer
       @provides = [:secret_activity]
@@ -28,14 +21,20 @@ module Onetime
       def execute(_context)
         feature = Onetime::Organization::Features::SecretActivity
 
-        max_events = begin
-          Integer(OT.conf.get('features.secret_activity.max_events'))
-        rescue ArgumentError, TypeError
-          feature::DEFAULT_MAX_EVENTS
-        end
+        feature.configure!(
+          setting('max_events', feature::DEFAULT_MAX_EVENTS),
+          max_guest_events: setting('max_guest_events', feature::DEFAULT_MAX_GUEST_EVENTS),
+          coalesce_window: setting('coalesce_window', feature::DEFAULT_COALESCE_WINDOW),
+        )
+        app_logger.debug "[init] ConfigureSecretActivity #{feature.settings}"
+      end
 
-        applied = feature.configure!(max_events)
-        app_logger.debug "[init] ConfigureSecretActivity max_events=#{applied}"
+      private
+
+      def setting(name, default)
+        Integer(OT.conf.get("features.secret_activity.#{name}", default))
+      rescue ArgumentError, TypeError
+        default
       end
     end
   end

@@ -9,7 +9,8 @@ module OrganizationAPI::Logic
     # @api Returns a page of the organization's secret activity trail,
     #   newest first: secret creation, link/status fetches, reveals, burns
     #   and expiries recorded for receipts created in this organization's
-    #   context (see Organization::Features::SecretActivity). Requires the
+    #   context or by guests on its custom domains (see
+    #   Organization::Features::SecretActivity). Requires the
     #   `audit_logs` entitlement, which the role/plan intersection grants to
     #   admins and owners on plans that include it.
     #
@@ -110,11 +111,24 @@ module OrganizationAPI::Logic
             offset: offset,
             limit: limit,
             actors: @actors,
+            retention: retention,
           },
         }
       end
 
       private
+
+      # The caps and coalescing window in force, so a reader can tell a
+      # short trail from a trimmed one and what a count means.
+      def retention
+        feature = Onetime::Organization::Features::SecretActivity
+        {
+          max_events: feature.max_events,
+          max_guest_events: feature.max_guest_events,
+          coalesce_window: feature.coalesce_window,
+          trimmed: organization.secret_activity_trimmed?,
+        }
+      end
 
       # Read-time actor resolution (never written back into the trail — the
       # trail stays email-free for GDPR minimization). Only currently-active

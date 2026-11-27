@@ -390,7 +390,11 @@ module V2::Logic
       def create_secret_pair
         # Load the scope records before the commit opens: reads inside
         # spawn_pair's transaction return futures, not values.
-        org           = receipt_organization
+        # Resolved once and kept: record_created_activity runs after the
+        # commit and must not repeat the load, whose failure would then fail
+        # a creation that has already been stored.
+        @receipt_org  = receipt_organization
+        org           = @receipt_org
         domain_record = receipt_custom_domain
 
         @receipt, @secret = Onetime::Receipt.spawn_pair(
@@ -403,6 +407,7 @@ module V2::Logic
           display_type:,
           org_id: org&.objid,
           domain_id: domain_record&.objid,
+          domain_org_id: domain_record&.org_id,
         ) do |pending_receipt|
           index_receipt(pending_receipt, org, domain_record)
         end
@@ -435,13 +440,27 @@ module V2::Logic
         pending_receipt.add_to_organization_receipts(org) if org
       end
 
-      # The organization the receipt is indexed under: the authenticated
-      # creator's current context (auth_org, from OrganizationContext), or nil
-      # for a guest.
+      # The organization the receipt is stamped with (org_id) and whose
+      # Secret Activity trail records its events: the authenticated creator's
+      # current context (auth_org, from OrganizationContext), or for a guest
+      # the organization that owns the custom domain the secret is shared on.
+      # A guest on the canonical host or a link-pool host has none.
+      #
+      # A guest receipt is stamped for the trail only: index_receipt still
+      # keeps it out of the organization's receipt index.
       def receipt_organization
-        return if anonymous_user?
+        return guest_receipt_organization if anonymous_user?
 
         auth_org
+      end
+
+      # The organization owning the custom domain a guest shares on, or nil.
+      # An archived organization can still own its domains
+      # (Organization#archive! leaves them attached), so it is skipped here
+      # as OrganizationLoader skips it for members.
+      def guest_receipt_organization
+        org = receipt_custom_domain&.primary_organization
+        org unless org.nil? || org.archived?
       end
 
       # The registered custom domain the secret is shared on, or nil for the
@@ -465,21 +484,23 @@ module V2::Logic
       end
 
       # The organization audit trail's 'created' event, best-effort by design
-      # (see Receipt#record_org_secret_activity_event). The creator is always
-      # authenticated here: guests have no organization. actor_id is the FULL
-      # objid: unique traceability (AU-3 / PCI 10.2.2), resolved to an
-      # identity at read time (#3637).
+      # (see Receipt#record_org_secret_activity_event). An authenticated
+      # creator records actor=creator with the FULL objid: unique
+      # traceability (AU-3 / PCI 10.2.2), resolved to an identity at read
+      # time (#3637). A guest on a custom domain records actor=anonymous and
+      # no actor_id.
       def record_created_activity
-        org = receipt_organization
+        org = @receipt_org
         return unless org
 
+        actor_attrs = if anonymous_user?
+                        { 'actor' => 'anonymous' }
+                      else
+                        { 'actor' => 'creator', 'actor_id' => cust.objid }
+                      end
+
         Onetime::Receipt.creation_followup(:created_activity, receipt) do
-          receipt.record_org_secret_activity_event(
-            'created',
-            organization: org,
-            'actor' => 'creator',
-            'actor_id' => cust.objid,
-          )
+          receipt.record_org_secret_activity_event('created', organization: org, **actor_attrs)
         end
       end
 

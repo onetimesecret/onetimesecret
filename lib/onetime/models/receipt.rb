@@ -49,8 +49,9 @@ module Onetime
     field :source
 
     # Organization and domain tracking for scoped receipt queries
-    field :org_id      # Organization objid (current context when created)
+    field :org_id      # Organization objid: the creator's context, or for a guest the custom domain's organization
     field :domain_id   # CustomDomain objid (when using registered custom domain)
+    field :domain_org_id # Organization objid owning domain_id at creation, when it is not org_id
 
     # Observability only (#3633): epoch seconds of the FIRST receipt/metadata
     # page load, set once by record_receipt_view!. It bounds the org audit
@@ -449,7 +450,7 @@ module Onetime
       # @raise [Onetime::SecretCreationFailed] unless EXEC confirms the commit
       def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil, display_type: nil,
                      source: nil, memo: nil, recipients: nil, recipient_name: nil, domain_id: nil, org_id: nil,
-                     expiration_notifications: true, &registrations)
+                     domain_org_id: nil, expiration_notifications: true, &registrations)
         Onetime::SecretVerifier.ensure_writes_allowed!
 
         # Coerce at the single creation choke point so lifespan is always stored
@@ -492,6 +493,13 @@ module Onetime
           receipt.recipient_name = recipient_name
           receipt.domain_id      = domain_id
           receipt.org_id         = org_id
+          # The custom domain's owner when it is another organization: that
+          # organization also gets this receipt's Secret Activity. Bound
+          # here, at creation, so a later domain transfer does not move the
+          # receipt's events to the new owner.
+          unless domain_org_id.to_s.empty? || domain_org_id.to_s == org_id.to_s
+            receipt.domain_org_id = domain_org_id
+          end
         rescue StandardError => ex
           creation_failed!(:prepare, :none, receipt, secret, ex)
         end

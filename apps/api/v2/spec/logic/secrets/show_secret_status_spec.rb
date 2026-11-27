@@ -202,7 +202,10 @@ RSpec.describe V2::Logic::Secrets::ShowSecretStatus, type: :integration do
       logic.process
 
       trail = Onetime::Organization.load(trail_org.objid)
-      raw   = trail.secret_activity_events.membersraw.join
+      # Every stored byte of the trail's event details, read raw.
+      detail = trail.secret_activity_detail
+      raw    = detail.dbclient.hvals(detail.dbkey).join
+      expect(raw).not_to be_empty
       expect(raw).not_to include(raw_ip)
       expect(raw).not_to include(full_ua)
       expect(raw).not_to include('119.0.0.0')

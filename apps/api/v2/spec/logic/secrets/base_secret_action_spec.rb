@@ -2018,10 +2018,10 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
   # ============================================================================
   # record_created_activity — actor attribution on 'created' (#3637)
   #
-  # The creation path is always authenticated (receipt_organization is nil for
-  # guests), so the 'created' event records actor=creator with the FULL
-  # customer objid, untruncated -- the trail must bind the event to a uniquely
-  # resolvable individual (AU-3 / PCI 10.2.2).
+  # An authenticated creator's 'created' event records actor=creator with the
+  # FULL customer objid, untruncated -- the trail must bind the event to a
+  # uniquely resolvable individual (AU-3 / PCI 10.2.2). Guest creation on a
+  # custom domain is covered in spec/api/secret_activity_creation_capture_spec.rb.
   # ============================================================================
   describe '#record_created_activity actor attribution (#3637)' do
     it "records 'created' with actor=creator and the full customer objid" do
@@ -2033,7 +2033,8 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
 
       action = V2ConfigTestAction.new(strategy_result, base_params)
       action.instance_variable_set(:@receipt, pair.first)
-      allow(action).to receive(:auth_org).and_return(org)
+      # The organization create_secret_pair resolved before the commit.
+      action.instance_variable_set(:@receipt_org, org)
 
       action.send(:record_created_activity)
 

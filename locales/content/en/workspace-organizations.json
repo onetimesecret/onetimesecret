@@ -801,8 +801,16 @@
     "content_hash": "62fb14c2"
   },
   "web.organizations.audit.capped_notice": {
-    "text": "Only the newest {max} events are retained; older activity has been trimmed.",
-    "content_hash": "da7901e2"
+    "text": "Only the newest {max} member events and {guest_max} guest events are retained; older activity has been trimmed.",
+    "content_hash": "43ecaff8"
+  },
+  "web.organizations.audit.repeat_badge": {
+    "text": "×{count}",
+    "content_hash": "816c0b50"
+  },
+  "web.organizations.audit.repeat_tooltip": {
+    "text": "{count} identical events, first {first}, last {last}",
+    "content_hash": "cfc4b93d"
   },
   "web.organizations.audit.collection_paused_notice": {
     "text": "Event collection is paused; new secret activity is not being recorded.",

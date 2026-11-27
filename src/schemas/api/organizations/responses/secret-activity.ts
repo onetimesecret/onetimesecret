@@ -36,7 +36,7 @@ export const SECRET_ACTIVITY_KINDS = [
 export type SecretActivityKind = (typeof SECRET_ACTIVITY_KINDS)[number];
 
 /**
- * One org audit event. Base fields are kind/at/nonce plus receipt/secret
+ * One org audit event. Base fields are kind/at plus receipt/secret
  * shortids (never full identifiers — those are capability tokens). Extra
  * fields vary by kind: fetch events may carry net_ip_partial / net_ip_hash /
  * net_ua_partial; every kind carries actor (creator | authenticated_other |
@@ -55,8 +55,18 @@ export type SecretActivityKind = (typeof SECRET_ACTIVITY_KINDS)[number];
  */
 export const secretActivityEventSchema = z.looseObject({
   kind: z.string(),
+  // `at` is the latest occurrence (= last_at). Identical fetches inside the
+  // coalesce window share one row: `count` is how many there were, between
+  // `first_at` and `last_at`. Lifecycle events always have count 1. `id` is
+  // the row id. The backend also sends `nonce` (the id, or a migrated legacy
+  // row's original nonce) for clients that predate `id`; older backends send
+  // only `nonce`, with no id or count.
   at: transforms.fromNumber.toDate,
-  nonce: z.string(),
+  id: z.string().optional(),
+  nonce: z.string().optional(),
+  count: z.number().int().min(1).default(1),
+  first_at: transforms.fromNumber.toDate.optional(),
+  last_at: transforms.fromNumber.toDate.optional(),
   receipt: z.string().optional(),
   secret: z.string().optional(),
   actor: z.string().optional(),
@@ -73,8 +83,11 @@ export type SecretActivityEvent = z.infer<typeof secretActivityEventSchema>;
  * Audit events list response
  * GET /api/organizations/:extid/secret-activity
  *
- * `total` is the org-wide event count and saturates at the retention cap
- * (10,000 — SECRET_ACTIVITY_MAX_EVENTS); `count` is the size of this page.
+ * `total` is the org-wide row count across the member and guest
+ * partitions; each partition has its own cap (SECRET_ACTIVITY_MAX_EVENTS,
+ * SECRET_ACTIVITY_MAX_GUEST_EVENTS, both 10,000 by default). `count` is the
+ * size of this page. `details.retention.trimmed` is true when a partition
+ * has reached its cap.
  */
 export const secretActivityResponseSchema = z.object({
   user_id: z.string(),
@@ -94,6 +107,15 @@ export const secretActivityResponseSchema = z.object({
     actors: z
       .record(z.string(), z.object({ email: z.string(), extid: z.string() }))
       .optional(),
+    // Optional so older backend responses still parse.
+    retention: z
+      .object({
+        max_events: z.number().int().min(0),
+        max_guest_events: z.number().int().min(0),
+        coalesce_window: z.number().int().min(0),
+        trimmed: z.boolean(),
+      })
+      .optional(),
   }),
 });
 
@@ -101,3 +123,6 @@ export type SecretActivityResponse = z.infer<typeof secretActivityResponseSchema
 
 /** Read-time actor resolution map (details.actors), normalized to non-optional. */
 export type SecretActivityActorsMap = NonNullable<SecretActivityResponse['details']['actors']>;
+
+/** Retention settings and trim state (details.retention), when the backend sends them. */
+export type SecretActivityRetention = NonNullable<SecretActivityResponse['details']['retention']>;

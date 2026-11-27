@@ -20,7 +20,11 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
       verification: 'false',
       key: 'secret123',
       identifier: 'secret123',
-      share_domain: '')
+      share_domain: '',
+      # No receipt: AccessTelemetry skips the secret_get record. The fetch
+      # telemetry itself is covered in
+      # spec/api/secret_activity_creation_capture_spec.rb.
+      receipt_identifier: '')
   end
 
   let(:base_params) do
@@ -270,7 +274,8 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
         viewable?: true,
         has_passphrase?: true,
         truncated?: false,
-        can_decrypt?: false)
+        can_decrypt?: false,
+        receipt_identifier: '')
     end
     let(:params) do
       { 'key' => secret_identifier, 'passphrase' => 'wrong-guess', 'continue' => 'true' }
