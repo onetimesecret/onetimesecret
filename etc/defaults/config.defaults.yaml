@@ -1387,6 +1387,14 @@ features:
     # Newest events retained per organization (floor: 100). Lowering this
     # deletes (not hides) each org's oldest events on its next write.
     max_events: <%= ENV['SECRET_ACTIVITY_MAX_EVENTS'] || 10000 %>  # Since v0.26.4
+    # Newest events retained per organization for secrets guests created on
+    # its custom domains (floor: 100). Kept apart from max_events so guest
+    # activity can never evict members' events.
+    max_guest_events: <%= ENV['SECRET_ACTIVITY_MAX_GUEST_EVENTS'] || 10000 %>  # Since v0.27.0
+    # Seconds in which identical link and status fetches (same kind, secret,
+    # actor and network) collapse into one counted event. 0 records every
+    # fetch separately.
+    coalesce_window: <%= ENV['SECRET_ACTIVITY_COALESCE_WINDOW'] || 3600 %>  # Since v0.27.0
     # Country-level geo capture on Secret Activity events (#3989). A distinct
     # axis from `collect`: gates ONLY the net_country attribute, pending
     # counsel review of org-tier geo exposure (ADR-021 Decision 4 open

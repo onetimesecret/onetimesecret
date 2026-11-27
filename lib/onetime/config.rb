@@ -182,6 +182,8 @@ module Onetime
           'secret_activity' => {
             'collect' => true,
             'max_events' => 10_000,
+            'max_guest_events' => 10_000,
+            'coalesce_window' => 3600,
           },
         },
         'internationalization' => {

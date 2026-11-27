@@ -148,9 +148,7 @@ module Onetime::Receipt::Features
                          attrs
                        end
 
-        organization.record_secret_activity_event(
-          kind,
-          at: at,
+        trail_attrs = {
           **normalize_actor_attrs(event_attrs, kind),
           # Shortids only for receipt/secret/domain: those full identifiers are
           # capability tokens (the secret identifier IS the link; a full domain
@@ -165,11 +163,52 @@ module Onetime::Receipt::Features
           'receipt' => shortid,
           'secret' => secret_shortid.to_s,
           **domain_attrs,
-        )
+        }
+
+        # Events on a receipt a guest created go to the guest partition,
+        # which has its own cap, so guest activity cannot evict members'.
+        partition = guest_created? ? :guest : :member
+
+        event = organization.record_secret_activity_event(kind, at: at, partition: partition, **trail_attrs)
+        record_for_domain_owner(organization, kind, at, partition, trail_attrs)
+        event
       rescue StandardError => ex
         OT.le "[secret-activity] #{ex.class}: #{ex.message} (kind=#{kind}, receipt=#{shortid})"
         nil
       end
+
+      # Whether a guest created this receipt (no owner; 'anon' is the
+      # pre-v0.24 marker).
+      def guest_created?
+        owner_id.to_s.empty? || anonymous?
+      end
+
+      private
+
+      # A member of one organization can share on a custom domain another
+      # organization owns. The event then also goes to the domain owner's
+      # trail, so an organization sees all activity on its branded links.
+      # org_id, the receipt indexes and the mail sender are unchanged. The
+      # owner is skipped when it is the trail's own organization (guests,
+      # same-org members), absent, or archived. Best-effort and separate
+      # from the primary write, which has already happened.
+      def record_for_domain_owner(trail_org, kind, at, partition, trail_attrs)
+        return if domain_id.to_s.empty?
+
+        owner_org_id = Onetime::CustomDomain.load(domain_id)&.org_id.to_s
+        return if owner_org_id.empty? || owner_org_id == trail_org.objid
+
+        owner_org = Onetime::Organization.load(owner_org_id)
+        return if owner_org.nil? || owner_org.archived?
+
+        owner_org.record_secret_activity_event(kind, at: at, partition: partition, **trail_attrs)
+      rescue StandardError => ex
+        OT.le "[secret-activity] domain-owner fan-out: #{ex.class}: #{ex.message} " \
+              "(kind=#{kind}, receipt=#{shortid})"
+        nil
+      end
+
+      public
 
       # Centralized actor validation for EVERY org audit event (#3637). The
       # trail must bind each event to a uniquely resolvable individual (NIST
