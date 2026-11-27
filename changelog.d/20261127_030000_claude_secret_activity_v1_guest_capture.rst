@@ -13,7 +13,21 @@ Added
   the count with the first and last times. Creation and lifecycle events are
   never combined.
 - When a member shares on a custom domain owned by another organization, the
-  events also go to the domain owner's Secret Activity.
+  events also go to the domain owner's Secret Activity. The owner is
+  recorded when the secret is created, so transferring the domain later
+  does not show earlier shares to the new owner.
+
+Changed
+-------
+
+- Each organization's existing Secret Activity history moves into the new
+  storage on its first write or read, and counts toward
+  ``SECRET_ACTIVITY_MAX_EVENTS``: the oldest rows are removed once newer
+  rows exceed the cap. ``bin/ots migrate --run
+  20261127_01_migrate_secret_activity_legacy`` moves every organization at
+  once.
+- The Activity tab's "older activity has been trimmed" notice appears only
+  after rows have actually been removed.
 
 Fixed
 -----

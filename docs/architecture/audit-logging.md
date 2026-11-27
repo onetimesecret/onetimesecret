@@ -116,21 +116,23 @@ path and is id-carrying when an authenticated principal is known.
 
 ### Event record
 
-Each organization has five keys (Familia related fields, so they are
+Each organization has these keys (Familia related fields, so they are
 removed with the organization):
 
 | Key | Type | Holds |
 |---|---|---|
-| `secret_activity_member` | sorted set | ids of events on member-owned receipts, and events with no receipt; score = `last_at` |
+| `secret_activity_member` | sorted set | ids of events on member-owned receipts, events with no receipt, and migrated legacy rows; score = `last_at` |
 | `secret_activity_guest` | sorted set | ids of events on receipts a guest created (empty owner); score = `last_at` |
-| `secret_activity_detail` | hash | id → the first occurrence's record as JSON, plus `first_at` (written with HSETNX) |
+| `secret_activity_detail` | hash | id → the first occurrence's record as JSON (HSETNX) |
 | `secret_activity_count` | hash | id → occurrences (HINCRBY) |
-| `secret_activity_events` | sorted set | the pre-coalescing trail: read-only, merged at read time, never written |
+| `secret_activity_first_at` | hash | id → earliest occurrence, epoch seconds (kept at the minimum) |
+| `secret_activity_trim` | hash | `<partition>:evicted` (rows the cap removed) and `<partition>:last_evicted_at` |
+| `secret_activity_events` | sorted set | the pre-coalescing trail; migrated and deleted on first use (see Legacy trail) |
 
 The record is string-keyed:
 
 ```
-kind, first_at (epoch float)             — what happened, and when it first happened
+kind                                     — what happened
 receipt, secret                          — SHORTIDS (see identifier policy below)
 domain_id, domain                        — domain shortid and FQDN (custom-domain shares only)
 actor                                    — creator | authenticated_other | anonymous | system | unknown
@@ -139,9 +141,9 @@ net_ip_partial, net_ua_partial,          — privacy-reduced network context (AD
 net_ip_hash, net_country                   fetch events only)
 ```
 
-Reads add `id`, `count`, `last_at` (the score) and `at` (= `last_at`, kept for
-older clients). Legacy rows read as `count` 1 with `first_at` = `last_at` =
-`at`, and their `nonce` becomes the `id`.
+Reads add `id`, `count`, `first_at`, `last_at` (the score), and two fields
+kept for clients that predate `id`: `at` (= `last_at`) and `nonce` (the `id`
+for new rows, the original nonce for migrated legacy rows).
 
 **Event id.** `e1:` plus the first 20 hex characters of SHA-256 over kind,
 receipt, secret, actor, actor_id, net_ip_hash, net_ua_partial, net_country,
@@ -154,25 +156,45 @@ bucket and never shares a row. Network context is part of the identity, so
 two different clients fetching one link stay two rows.
 
 **Write.** One Lua script (EVALSHA, with EVAL on NOSCRIPT) does HSETNX on
-the detail, HINCRBY on the count, `ZADD GT` (a late-arriving older repeat
-cannot move `last_at` back), and the trim: when the partition is over its
-cap it reads the oldest ids, HDELs them from both hashes, then
-ZREMRANGEBYRANK. The hashes and the sorted sets are trimmed in one atomic
-step.
+the detail, HINCRBY on the count, sets `first_at` to the minimum, `ZADD GT`
+for `last_at` (requests sample their time before the write, so repeats can
+arrive out of order; neither end moves the wrong way), and the trim: when
+the partition is over its cap it reads the oldest ids, HDELs them from every
+hash, ZREMRANGEBYRANK, and adds the number removed to the trim hash. All of
+it is one atomic step.
 
 **Read.** `secret_activity_events_page(offset:, limit:)` takes the newest
-`offset + limit` from each partition and from the legacy set, merges them by
-score (id breaks ties), slices the page, then hydrates with one HMGET per
-hash. `total` (from `secret_activity_event_count`) is the sum of the three
+`offset + limit` from each partition, merges them by score descending then
+id descending (the order ZREVRANGE returns ties in, so the rows taken from
+each partition are always the leading rows of the merge and pages never
+repeat or skip a tied row), slices the page, then hydrates with one HMGET
+per hash. `total` (from `secret_activity_event_count`) is the sum of the
 cardinalities, so a coalesced row counts once.
+
+**Legacy trail.** Before v0.27.0 the trail was one sorted set of event JSON
+(`secret_activity_events`). The first write or read for an organization runs
+a Lua script that moves every row into the member partition (id
+`l1:<nonce>`, count 1, `first_at` = `last_at` = its time, its JSON as the
+detail), deletes the legacy key, and applies the member cap, so existing
+history counts toward `SECRET_ACTIVITY_MAX_EVENTS` and newer rows displace
+it. Every write uses NX, so the script is idempotent. The migration
+`20261127_01_migrate_secret_activity_legacy` does the same for every
+organization at once.
 
 **Domain owner.** A member can share on a custom domain that a different
 organization owns. Events on that receipt go to the receipt's own
 organization and also to the domain owner's trail, in the same partition, so
-an organization sees all activity on its branded links. The second write is
-skipped when the domain owner is the same organization (all guests, and
-same-org members), absent or archived, and it fails on its own without
-affecting the first.
+an organization sees all activity on its branded links. The audience is
+bound when the secret is created: `spawn_pair` stamps `domain_org_id` on the
+receipt when the domain's owner is not the receipt's `org_id`, and the
+second write goes only to that stamped organization, never to a live domain
+lookup. A later `Domains::Transfer` therefore does not give the new owner
+the events of receipts shared before the move; receipts created after it
+are stamped with the new owner. Receipts with no stamp (guests and same-org
+members, whose `org_id` is already the owner, and receipts created before
+the stamp existed) get no second write. An archived stamped owner is
+skipped, and the second write fails on its own without affecting the
+first.
 
 ### Actor model: recorded, not derived
 
@@ -274,9 +296,12 @@ Two caps, one TTL rule:
   | `max_guest_events` | `SECRET_ACTIVITY_MAX_GUEST_EVENTS` | 10,000 | guest partition cap (minimum 100) |
   | `coalesce_window` | `SECRET_ACTIVITY_COALESCE_WINDOW` | 3600 | seconds; identical fetches in one window share a row; 0 turns coalescing off |
 
-  The API returns the caps, the window and `trimmed` (a partition has reached
-  its cap) in `details.retention`; the Activity tab uses `trimmed` for the
-  "older activity has been trimmed" notice.
+  The API returns the caps, the window and `trimmed` in `details.retention`.
+  `trimmed` is true once a cap has actually removed a row (the trim hash), so
+  reaching a cap exactly is not trimmed and raising a cap afterwards does not
+  clear it. Rows the pre-v0.27.0 trail dropped under its own cap left no
+  record and do not count. The Activity tab uses `trimmed` for the "older
+  activity has been trimmed" notice.
 - Append is best-effort everywhere: the trail never drives behavior, and a
   failed append must never break a state transition or read path.
 
