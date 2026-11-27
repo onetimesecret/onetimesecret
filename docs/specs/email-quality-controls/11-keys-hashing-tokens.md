@@ -53,7 +53,7 @@ encoder/verifier that slices 20, 40, 50, and 51 consume.
 - ADR: `docs/adr/adr-008-secret-management-architecture.md` (`{PURPOSE}_SECRET` naming, derived-vs-independent categories)
 - Hash precedent (shape + normalization contract): `lib/onetime/utils/email_hash.rb` — note its private `normalize_email` copy must stay in sync with `OT::Utils.normalize_email` (`lib/onetime/utils/strings.rb`); the new helper should call `OT::Utils.normalize_email` directly
 - Domain parsing: `lib/onetime/utils/domain_parser.rb`
-- Constant-time compare precedent: `EmailHash.same_hash?`; session HMAC in `lib/onetime/session.rb`
+- Constant-time compare precedent: `EmailHash.same_hash?`; session HMAC in `lib/onetime/session/rack_store.rb`
 - Runtime state precedent: `lib/onetime/runtime/email.rb` + `lib/onetime/initializers/configure_truemail.rb`
 - Signed-token precedent (closest existing): Rodauth `account_id_obfuscation_secret_env_key 'ACCOUNT_ID_SECRET'` in `apps/web/auth/config/base.rb` — version-tagged signed tokens in email links
 

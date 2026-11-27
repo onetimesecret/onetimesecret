@@ -391,7 +391,7 @@ three inactivity clocks: the active-session row's `last_use`
 (`Onetime::Session::ActiveSessionGate`), the sidecar's `last_activity_at` that the admin idle
 bound reads (`Operations::Sessions::TrackMetadata`), and the Rack session
 blob's TTL, which is the only inactivity clock in simple mode
-(`Onetime::Session#write_session`). Hydrated HTML is unchanged. This
+(`Onetime::Session::RackStore#write_session`). Hydrated HTML is unchanged. This
 divergence is deliberate and stays.
 
 Two limits are worth knowing. The verdict is memoized per request, so a
@@ -473,7 +473,7 @@ in, then refused):
 
 | Candidate | Where | Reproduced by | Why it fits |
 |---|---|---|---|
-| Logout undone by an in-flight request | `apps/web/core/controllers/authentication.rb` `#logout` cleared the Rack session only; the store is last-writer-wins (`lib/onetime/session.rb` `#write_session`) and every response re-sends the cookie | `spec/integration/full/logout_ends_active_session_spec.rb`; `e2e/auth/session-consistency.spec.ts` "a session ended outside the tab" | A request that loaded the session before `GET /logout` and committed after it wrote the whole blob back under the old id and re-installed the old cookie. The active-session row had never been removed, so the copy was a valid session: observed as `/api/organizations` 401, then `GET /bootstrap/me` `authenticated`, 30 ms after the logout. Tabs of one browser then disagree about whether the user is signed in. Fixed twice over. Logout removes the row first (`Onetime::Session::ActiveSessionGate.end_session`), so in full mode a copy is refused as `active_session_revoked`. And every path that deletes a session blob first sets a 300-second ended-marker (`Onetime::Session::Ended`, key `ended_sid:<HMAC of the id>`), which `#write_session` looks for after its own `SET`: a late write is taken back out, reported as not saved, and sends no cookie. That covers what the row cannot: simple mode, which has no row, and a single-session revoke (`Operations::Sessions::RevokeForCustomer`, `DeleteSession`), which deletes the blob and leaves the row in both modes. `spec/integration/simple/logout_write_back_spec.rb` holds a real request open across the logout and across a revoke. |
+| Logout undone by an in-flight request | `apps/web/core/controllers/authentication.rb` `#logout` cleared the Rack session only; the store is last-writer-wins (`lib/onetime/session/rack_store.rb` `#write_session`) and every response re-sends the cookie | `spec/integration/full/logout_ends_active_session_spec.rb`; `e2e/auth/session-consistency.spec.ts` "a session ended outside the tab" | A request that loaded the session before `GET /logout` and committed after it wrote the whole blob back under the old id and re-installed the old cookie. The active-session row had never been removed, so the copy was a valid session: observed as `/api/organizations` 401, then `GET /bootstrap/me` `authenticated`, 30 ms after the logout. Tabs of one browser then disagree about whether the user is signed in. Fixed twice over. Logout removes the row first (`Onetime::Session::ActiveSessionGate.end_session`), so in full mode a copy is refused as `active_session_revoked`. And every path that deletes a session blob first sets a 300-second ended-marker (`Onetime::Session::Ended`, key `ended_sid:<HMAC of the id>`), which `#write_session` looks for after its own `SET`: a late write is taken back out, reported as not saved, and sends no cookie. That covers what the row cannot: simple mode, which has no row, and a single-session revoke (`Operations::Sessions::RevokeForCustomer`, `DeleteSession`), which deletes the blob and leaves the row in both modes. `spec/integration/simple/logout_write_back_spec.rb` holds a real request open across the logout and across a revoke. |
 
 Client-side amplifiers — code that turns one refusal, or one failed poll, into
 a signed-out UI (unchanged since `56a95f8b6`; addressed by #4456, #4458,
@@ -511,7 +511,7 @@ Recorded as a baseline so #4466 and #4467 start from observed behaviour, in
   `onetime.session` cookies is refused with `403` in either order, by
   `Onetime::Middleware::CookieTossing` (`site.middleware.cookie_tossing`,
   default on since 2026-09-28); before that the first cookie on the request
-  was used. The refusal runs above `Onetime::Session` and sets no session
+  was used. The refusal runs above `Onetime::Session::RackStore` and sets no session
   cookie, only the clears. Completing the second factor rotates the ID again and carries the
   session data, the active-session row and the sidecar values across
   (`Onetime::Session::Rotation`, called from `after_two_factor_authentication`;

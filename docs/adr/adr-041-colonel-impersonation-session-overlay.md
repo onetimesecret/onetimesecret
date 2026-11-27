@@ -24,7 +24,7 @@ the rendering-shaped ones.
 `docs/specs/colonel-ui/initial-build-out/52-impersonation-audit-fix.md` §(c)
 already set the price of admission. Any impersonation design must first supply
 a bounded lifetime independent of the session store's configured
-`expire_after` (re-applied on every commit, `lib/onetime/session.rb:703-708`);
+`expire_after` (re-applied on every commit by `Onetime::Session::RackStore#write_session`);
 a marker that cannot go missing, because the session sidecar's admission rule
 (`lib/onetime/session/sidecar.rb:99`) admits only fields whose *absence is the
 safe state*; and capability restriction at the point of use, because some
@@ -69,10 +69,8 @@ session['impersonation'] = {
 ```
 
 One shared resolver — `Onetime::Session::Impersonation`, in
-`lib/onetime/session/impersonation.rb` (a flat name, not nested: `Onetime::Session`
-is a class) — decides the effective customer from (principal, marker) and is the
-only place that decides it; the three sites that today read
-`session['external_id']` independently
+`lib/onetime/session/impersonation.rb` — decides the effective customer from
+(principal, marker). The three sites that read `session['external_id']` independently
 (`lib/onetime/application/auth_strategies/base_session_auth_strategy.rb`,
 `lib/onetime/helpers/session_helpers.rb`,
 `lib/onetime/application/auth_strategies/helpers.rb`) call it.

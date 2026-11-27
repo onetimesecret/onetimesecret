@@ -60,7 +60,7 @@ The observed failure mode follows directly: banner says "testing with Team Plus"
 
 ### Ordering constraint (2026-07-07)
 
-The context-setting middleware must run after session middleware and before any controller that serializes organizations. Concrete placement: the universal stack (`lib/onetime/application/middleware_stack.rb`) mounts `Onetime::Session` for all three apps (web, api, internal); insert the preview-context middleware immediately after `Onetime::Middleware::IdentityResolution` (middleware_stack.rb:332). One mount point covers `/api/organizations`, `/api/colonel/*`, domain config endpoints, and the bootstrap serializer path — no per-app wiring.
+The context-setting middleware must run after session middleware and before any controller that serializes organizations. Concrete placement: the universal stack (`lib/onetime/application/middleware_stack.rb`) mounts `Onetime::Session::RackStore` for all three apps (web, api, internal); insert the preview-context middleware immediately after `Onetime::Middleware::IdentityResolution` (middleware_stack.rb:332). One mount point covers `/api/organizations`, `/api/colonel/*`, domain config endpoints, and the bootstrap serializer path — no per-app wiring.
 
 ### MRO placement (2026-07-07)
 

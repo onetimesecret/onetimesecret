@@ -26,7 +26,7 @@ This would limit `SameSite=None` to the session and time window that require it.
 Session policy is installation-wide:
 
 - Default: `SameSite=Lax` in `lib/onetime/boot.rb:87-91`.
-- Middleware passes a fixed value to `Onetime::Session` in `lib/onetime/application/middleware_stack.rb:665-674`.
+- Middleware passes a fixed value to `Onetime::Session::RackStore` in `lib/onetime/application/middleware_stack.rb:665-674`.
 - SAML currently requires the operator to globally configure `SameSite=None; Secure`:
   - validation: `lib/onetime/sso_provider/saml.rb:413-421`
   - boot warning: `apps/web/auth/config/features/omniauth.rb:670-684`
