@@ -2033,7 +2033,8 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
 
       action = V2ConfigTestAction.new(strategy_result, base_params)
       action.instance_variable_set(:@receipt, pair.first)
-      allow(action).to receive(:auth_org).and_return(org)
+      # The organization create_secret_pair resolved before the commit.
+      action.instance_variable_set(:@receipt_org, org)
 
       action.send(:record_created_activity)
 

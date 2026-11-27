@@ -409,7 +409,11 @@ module V1::Logic
       def create_secret_pair
         # Load the scope records before the commit opens: reads inside
         # spawn_pair's transaction return futures, not values.
-        org           = receipt_organization
+        # Resolved once and kept: record_created_activity runs after the
+        # commit and must not repeat the load, whose failure would then fail
+        # a creation that has already been stored.
+        @receipt_org  = receipt_organization
+        org           = @receipt_org
         domain_record = receipt_custom_domain
 
         @receipt, @secret = Onetime::Receipt.spawn_pair(
@@ -452,9 +456,18 @@ module V1::Logic
       # custom domain the secret is shared on. A guest on the canonical host or
       # a link-pool host has none.
       def receipt_organization
-        return receipt_custom_domain&.primary_organization if anonymous_creator?
+        return guest_receipt_organization if anonymous_creator?
 
         auth_org
+      end
+
+      # The organization owning the custom domain a guest shares on, or nil.
+      # An archived organization can still own its domains
+      # (Organization#archive! leaves them attached), so it is skipped here
+      # as OrganizationLoader skips it for members.
+      def guest_receipt_organization
+        org = receipt_custom_domain&.primary_organization
+        org unless org.nil? || org.archived?
       end
 
       # The registered custom domain the secret is shared on, or nil for the
@@ -479,7 +492,7 @@ module V1::Logic
       # logged by creation_followup and never fails a committed creation.
       # Mirrors V2 BaseSecretAction#record_created_activity.
       def record_created_activity
-        org = receipt_organization
+        org = @receipt_org
         return unless org
 
         actor_attrs = if anonymous_creator?
