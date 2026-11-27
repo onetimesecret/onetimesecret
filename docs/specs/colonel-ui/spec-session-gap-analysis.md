@@ -281,7 +281,7 @@ a substitute. Also unchanged: 3.4, 3.5, 3.7, 3.8, 3.9, 3.10, 3.12.
 There are two independent session-policy mechanisms with non-overlapping
 enforcement surfaces:
 
-- **The blob path** (`Onetime::Session`) validates every request in every mode.
+- **The blob path** (`Onetime::Session::RackStore`) validates every request in every mode.
   Its only policy is `expire_after`, refreshed on each write — a _rolling idle_
   window. There is **no absolute lifetime cap at all**: a session touched daily
   lives forever.

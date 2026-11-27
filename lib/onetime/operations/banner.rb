@@ -53,7 +53,7 @@ module Onetime
       # other process until restart (only the handling process refreshed its
       # runtime state). Worst case ~2 Redis GETs/min/process.
       # `unless defined?` keeps this idempotent across code reloads (same
-      # pattern as Session::SECURE_COOKIE_WARN_INTERVAL).
+      # pattern as Session::RackStore::SECURE_COOKIE_WARN_INTERVAL).
       CACHE_TTL = 30 unless defined?(CACHE_TTL)
 
       # Process-wide staleness clock for the TTL re-read. Holds the monotonic
