@@ -1666,14 +1666,14 @@ status_with(@fwd, 'admin.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.examp
 # =================================================================
 # UNREADABLE CONFIG — denies, never deactivates
 # =================================================================
-# OT.conf.dig raising is NOT the same fact as "the operator left it unset", and
+# OT.conf.get raising is NOT the same fact as "the operator left it unset", and
 # returning nil for both let a raising config degrade a configured gate to the
 # anchor fallback and from there to INACTIVE — admin served on every hostname,
 # with a boot WARN blaming site.host.
 
 ## an unreadable site.admin block leaves BOTH gates active and denying
 @unreadable = begin
-  OT.conf.get('site')['admin'] = Object.new # Hash#dig raises TypeError on this
+  OT.conf.get('site')['admin'] = Object.new # OT.conf.get raises PathTypeError on this
   TestAdminNetworkIsolation.new(@mock_app)
 end
 [@unreadable.host_gate_active?, @unreadable.network_gate_active?, @unreadable.allowed_hosts]

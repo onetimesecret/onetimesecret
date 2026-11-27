@@ -595,7 +595,7 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
   describe 'channel_pool_size config' do
     # RABBITMQ_CHANNEL_POOL_SIZE env var is resolved at config-load time
     # by ERB in etc/defaults/config.defaults.yaml; runtime code reads
-    # OT.conf.dig('jobs', 'channel_pool_size') and never touches ENV.
+    # OT.conf.get('jobs.channel_pool_size', 5) and never touches ENV.
     around do |example|
       original_skip = ENV['SKIP_RABBITMQ_SETUP']
       example.run

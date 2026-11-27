@@ -545,7 +545,7 @@ end
 # TemplateContext fallback when OT.conf is nil (gap 7 — issue #3048)
 # ============================================================================
 #
-# conf_dig must guard against OT.conf being nil so that helpers degrade
+# The helpers read through OT.conf&.get, so with OT.conf nil they degrade
 # to GLOBAL_DEFAULTS-level fallbacks instead of raising. Setting @conf
 # directly (rather than via the setter) bypasses any wrapping behavior.
 

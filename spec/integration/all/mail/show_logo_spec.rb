@@ -5,8 +5,9 @@
 # Tests for the emailer.show_logo config toggle.
 #
 # The show_logo? predicate on TemplateContext controls whether HTML email
-# templates render the logo <img> tag. It reads OT.conf.dig('emailer',
-# 'show_logo') and returns true only when the value is exactly `true`.
+# templates render the logo <img> tag. It reads
+# OT.conf.get('emailer.show_logo', false) and returns true only when the
+# value is exactly `true`.
 #
 # Run with: pnpm run test:rspec spec/integration/all/mail/show_logo_spec.rb
 

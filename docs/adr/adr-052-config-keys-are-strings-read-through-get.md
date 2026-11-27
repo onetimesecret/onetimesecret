@@ -1,16 +1,16 @@
 ---
 id: "052"
-status: proposed
+status: accepted
 title: "ADR-052: Config Keys Are Strings, and Code Reads Config Through get"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
-2026-11-14
+2026-11-26
 
 ## Context
 
@@ -49,12 +49,16 @@ separate config object.
    dotted (`'site.admin.elevation.window'`), or an Array of Strings when a
    segment is a variable. Without a default the setting is required: a path
    that is not in the config raises `MissingPathError` with the path, and a
-   value an operator sets to nil reads as nil. With a default the setting
-   is optional. A positional default applies to missing keys and nil values.
-   A block supplies a fallback only when a key is absent. The boot banner
-   uses this distinction because an explicit nil disables a section there.
-   `false` and `0` are values and are never replaced by the
-   default. A path that runs through a value that is neither a Hash nor
+   nil in the loaded config reads as nil. A YAML null does not always
+   survive loading: `Config.after_load` merges the loaded config over
+   `Config::DEFAULTS` and treats nil there as unset, so a key that
+   DEFAULTS sets reads as its DEFAULTS value (a null
+   `site.secret_options.default_ttl` reads as 7 days). With a default
+   the setting is optional. A positional default applies to missing keys
+   and nil values. A block supplies a fallback only when a key is absent.
+   The boot banner uses this distinction because an explicit nil disables
+   a section there. `false` and `0` are values and are never replaced by
+   the default. A path that runs through a value that is neither a Hash nor
    nil raises `PathTypeError`, with or without a default; a nil section on
    the way reads as unset. Code does not read a setting out of a section
    that `get` returned (`OT.conf.get('site.admin')['window']`); it may
@@ -107,3 +111,12 @@ sections below the root are plain Hashes.
   remain to be removed.
 - [ADR-030](adr-030-config-layering-by-scope.md): how config layers are
   sourced.
+
+## Implementation Notes
+
+### Accepted and implemented (2026-11-26)
+
+Proposed on 2026-11-14 and accepted on 2026-11-26. The decision is
+implemented on `develop` through five merge requests: !4959, !4965, !4966
+and !4969 (2026-11-14), and !4975 (2026-11-22), which extended it to
+section reads, config seams and the tests. Issue #3991 is closed.
