@@ -204,9 +204,7 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
       subject.send(:process_ttl)
 
       expect(subject.default_expiration).to eq(43_200),
-        "Expected default_ttl=43200 from config, got #{subject.default_expiration}. " \
-        "process_ttl did not read OT.conf.get('site.secret_options.default_ttl'); " \
-        "a root-level 'secret_options' read falls back to 604800"
+        "Expected TTL 43200 (site.secret_options.default_ttl), got #{subject.default_expiration}"
     end
 
     it 'reads ttl_options from site.secret_options in config, not the hardcoded fallback' do
@@ -233,8 +231,7 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
       subject.instance_variable_set(:@payload, {})
       subject.send(:process_ttl)
       expect(subject.default_expiration).to eq(43_200),
-        'Expected default from config ttl_options context (43200), ' \
-        "got #{subject.default_expiration}. This confirms the config path bug."
+        "Expected TTL 43200 (site.secret_options.default_ttl), got #{subject.default_expiration}"
     end
 
     it 'uses config default_ttl (43200) when TTL param is nil' do
@@ -242,8 +239,7 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
       subject.send(:process_ttl)
 
       expect(subject.default_expiration).to eq(43_200),
-        "Expected nil TTL to default to config's 43200, got #{subject.default_expiration}. " \
-        'Bug: falls through to hardcoded 604800 because it reads from wrong config path.'
+        "Expected nil TTL to default to config's 43200, got #{subject.default_expiration}"
     end
 
     it 'uses config default_ttl (43200) when TTL key is absent from payload' do
@@ -251,8 +247,7 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
       subject.send(:process_ttl)
 
       expect(subject.default_expiration).to eq(43_200),
-        "Expected absent TTL to default to config's 43200, got #{subject.default_expiration}. " \
-        'Bug: falls through to hardcoded 604800 because it reads from wrong config path.'
+        "Expected absent TTL to default to config's 43200, got #{subject.default_expiration}"
     end
   end
 end

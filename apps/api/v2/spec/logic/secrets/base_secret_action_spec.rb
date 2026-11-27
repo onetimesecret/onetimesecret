@@ -148,9 +148,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       subject.send(:process_ttl)
 
       expect(subject.ttl).to eq(43_200),
-        "Expected default_ttl=43200 from config, got #{subject.ttl}. " \
-        "process_ttl did not read OT.conf.get('site.secret_options.default_ttl'); " \
-        "a root-level 'secret_options' read falls back to 604800"
+        "Expected TTL 43200 (site.secret_options.default_ttl), got #{subject.ttl}"
     end
 
     it 'uses config default_ttl (43200) when TTL param is nil' do
@@ -158,8 +156,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       subject.send(:process_ttl)
 
       expect(subject.ttl).to eq(43_200),
-        "Expected nil TTL to default to config's 43200, got #{subject.ttl}. " \
-        'Bug: falls through to hardcoded 604800 because it reads from wrong config path.'
+        "Expected nil TTL to default to config's 43200, got #{subject.ttl}"
     end
 
     it 'uses config default_ttl (43200) when TTL key is absent from payload' do
@@ -167,8 +164,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       subject.send(:process_ttl)
 
       expect(subject.ttl).to eq(43_200),
-        "Expected absent TTL to default to config's 43200, got #{subject.ttl}. " \
-        'Bug: falls through to hardcoded 604800 because it reads from wrong config path.'
+        "Expected absent TTL to default to config's 43200, got #{subject.ttl}"
     end
 
     it 'accepts a custom TTL above 60 seconds but below the smallest preset' do
