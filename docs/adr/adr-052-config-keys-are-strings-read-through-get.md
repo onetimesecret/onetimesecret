@@ -51,15 +51,14 @@ separate config object.
    that is not in the config raises `MissingPathError` with the path, and a
    nil in the loaded config reads as nil. A YAML null does not always
    survive loading: `Config.after_load` merges the loaded config over
-   `Config::DEFAULTS` and treats nil there as unset, so a key that DEFAULTS
-   sets reads as its DEFAULTS value (a null
-   `site.secret_options.default_ttl` reads as 7 days). With a default the
-   setting is optional. A positional default applies to missing keys and
-   nil values.
-   A block supplies a fallback only when a key is absent. The boot banner
-   uses this distinction because an explicit nil disables a section there.
-   `false` and `0` are values and are never replaced by the
-   default. A path that runs through a value that is neither a Hash nor
+   `Config::DEFAULTS` and treats nil there as unset, so a key that
+   DEFAULTS sets reads as its DEFAULTS value (a null
+   `site.secret_options.default_ttl` reads as 7 days). With a default
+   the setting is optional. A positional default applies to missing keys
+   and nil values. A block supplies a fallback only when a key is absent.
+   The boot banner uses this distinction because an explicit nil disables
+   a section there. `false` and `0` are values and are never replaced by
+   the default. A path that runs through a value that is neither a Hash nor
    nil raises `PathTypeError`, with or without a default; a nil section on
    the way reads as unset. Code does not read a setting out of a section
    that `get` returned (`OT.conf.get('site.admin')['window']`); it may
