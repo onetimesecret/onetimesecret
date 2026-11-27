@@ -11,11 +11,14 @@ module Onetime::Organization::Features
   # are fanned out from the Receipt (see Receipt::Features::AccessTimeline
   # and the receipt state transitions). State transitions (reveal, burn,
   # expiry, orphaning) record at the model layer and receipt views record
-  # from v1 and v2/v3 alike.
-  # Creation and link/status fetch events come only from the v2/v3 logic
-  # (BaseSecretAction#record_created_activity, AccessTelemetry); v1
-  # creations, incoming-secret creations, and v1 fetches do not feed
-  # the trail.
+  # from v1 and v2/v3 alike. All of these need the receipt's org_id, which
+  # v1 and v2/v3 creation stamp from the creator's organization, or for a
+  # guest from the organization owning the custom domain.
+  # Creation and link fetch events come from the logic layer
+  # (BaseSecretAction#record_created_activity and AccessTelemetry, each with
+  # a v1 and a v2/v3 implementation; status fetches exist only in v2/v3).
+  # Incoming-secret creations do not feed the trail. Receipts created before
+  # stamping was added carry no org_id and never reach it.
   #
   # This backs the `audit_logs` entitlement (admin-tier; see
   # OrganizationMembership::ADMIN_ENTITLEMENTS and the billing catalog),

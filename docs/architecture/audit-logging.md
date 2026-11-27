@@ -39,7 +39,7 @@ thread them down; the model layer validates and appends.
 ```
   Request layer (has cust / request context)          Model layer (no request context)
 ┌─────────────────────────────────────────┐
-│ V2 secrets logic                        │
+│ V1 and V2 secrets logic                 │
 │  BaseSecretAction ─── 'created' ────────┼──┐
 │  AccessTelemetry ── fetch kinds ────────┼──┤   ┌──────────────────────────────────────┐
 │    (secret_get, status_get, previewed,  │  │   │ Receipt                              │
@@ -79,8 +79,10 @@ Key files:
   each transition records exactly once — ADR-019)
 - `apps/api/v2/logic/secrets/actor_attribution.rb`,
   `access_telemetry.rb`, `base_secret_action.rb` — request-layer capture
-- `apps/api/v1/logic/secrets/actor_attribution.rb` — the v1 sibling (reveal /
-  burn thread the same actor context)
+- `apps/api/v1/logic/secrets/actor_attribution.rb`, `access_telemetry.rb`,
+  `base_secret_action.rb` — the v1 siblings (reveal / burn thread the same
+  actor context; v1 records `created` and `secret_get`/`previewed`, with no
+  network context and no status endpoint)
 - `lib/onetime/security/request_context.rb` — network-context reduction
   (ADR-022)
 
@@ -88,7 +90,7 @@ Key files:
 
 | Kind | Emitted when | Actor |
 |---|---|---|
-| `created` | secret concealed/generated in org context | `creator` |
+| `created` | secret concealed/generated in org context, or by a guest on the org's custom domain | `creator`, or `anonymous` for a guest |
 | `status_get` / `secret_get` | a third party fetched the status/secret link | tri-state |
 | `previewed` | the creator opened their own secret link | tri-state (creator by construction, but **recorded**, never inferred) |
 | `creator_status_get` | the creator checked their own secret's status | tri-state |
