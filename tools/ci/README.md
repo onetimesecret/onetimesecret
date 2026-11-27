@@ -32,7 +32,7 @@ their composite actions.
 | `toolchain` | refuses | installs system packages as root |
 | `docker up` | nothing to do when `docker info` answers; refuses to start a daemon | starts `dockerd` in the job container unless one answers |
 | `services up <name>...` | `docker compose -f compose.test.yml up --wait -d <name>...` | the same, after `sysctl vm.overcommit_memory=1` |
-| `prepare [<step>...]` | refuses | the named steps, or all four: removes group and other write access from the checkout root and the directories above it, seeds `etc/`, rewrites the checkout's `.bundle/config` and installs gems, installs node modules |
+| `prepare [<step>...]` | refuses | the named steps, or all four: removes group and other write access from the checkout root and the directories above it where the job's user owns them, seeds `etc/`, rewrites the checkout's `.bundle/config` and installs gems, installs node modules |
 | `lane <lane> [<overlay>]` | runs the lane | runs the lane |
 | `rubocop` | runs RuboCop through the bundle | the same |
 
@@ -49,7 +49,8 @@ checkout root and the directories above it are writable by every user.
 `bin/setup --doctor --bundle` refuses to write its archive under such a
 directory, and `spec/unit/setup/doctor_bundle_spec.rb` runs it in the unit
 lane. `bin/ci prepare checkout` removes group and other write access from
-those directories; sticky ones are left as they are.
+each of those directories that the job's user owns; sticky ones are left as
+they are.
 
 ## The daemon inside the job
 

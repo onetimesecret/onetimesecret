@@ -6,7 +6,8 @@
 # and one step GitHub's checkout does not need:
 #
 #   checkout  group and other write access removed from the checkout's root
-#             and the directories above it (see private_checkout below);
+#             and the directories above it, where the job's user owns them
+#             (see private_checkout below);
 #   etc       etc/<name> from each etc/defaults/<name with .defaults>, where
 #             etc/<name> is missing;
 #   bundle    a frozen bundle install into vendor/bundle, in deployment mode,
@@ -23,7 +24,12 @@
 # are not on its keep-list), so gems installed under them would be missing
 # inside the lane. This command unsets them and relies on .bundle/config.
 #
-# GitLab CI only: it rewrites the checkout's .bundle/config.
+# GitLab CI only: it changes directory modes and rewrites the checkout's
+# .bundle/config.
+#
+# BIN_CI_CHECKOUT_ROOT and BIN_CI_CHECKOUT_STOP give the checkout step
+# another directory to start from and one to stop below, for the offline
+# suite in tools/ci/tests/ only.
 set -euo pipefail
 
 # shellcheck source=tools/ci/lib.sh
@@ -53,17 +59,29 @@ step() { # <id> <title> <function>
 # user. `bin/setup --doctor --bundle` refuses to write under such a directory
 # (bundle_check_output_path in tools/setup/setup.sh), and the unit lane runs
 # it (spec/unit/setup/doctor_bundle_spec.rb). A GitHub runner's checkout and
-# a workstation's are writable by their owner only. A sticky directory is
-# left alone: that check accepts one.
+# a workstation's are writable by their owner only.
+#
+# Only a directory the job's user owns is changed. A sticky directory is left
+# alone: that check accepts one. The walk goes up to the filesystem root, as
+# the check does. Each line printed is the directory's mode and owner before
+# and after.
 private_checkout() {
-  local path="$CI_REPO_ROOT"
-  while [ -n "$path" ] && [ "$path" != / ]; do
+  local path="${BIN_CI_CHECKOUT_ROOT:-$CI_REPO_ROOT}" stop="${BIN_CI_CHECKOUT_STOP:-/}" before
+  while [ -n "$path" ] && [ "$path" != / ] && [ "$path" != "$stop" ]; do
+    before="$(mode_and_owner "$path")"
     if [ -O "$path" ] && [ ! -k "$path" ]; then
       chmod go-w "$path"
     fi
-    printf '%s %s\n' "$(stat -c '%a %U' "$path")" "$path"
+    printf '%s -> %s %s\n' "$before" "$(mode_and_owner "$path")" "$path"
     path="$(dirname "$path")"
   done
+}
+
+mode_and_owner() { # <directory>
+  # ls and not stat: the same ten mode characters on GNU and BSD. An
+  # eleventh marks an ACL or extended attributes and is dropped.
+  # shellcheck disable=SC2012 # one known directory
+  ls -ld "$1" | awk '{ print substr($1, 1, 10), $3 }'
 }
 
 seed_etc() {

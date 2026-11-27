@@ -295,7 +295,8 @@ assert_eq "ruby-auth-browser installs the Playwright browsers, then runs the lan
     - bin/ci lane \$LANE" "$(job_script ruby-auth-browser)"
 # Lane jobs only read the cache. If neither of these wrote it, every lane job
 # would install the whole bundle on every run.
-assert_contains "the shared cache is read-only by default" "    policy: pull" "$(gitlab_job "$RUBY_JOBS" .ruby-job)"
+assert_eq "the shared cache is read-only by default" "    policy: pull" \
+  "$(gitlab_job "$RUBY_JOBS" .ruby-job | grep '^ *policy:')"
 for job in rubocop smoke-lane; do
   assert_contains "${job} writes the bundle cache" "    policy: pull-push" "$(gitlab_job "$RUBY_JOBS" "$job")"
 done

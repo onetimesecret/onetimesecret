@@ -54,7 +54,7 @@ fi
 printf 'docker %s\n' "$*" >> "$STUB_CALLS"
 exit "${STUB_DOCKER_STATUS:-0}"
 STUB
-for name in sysctl dockerd apt-get mount gem pnpm chmod; do
+for name in sysctl dockerd apt-get mount gem pnpm; do
   cat > "${STUBS}/${name}" << STUB
 #!/usr/bin/env bash
 printf '${name} %s\n' "\$*" >> "\$STUB_CALLS"
@@ -133,8 +133,46 @@ for command in toolchain prepare 'prepare checkout' 'prepare bundle' 'prepare pn
   run -- $command
   assert_eq "${command} outside GitLab CI exits 1" 1 "$RC"
   assert_contains "${command} says why" "runs only in a GitLab CI job" "$OUT"
-  assert_eq "${command} reached no apt-get, mount, chmod or bundle" "" "$CALLED"
+  assert_eq "${command} reached no apt-get, mount or bundle" "" "$CALLED"
 done
+
+protects "prepare checkout: the checkout root and the directories above it lose group and other write"
+# A stand-in for /builds/<group>/<project> under GitLab's umask 0000, with a
+# sticky directory in the path. BIN_CI_CHECKOUT_STOP keeps the walk inside
+# it; in a job the walk goes up to the filesystem root.
+TREE="${WORK}/tree"
+mkdir -p "${TREE}/builds/sticky/group/project"
+chmod 0777 "$TREE" "${TREE}/builds" "${TREE}/builds/sticky/group" "${TREE}/builds/sticky/group/project"
+chmod 1777 "${TREE}/builds/sticky"
+modes() {
+  local dir
+  for dir in "$TREE" "${TREE}/builds" "${TREE}/builds/sticky" "${TREE}/builds/sticky/group" \
+    "${TREE}/builds/sticky/group/project"; do
+    # shellcheck disable=SC2012 # the mode column of one known directory
+    printf '%s %s\n' "$(ls -ld "$dir" | awk '{ print substr($1, 1, 10) }')" "${dir#"$WORK"/}"
+  done
+}
+loose="$(modes)"
+run BIN_CI_CHECKOUT_ROOT="${TREE}/builds/sticky/group/project" BIN_CI_CHECKOUT_STOP="$TREE" -- prepare checkout
+assert_eq "prepare checkout outside GitLab CI exits 1" 1 "$RC"
+assert_eq "prepare checkout outside GitLab CI changes no mode" "$loose" "$(modes)"
+run GITLAB_CI=true BIN_CI_CHECKOUT_ROOT="${TREE}/builds/sticky/group/project" BIN_CI_CHECKOUT_STOP="$TREE" \
+  -- prepare bundle
+assert_eq "prepare bundle changes no mode" "$loose" "$(modes)"
+run GITLAB_CI=true BIN_CI_CHECKOUT_ROOT="${TREE}/builds/sticky/group/project" BIN_CI_CHECKOUT_STOP="$TREE" \
+  -- prepare checkout
+assert_eq "prepare checkout exits 0" 0 "$RC"
+assert_eq "every owned, non-sticky directory up to the stop loses group and other write" "\
+drwxrwxrwx tree
+drwxr-xr-x tree/builds
+drwxrwxrwt tree/builds/sticky
+drwxr-xr-x tree/builds/sticky/group
+drwxr-xr-x tree/builds/sticky/group/project" "$(modes)"
+assert_contains "prepare checkout reports the mode before and after" \
+  "drwxrwxrwx $(id -un) -> drwxr-xr-x $(id -un) ${TREE}/builds/sticky/group/project" "$OUT"
+assert_eq "the checkout step runs first when prepare is given no step" \
+  '[ "$#" -gt 0 ] || set -- checkout etc bundle pnpm' \
+  "$(grep -F 'set -- ' "${REPO_ROOT}/tools/ci/prepare.sh")"
 
 protects "prepare with step names runs those steps only, in the order given"
 # Only `bundle` and `pnpm` run here, against the stubs. `checkout` and `etc`
@@ -151,7 +189,6 @@ assert_contains "prepare bundle installs the gems" "bundle install --jobs 2" "$C
 assert_contains "prepare bundle sees neither of the Ruby image's Bundler variables" \
   "GEM_HOME=unset BUNDLE_APP_CONFIG=unset" "$CALLED"
 assert_not_contains "prepare bundle runs no pnpm" "pnpm" "$CALLED"
-assert_not_contains "prepare bundle changes no directory mode" "chmod" "$CALLED"
 run GITLAB_CI=true -- prepare pnpm
 assert_eq "prepare pnpm exits 0" 0 "$RC"
 assert_eq "prepare pnpm runs the frozen install and nothing else" "pnpm install --frozen-lockfile" "$CALLED"

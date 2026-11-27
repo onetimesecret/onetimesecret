@@ -1583,7 +1583,8 @@ State on 2026-11-27:
   needs only `bin/ci prepare bundle`. `harness` is a job of its own; on
   GitHub it is a second step of the unit job.
 - `bin/ci prepare` removes group and other write access from the checkout
-  root and the directories above it. GitLab's Docker executor fetches the
+  root and the directories above it, where the job's user owns them and
+  they are not sticky. GitLab's Docker executor fetches the
   sources with umask 0000, and `bin/setup --doctor --bundle`, which the unit
   lane runs, refuses to write under a directory other users can write to
   (`bundle_check_output_path` in `tools/setup/setup.sh`).
