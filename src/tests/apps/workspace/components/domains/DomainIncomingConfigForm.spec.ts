@@ -407,7 +407,12 @@ describe('DomainIncomingConfigForm when a higher level already requires a passph
   const checkbox = '#incoming-passphrase-required';
   const note = '[data-testid="incoming-passphrase-inherited"]';
 
-  function mountInherited(levels: { instance?: boolean; organization?: boolean; orgid?: string }) {
+  function mountInherited(levels: {
+    instance?: boolean;
+    organization?: boolean;
+    domain?: boolean;
+    orgid?: string;
+  }) {
     const pinia = createTestingPinia({ createSpy: vi.fn });
     useBootstrapStore().$patch({
       secret_options: {
@@ -434,6 +439,7 @@ describe('DomainIncomingConfigForm when a higher level already requires a passph
         formState: emptyFormState,
         savedFormState: null,
         ...(levels.orgid === undefined ? {} : { orgid: levels.orgid }),
+        ...(levels.domain === undefined ? {} : { domainPassphraseRequired: levels.domain }),
       },
       global: { plugins: [pinia, i18n] },
     });
@@ -466,6 +472,27 @@ describe('DomainIncomingConfigForm when a higher level already requires a passph
   it('names the installation when both levels require one', () => {
     const wrapper = mountInherited({ instance: true, organization: true, orgid: 'on-owner' });
     expect(wrapper.get(note).text()).toBe('web.domains.incoming.passphrase_required_by_instance');
+  });
+
+  it("shows the box checked and disabled with the domain note when the domain's brand requires one", () => {
+    const wrapper = mountInherited({ domain: true, orgid: 'on-owner' });
+    const box = wrapper.get<HTMLInputElement>(checkbox);
+
+    expect(box.element.checked).toBe(true);
+    expect(box.element.disabled).toBe(true);
+    expect(wrapper.get(note).text()).toBe('web.domains.incoming.passphrase_required_by_domain');
+  });
+
+  it('names the organization when both the organization and the domain require one', () => {
+    const wrapper = mountInherited({ organization: true, domain: true, orgid: 'on-owner' });
+    expect(wrapper.get(note).text()).toBe(
+      'web.domains.incoming.passphrase_required_by_organization'
+    );
+  });
+
+  it('applies the domain level even when no organization is given', () => {
+    const wrapper = mountInherited({ domain: true });
+    expect(wrapper.get<HTMLInputElement>(checkbox).element.disabled).toBe(true);
   });
 
   it('leaves the box editable when neither level requires one', () => {

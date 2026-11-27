@@ -270,6 +270,7 @@ watch(canManageIncoming, allowed => {
               :max-recipients="maxRecipients"
               :error="incomingError?.message"
               :orgid="props.orgid"
+              :domain-passphrase-required="customDomainRecord?.brand?.passphrase_required === true"
               @save="saveConfig"
               @delete="deleteConfig"
               @discard="discardChanges"

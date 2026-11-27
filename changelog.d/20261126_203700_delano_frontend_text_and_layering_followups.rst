@@ -40,7 +40,8 @@ Fixed
   left empty, and no longer call a too-short passphrase "(Optional)".
 - The "require a passphrase" setting in the organization sharing controls and
   in a domain's incoming secrets settings is shown as on and locked when the
-  installation, or for a domain the organization, already requires one.
+  installation already requires one, or, for a domain, the organization or
+  the domain's own brand settings do.
 - The organization sharing controls now say that a blank maximum lifetime
   removes the organization's limit.
 - Validation messages on the secret form, and three labels read by screen

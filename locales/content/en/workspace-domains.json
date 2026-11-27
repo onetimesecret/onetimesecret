@@ -1921,6 +1921,10 @@
     "text": "The organization's sharing controls require a passphrase, so this cannot be turned off here.",
     "content_hash": "5f55b315"
   },
+  "web.domains.incoming.passphrase_required_by_domain": {
+    "text": "This domain's brand settings require a passphrase for every secret, so this cannot be turned off here.",
+    "content_hash": "14827767"
+  },
   "web.domains.incoming.max_ttl": {
     "text": "Maximum secret lifetime in seconds",
     "content_hash": "813d3263"

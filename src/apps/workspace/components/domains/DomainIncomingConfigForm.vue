@@ -31,6 +31,8 @@ interface Props {
   error?: string;
   /** The organization that owns the domain, whose sharing controls apply above this form. */
   orgid?: string;
+  /** Whether the domain's brand settings require a passphrase for every secret on it. */
+  domainPassphraseRequired?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -55,10 +57,26 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-// The installation or the owning organization can already require a
-// passphrase. The domain's stored value is left as it is; only its display is
-// locked.
-const inheritedPassphrase = useInheritedPassphraseRequirement(() => props.orgid);
+// The installation, the owning organization or the domain's brand settings
+// can already require a passphrase. The incoming config's stored value is
+// left as it is; only its display is locked.
+const inheritedPassphrase = useInheritedPassphraseRequirement(
+  () => props.orgid,
+  () => props.domainPassphraseRequired
+);
+
+const inheritedPassphraseHint = computed(() => {
+  switch (inheritedPassphrase.value) {
+    case 'instance':
+      return t('web.domains.incoming.passphrase_required_by_instance');
+    case 'organization':
+      return t('web.domains.incoming.passphrase_required_by_organization');
+    case 'domain':
+      return t('web.domains.incoming.passphrase_required_by_domain');
+    default:
+      return '';
+  }
+});
 
 // ---------------------------------------------------------------------------
 // Local state for the add-recipient row
@@ -400,11 +418,7 @@ function updateMaxTtl(event: Event): void {
           id="incoming-passphrase-required-hint"
           class="mt-1 field-hint"
           data-testid="incoming-passphrase-inherited">
-          {{
-            inheritedPassphrase === 'instance'
-              ? t('web.domains.incoming.passphrase_required_by_instance')
-              : t('web.domains.incoming.passphrase_required_by_organization')
-          }}
+          {{ inheritedPassphraseHint }}
         </p>
       </div>
       <div class="sm:max-w-md">
