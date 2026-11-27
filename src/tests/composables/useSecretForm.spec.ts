@@ -109,7 +109,7 @@ describe('useSecretForm validation messages', () => {
     );
   });
 
-  it('reports complexity over length when both fail, as before', () => {
+  it('reports the first broken rule, length before complexity, when both fail', () => {
     const { validation, operations } = setup({
       minimum_length: 8,
       maximum_length: 12,
@@ -118,7 +118,9 @@ describe('useSecretForm validation messages', () => {
     operations.updateField('passphrase', 'Ab1');
 
     validation.validate();
-    expect(validation.errors.get('passphrase')).toContain('web.secrets.error_passphrase_complexity');
+    expect(validation.errors.get('passphrase')).toBe(
+      'web.secrets.error_passphrase_too_short{"length":8}'
+    );
   });
 
   it('reports a recipient outside the allowed domains', () => {

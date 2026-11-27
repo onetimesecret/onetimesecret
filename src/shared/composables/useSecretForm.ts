@@ -5,11 +5,7 @@ import {
   secretDisplayTypeSchema,
 } from '@/schemas/contracts/secret';
 import { transforms } from '@/schemas/transforms';
-import {
-  reportedPassphraseIssue,
-  type PassphraseCharacterClass,
-  type PassphraseIssue,
-} from './usePassphraseRules';
+import { passphraseIssueMessage, reportedPassphraseIssue } from './usePassphraseRules';
 import { useSharingControls } from './useSharingControls';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
@@ -42,13 +38,6 @@ const formSchema = z.object({
   team_id: z.string().optional(),
   display_type: secretDisplayTypeSchema,
 });
-
-const CHARACTER_CLASS_KEYS: Record<PassphraseCharacterClass, string> = {
-  uppercase: 'web.secrets.passphrase_class_uppercase',
-  lowercase: 'web.secrets.passphrase_class_lowercase',
-  number: 'web.secrets.passphrase_class_number',
-  symbol: 'web.secrets.passphrase_class_symbol',
-};
 
 /**
  * Form data structure with defaults
@@ -116,29 +105,14 @@ export function useSecretForm(shareDomain?: () => string) {
     }
   }
 
-  // The rules are shared with the dashboard passphrase chip and mobile sheet
-  // (usePassphraseRules); only the wording is this form's own.
+  // The rules and their messages are shared with the dashboard passphrase
+  // chip and mobile sheet (usePassphraseRules).
   function validatePassphrase() {
     const issue = reportedPassphraseIssue(form.passphrase, {
       required: controls.passphraseRequired.value,
       config: secret_options.value?.passphrase,
     });
-    if (issue) errors.set('passphrase', passphraseIssueMessage(issue));
-  }
-
-  function passphraseIssueMessage(issue: PassphraseIssue): string {
-    switch (issue.code) {
-      case 'required':
-        return t('web.secrets.error_passphrase_required');
-      case 'too_short':
-        return t('web.secrets.error_passphrase_too_short', { length: issue.length });
-      case 'too_long':
-        return t('web.secrets.error_passphrase_too_long', { length: issue.length });
-      case 'complexity':
-        return t('web.secrets.error_passphrase_complexity', {
-          missing: issue.missing.map((name) => t(CHARACTER_CLASS_KEYS[name])).join(', '),
-        });
-    }
+    if (issue) errors.set('passphrase', passphraseIssueMessage(issue, t));
   }
 
   function validate(generate = false) {

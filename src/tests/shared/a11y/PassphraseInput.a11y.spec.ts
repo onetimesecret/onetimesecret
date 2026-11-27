@@ -10,8 +10,9 @@
 // rendered, letting axe inspect the field content directly.
 //
 
+import { createTestingPinia } from '@pinia/testing';
 import { mount, VueWrapper } from '@vue/test-utils';
-import { describe, it, vi, afterEach } from 'vitest';
+import { describe, expect, it, vi, afterEach } from 'vitest';
 import PassphraseInput from '@/apps/workspace/components/forms/privacy-options/PassphraseInput.vue';
 import { createTestI18n } from '@tests/setup';
 import { expectNoA11yViolations } from '@tests/support/axe';
@@ -51,10 +52,22 @@ describe('PassphraseInput a11y', () => {
     if (wrapper) wrapper.unmount();
   });
 
-  const mountComponent = (props: Record<string, unknown> = {}) =>
+  // The minimum length comes from the bootstrap passphrase config, the same
+  // source submit validation reads.
+  const mountComponent = (props: Record<string, unknown> = {}, minimumLength = 0) =>
     mount(PassphraseInput, {
       props: { modelValue: '', ...props },
-      global: { plugins: [i18n] },
+      global: {
+        plugins: [
+          i18n,
+          createTestingPinia({
+            createSpy: vi.fn,
+            initialState: {
+              bootstrap: { secret_options: { passphrase: { minimum_length: minimumLength } } },
+            },
+          }),
+        ],
+      },
     });
 
   it('has no a11y violations with an empty passphrase', async () => {
@@ -63,13 +76,15 @@ describe('PassphraseInput a11y', () => {
   });
 
   it('has no a11y violations with a valid passphrase entered', async () => {
-    wrapper = mountComponent({ modelValue: 'correct horse battery staple', minLength: 6 });
+    wrapper = mountComponent({ modelValue: 'correct horse battery staple' }, 6);
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false);
     await expectNoA11yViolations(wrapper);
   });
 
   it('has no a11y violations when showing a validation error', async () => {
-    // Value shorter than minLength triggers the role="alert" error message.
-    wrapper = mountComponent({ modelValue: 'ab', minLength: 8 });
+    // Value shorter than the minimum length triggers the role="alert" error message.
+    wrapper = mountComponent({ modelValue: 'ab' }, 8);
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true);
     await expectNoA11yViolations(wrapper);
   });
 

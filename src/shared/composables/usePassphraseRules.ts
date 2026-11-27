@@ -65,16 +65,46 @@ export function passphraseIssues(
 }
 
 /**
- * The one issue shown for a value: the last rule it breaks. This is the
- * order the secret form has always reported in (a later rule's message
- * replaced an earlier one), kept so the chip and the form's banner agree.
+ * The one issue shown for a value: the first rule it breaks, in rule order
+ * (required, minimum length, maximum length, complexity). The secret form's
+ * banner and the chip both report this one, so they agree.
  */
 export function reportedPassphraseIssue(
   value: string,
   rules: { required: boolean; config?: PassphraseRulesConfig | null }
 ): PassphraseIssue | null {
-  const issues = passphraseIssues(value, rules);
-  return issues.length > 0 ? issues[issues.length - 1] : null;
+  return passphraseIssues(value, rules)[0] ?? null;
+}
+
+const CHARACTER_CLASS_KEYS: Record<PassphraseCharacterClass, string> = {
+  uppercase: 'web.secrets.passphrase_class_uppercase',
+  lowercase: 'web.secrets.passphrase_class_lowercase',
+  number: 'web.secrets.passphrase_class_number',
+  symbol: 'web.secrets.passphrase_class_symbol',
+};
+
+type Translate = (key: string, named?: Record<string, unknown>) => string;
+
+/**
+ * The error message for an issue, naming the rule it breaks. Shared by the
+ * secret form's submit validation and the chip and sheet, so one passphrase
+ * gets one message wherever it is shown. None of these messages say
+ * "(Optional)": a passphrase that was entered has to meet the rules whether
+ * or not one was required.
+ */
+export function passphraseIssueMessage(issue: PassphraseIssue, t: Translate): string {
+  switch (issue.code) {
+    case 'required':
+      return t('web.secrets.error_passphrase_required');
+    case 'too_short':
+      return t('web.secrets.error_passphrase_too_short', { length: issue.length });
+    case 'too_long':
+      return t('web.secrets.error_passphrase_too_long', { length: issue.length });
+    case 'complexity':
+      return t('web.secrets.error_passphrase_complexity', {
+        missing: issue.missing.map((name) => t(CHARACTER_CLASS_KEYS[name])).join(', '),
+      });
+  }
 }
 
 /**
@@ -85,19 +115,17 @@ export function reportedPassphraseIssue(
  * the current value. A required passphrase left empty is an error only after
  * the user has interacted with the field (markInteracted).
  *
+ * The rules are read only from the bootstrap config, the same source submit
+ * validation reads, so the chip cannot accept what submit refuses.
+ *
  * @param value - the current passphrase
- * @param minimumLength - overrides the configured minimum when above zero
  */
-export function usePassphraseRules(value: () => string, minimumLength?: () => number) {
+export function usePassphraseRules(value: () => string) {
   const { t } = useI18n();
   const { secret_options } = storeToRefs(useBootstrapStore());
   const { passphraseRequired } = useSharingControls();
 
-  const config = computed<PassphraseRulesConfig>(() => {
-    const published = secret_options.value?.passphrase ?? {};
-    const override = minimumLength?.() ?? 0;
-    return override > 0 ? { ...published, minimum_length: override } : published;
-  });
+  const config = computed<PassphraseRulesConfig>(() => secret_options.value?.passphrase ?? {});
 
   const minLength = computed(() => config.value.minimum_length || 0);
   const complexityEnforced = computed(() => !!config.value.enforce_complexity);
@@ -133,24 +161,7 @@ export function usePassphraseRules(value: () => string, minimumLength?: () => nu
     complexityEnforced.value ? t('web.secrets.passphraseComplexityRequired') : ''
   );
 
-  const errorText = computed(() => {
-    const found = issue.value;
-    if (!found) return '';
-    switch (found.code) {
-      case 'required':
-        return t('web.secrets.passphraseRequired');
-      case 'too_short':
-        // An error is never "(Optional)": a passphrase that was entered has
-        // to meet the minimum whether or not one was required.
-        return t('web.secrets.passphraseMinimumLengthRequired', { length: found.length });
-      case 'too_long':
-        return t('web.secrets.passphraseMaximumLength', { length: found.length });
-      case 'complexity':
-        return t('web.secrets.passphraseComplexityRequired');
-      default:
-        return '';
-    }
-  });
+  const errorText = computed(() => (issue.value ? passphraseIssueMessage(issue.value, t) : ''));
 
   return {
     passphraseRequired,

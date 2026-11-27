@@ -78,9 +78,18 @@ function pinia(passphrase: Rules) {
 
 const MIN = 'web.secrets.passphraseMinimumLength{"length":6}';
 const MIN_REQUIRED = 'web.secrets.passphraseMinimumLengthRequired{"length":6}';
-const MAX = 'web.secrets.passphraseMaximumLength{"length":10}';
+const TOO_SHORT = 'web.secrets.error_passphrase_too_short{"length":6}';
+const MAX = 'web.secrets.error_passphrase_too_long{"length":10}';
 const COMPLEXITY = 'web.secrets.passphraseComplexityRequired';
-const REQUIRED = 'web.secrets.passphraseRequired';
+const COMPLEXITY_ERROR = `web.secrets.error_passphrase_complexity${JSON.stringify({
+  missing: [
+    'web.secrets.passphrase_class_uppercase',
+    'web.secrets.passphrase_class_number',
+    'web.secrets.passphrase_class_symbol',
+  ].join(', '),
+})}`;
+const REQUIRED = 'web.secrets.error_passphrase_required';
+const REQUIRED_MARKER = 'web.secrets.passphraseRequired';
 
 afterEach(() => wrapper?.unmount());
 
@@ -106,7 +115,7 @@ describe('PassphraseInput (desktop chip)', () => {
 
   it('reports a passphrase that lacks the enforced character classes', () => {
     mountChip('abcdefgh', { minimum_length: 6, maximum_length: 10, enforce_complexity: true });
-    expect(error().text()).toBe(COMPLEXITY);
+    expect(error().text()).toBe(COMPLEXITY_ERROR);
   });
 
   it('accepts a passphrase that meets every rule', () => {
@@ -120,7 +129,8 @@ describe('PassphraseInput (desktop chip)', () => {
   it('reports a too-short optional passphrase without the "(Optional)" wording', () => {
     mountChip('abc', { minimum_length: 6, maximum_length: 10 });
     // web.secrets.passphraseMinimumLength is the text that ends "(Optional)".
-    expect(error().text()).toBe(MIN_REQUIRED);
+    expect(error().text()).not.toContain('passphraseMinimumLength');
+    expect(error().text()).toBe(TOO_SHORT);
   });
 
   it('keeps "(Optional)" on the neutral hint of an optional passphrase', () => {
@@ -128,9 +138,9 @@ describe('PassphraseInput (desktop chip)', () => {
     expect(hint().text()).toBe(MIN);
   });
 
-  it('uses the minLength prop over the published minimum when above zero', () => {
-    mountChip('abcdefg', { minimum_length: 6, maximum_length: 64 }, { minLength: 8 });
-    expect(error().exists()).toBe(true);
+  it('reads the minimum only from the published rules, as submit does', () => {
+    mountChip('abcdefg', { minimum_length: 8, maximum_length: 64 });
+    expect(error().text()).toBe('web.secrets.error_passphrase_too_short{"length":8}');
   });
 
   it('shows the complexity hint beside the minimum length hint when enforced', () => {
@@ -190,12 +200,13 @@ describe('PrivacyOptionsSheet (mobile sheet)', () => {
 
   it('reports a passphrase that lacks the enforced character classes', () => {
     mountSheet('abcdefgh', { minimum_length: 6, maximum_length: 10, enforce_complexity: true });
-    expect(error().text()).toBe(COMPLEXITY);
+    expect(error().text()).toBe(COMPLEXITY_ERROR);
   });
 
   it('reports a too-short optional passphrase without the "(Optional)" wording', () => {
     mountSheet('abc', { minimum_length: 6, maximum_length: 10 });
-    expect(error().text()).toBe(MIN_REQUIRED);
+    expect(error().text()).not.toContain('passphraseMinimumLength');
+    expect(error().text()).toBe(TOO_SHORT);
   });
 
   it('keeps "(Optional)" on the neutral hint of an optional passphrase', () => {
@@ -237,7 +248,7 @@ describe('PrivacyOptionsBar (mobile pill)', () => {
 
     expect(marker().exists()).toBe(true);
     expect(marker().text()).toContain('*');
-    expect(marker().find('.sr-only').text()).toBe(REQUIRED);
+    expect(marker().find('.sr-only').text()).toBe(REQUIRED_MARKER);
   });
 
   it('has no marker when a passphrase is optional', () => {

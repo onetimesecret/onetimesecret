@@ -19,14 +19,11 @@
   interface Props {
     /** Current passphrase value (v-model) */
     modelValue: string;
-    /** Overrides the configured minimum passphrase length when above zero */
-    minLength?: number;
     /** Disable when form is submitting */
     disabled?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
-    minLength: 0,
     disabled: false,
   });
 
@@ -42,18 +39,15 @@
   const hasPassphrase = computed(() => !!props.modelValue);
 
   // The same rules the form enforces on submit (minimum and maximum length,
-  // complexity, required), so the chip does not show a passphrase as valid
-  // that the form will then refuse.
+  // complexity, required), read from the same bootstrap config, so the chip
+  // does not show a passphrase as valid that the form will then refuse.
   const {
     passphraseRequired,
     errorText: validationError,
     minimumLengthHint,
     complexityHint,
     markInteracted,
-  } = usePassphraseRules(
-    () => props.modelValue,
-    () => props.minLength
-  );
+  } = usePassphraseRules(() => props.modelValue);
 
   const errorId = computed(() =>
     validationError.value ? 'passphrase-error' : undefined

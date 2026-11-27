@@ -20,6 +20,7 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
+import { useSecretForm } from '@/shared/composables/useSecretForm';
 import {
   passphraseIssues,
   reportedPassphraseIssue,
@@ -66,6 +67,11 @@ describe('passphraseIssues', () => {
     expect(passphraseIssues('abcdefgh', { required: false, config })).toEqual([]);
   });
 
+  it('skips limits that are unset or zero', () => {
+    const unset = { minimum_length: 0, maximum_length: 0 };
+    expect(passphraseIssues('a', { required: false, config: unset })).toEqual([]);
+  });
+
   it('checks nothing but required when no rules are published', () => {
     expect(passphraseIssues('a', { required: false, config: undefined })).toEqual([]);
     expect(passphraseIssues('', { required: true, config: undefined })).toEqual([
@@ -87,11 +93,11 @@ describe('reportedPassphraseIssue', () => {
     expect(reportedPassphraseIssue('x'.repeat(8), { required: true, config })).toBeNull();
   });
 
-  it('is the last broken rule, the order the form has always reported in', () => {
+  it('is the first broken rule, in rule order', () => {
     const complex = { ...config, enforce_complexity: true };
     expect(reportedPassphraseIssue('abc', { required: false, config: complex })).toEqual({
-      code: 'complexity',
-      missing: ['uppercase', 'number', 'symbol'],
+      code: 'too_short',
+      length: 8,
     });
   });
 });
@@ -113,19 +119,26 @@ describe('usePassphraseRules', () => {
 
     expect(rules.minLength.value).toBe(4);
     expect(rules.issue.value).toEqual({ code: 'too_long', length: 10 });
-    expect(rules.errorText.value).toBe('web.secrets.passphraseMaximumLength{"length":10}');
+    expect(rules.errorText.value).toBe('web.secrets.error_passphrase_too_long{"length":10}');
 
     value.value = 'x'.repeat(10);
     expect(rules.errorText.value).toBe('');
   });
 
-  it('reports complexity with the complexity key, and offers it as a hint', () => {
+  it('names the missing character classes in the error, and offers the rule as a hint', () => {
     setup({ minimum_length: 4, maximum_length: 64, enforce_complexity: true });
     const rules = usePassphraseRules(() => 'abcdefgh');
 
     expect(rules.complexityEnforced.value).toBe(true);
     expect(rules.complexityHint.value).toBe('web.secrets.passphraseComplexityRequired');
-    expect(rules.errorText.value).toBe('web.secrets.passphraseComplexityRequired');
+    const missing = [
+      'web.secrets.passphrase_class_uppercase',
+      'web.secrets.passphrase_class_number',
+      'web.secrets.passphrase_class_symbol',
+    ].join(', ');
+    expect(rules.errorText.value).toBe(
+      `web.secrets.error_passphrase_complexity${JSON.stringify({ missing })}`
+    );
   });
 
   it('words a too-short error without "(Optional)", even when optional', () => {
@@ -134,19 +147,13 @@ describe('usePassphraseRules', () => {
 
     // web.secrets.passphraseMinimumLength is the text that ends "(Optional)".
     expect(rules.passphraseRequired.value).toBe(false);
-    expect(rules.errorText.value).toBe('web.secrets.passphraseMinimumLengthRequired{"length":6}');
+    expect(rules.errorText.value).toBe('web.secrets.error_passphrase_too_short{"length":6}');
     expect(rules.minimumLengthHint.value).toBe('web.secrets.passphraseMinimumLength{"length":6}');
   });
 
   it('has no complexity hint when complexity is not enforced', () => {
     setup({ minimum_length: 4, maximum_length: 64 });
     expect(usePassphraseRules(() => '').complexityHint.value).toBe('');
-  });
-
-  it('lets a minimum length above zero override the published one', () => {
-    setup({ minimum_length: 4, maximum_length: 64 });
-    expect(usePassphraseRules(() => '', () => 9).minLength.value).toBe(9);
-    expect(usePassphraseRules(() => '', () => 0).minLength.value).toBe(4);
   });
 
   it('holds back the required error until the field has been interacted with', () => {
@@ -158,7 +165,7 @@ describe('usePassphraseRules', () => {
 
     rules.markInteracted();
     expect(rules.issue.value).toEqual({ code: 'required' });
-    expect(rules.errorText.value).toBe('web.secrets.passphraseRequired');
+    expect(rules.errorText.value).toBe('web.secrets.error_passphrase_required');
   });
 
   it('never reports an empty optional passphrase, interacted with or not', () => {
@@ -174,5 +181,28 @@ describe('usePassphraseRules', () => {
   ])('words the minimum length hint for required=%s', (required, hint) => {
     setup({ minimum_length: 4, maximum_length: 64, required });
     expect(usePassphraseRules(() => '').minimumLengthHint.value).toBe(hint);
+  });
+
+  // The chip must accept exactly what submit accepts.
+  it.each([
+    ['', false],
+    ['', true],
+    ['   ', true],
+    ['Ab1!', false],
+    ['Ab1!Ab1!Ab1!x', false],
+    ['abcdefgh', false],
+    ['Abcdef1!', false],
+    ['Abcdef1!', true],
+  ])('agrees with submit validation for %j (required=%s)', (input, required) => {
+    setup({ minimum_length: 8, maximum_length: 12, enforce_complexity: true, required });
+    const rules = usePassphraseRules(() => input);
+    rules.markInteracted();
+    const { form, validation } = useSecretForm();
+    form.secret = 'content';
+    form.passphrase = input;
+    validation.validate();
+
+    expect(rules.issue.value === null).toBe(!validation.errors.has('passphrase'));
+    expect(rules.errorText.value).toBe(validation.errors.get('passphrase') ?? '');
   });
 });

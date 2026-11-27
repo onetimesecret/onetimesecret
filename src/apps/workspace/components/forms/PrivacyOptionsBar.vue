@@ -16,9 +16,7 @@
   import { computed, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useMediaQuery } from '@vueuse/core';
-  import { storeToRefs } from 'pinia';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import TtlSelector from './privacy-options/TtlSelector.vue';
   import { useSharingControls } from '@/shared/composables/useSharingControls';
   import PassphraseInput from './privacy-options/PassphraseInput.vue';
@@ -55,13 +53,6 @@
   const isMobile = useMediaQuery('(max-width: 639px)');
   const showMobileSheet = ref(false);
 
-  // Get passphrase config for minLength prop
-  const bootstrapStore = useBootstrapStore();
-  const { secret_options } = storeToRefs(bootstrapStore);
-  const minPassphraseLength = computed(
-    () => secret_options.value?.passphrase?.minimum_length || 0
-  );
-
   const hasPassphrase = computed(() => !!props.currentPassphrase);
 
   const { defaultTtl, passphraseRequired } = useSharingControls();
@@ -96,7 +87,6 @@
           @update:model-value="emit('update:ttl', $event)" />
         <PassphraseInput
           :model-value="currentPassphrase"
-          :min-length="minPassphraseLength"
           :disabled="isSubmitting"
           @update:model-value="emit('update:passphrase', $event)" />
       </div>
