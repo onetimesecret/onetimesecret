@@ -19,7 +19,10 @@ Fixed
   stayed in the window until they expired, so when enough of them expired
   sooner, a later secret was not checked and could miss its warning. A sent
   warning now leaves the window, and ``batch_size`` counts warnings sent
-  rather than secrets read. (!5006)
+  (and failed sends) rather than secrets read. Reads per run are capped at
+  ten times ``batch_size``. Entries rewritten by
+  ``bin/ots migrations dedupe-instances --run`` are removed and recognized
+  as already warned too. (!5006)
 - The reveal notice and the expiration warning now go only to owners
   whose account is verified. Owners with an unverified account no longer
   get the reveal notices the v3 reveal route used to send them, nor

@@ -44,13 +44,21 @@ module Onetime
       # Rate Limiting:
       #   The batch_size setting prevents queue overflow when many secrets expire
       #   simultaneously. Remaining secrets are processed in subsequent runs.
-      #   batch_size counts warnings sent, not timeline entries read; reads are
-      #   capped separately at batch_size × SCAN_LIMIT_FACTOR (see
-      #   process_expiring_secrets for why the order matters).
+      #   batch_size counts warnings sent and failed enqueues, not entries
+      #   skipped; timeline reads are capped separately at batch_size ×
+      #   SCAN_LIMIT_FACTOR (see process_expiring_secrets for why the order
+      #   matters).
       #   This is an application-level rate limit; RabbitMQ queue-level limits
       #   (x-max-length with x-overflow: reject-publish) require publisher confirms
       #   to provide feedback, which adds complexity. The batch approach is simpler
       #   and self-healing: capacity = batch_size × runs_per_day.
+      #
+      # Concurrency: runs never overlap within one scheduler process
+      # (overlap: false). A sent receipt leaves the timeline and its
+      # warnings_sent mark is then cleared by cleanup_orphaned_warnings, so
+      # two overlapping runs could both warn the same receipt. Like every
+      # scheduled job, this assumes one `bin/ots scheduler` per datastore
+      # (see DomainRefreshJob).
       #
       class ExpirationWarningJob < ScheduledJob
         # Grace period for cleanup: remove timeline entries that expired over 1 hour ago
@@ -72,7 +80,7 @@ module Onetime
 
             scheduler_logger.info "[ExpirationWarningJob] Scheduling with interval: #{interval}"
 
-            every(scheduler, interval, first_in: '30s') do
+            every(scheduler, interval, first_in: '30s', overlap: false) do
               process_expiring_secrets
             end
           end
@@ -98,9 +106,10 @@ module Onetime
             limit          = batch_size
             scan_limit     = limit * SCAN_LIMIT_FACTOR
 
-            # ORDER MATTERS. batch_size caps the warnings sent per run, and
-            # scan_limit caps the timeline entries read per run. Neither may
-            # be spent on an entry the job will not mail. The job used to
+            # ORDER MATTERS. batch_size caps the warnings attempted per run
+            # (sent or failed), and scan_limit caps the timeline entries read
+            # per run, skipped ones included. A skipped entry must never use
+            # a batch_size slot. The job used to
             # take batch_size entries off the front of the timeline and only
             # then filter out receipts already warned. Warned receipts stayed
             # on the timeline until they expired, so batch_size of them
@@ -112,18 +121,23 @@ module Onetime
             # batch_size. A sent warning, and every entry that can never be
             # mailed, leaves the timeline, so the next run does not read it
             # again. Only entries that may still be mailed later (an owner
-            # with no email yet, a failed enqueue) stay; the offset steps
-            # past them. If this loop ever goes back to filtering after
+            # with no email yet, a failed enqueue) or whose removal raised
+            # stay; the offset steps past them. If this loop ever goes back to filtering after
             # taking a fixed slice, warnings for newer secrets are dropped
             # with no error.
             processed = 0
             skipped   = 0
+            failed    = 0
             scanned   = 0
             offset    = 0 # entries before this position are kept on the timeline
+            # One window for the whole run: if each page took its own now, a
+            # kept entry crossing now mid-run would leave the window and the
+            # offset would step past an unread entry.
+            now       = Familia.now.to_f
 
-            while processed < limit && scanned < scan_limit
+            while processed + failed < limit && scanned < scan_limit
               count = [limit, scan_limit - scanned].min
-              page  = Onetime::Receipt.expiring_within(warning_window, offset: offset, count: count)
+              page  = Onetime::Receipt.expiring_within(warning_window, offset: offset, count: count, now: now)
               break if page.empty?
 
               page.each do |receipt_id|
@@ -137,17 +151,19 @@ module Onetime
                   skipped += 1
                   offset  += 1
                 when :failed
+                  failed += 1
                   offset += 1
                 end
-                break if processed >= limit || scanned >= scan_limit
+                break if processed + failed >= limit || scanned >= scan_limit
               end
 
               # A short page is the end of the window.
               break if page.size < count
             end
 
-            if processed >= limit || scanned >= scan_limit
-              scheduler_logger.warn "[ExpirationWarningJob] Throttling: stopped after #{processed} warnings and " \
+            if processed + failed >= limit || scanned >= scan_limit
+              scheduler_logger.warn "[ExpirationWarningJob] Throttling: stopped after #{processed} warnings, " \
+                                    "#{failed} failed enqueues and " \
                                     "#{scanned} entries read (batch_size #{limit}); the rest wait for the next run"
             else
               scheduler_logger.debug "[ExpirationWarningJob] Read #{scanned} entries expiring within #{warning_hours}h"
@@ -160,14 +176,18 @@ module Onetime
             # This prevents unbounded growth of the warnings_sent set
             orphan_cleanup_count = Onetime::Receipt.cleanup_orphaned_warnings
 
-            scheduler_logger.info "[ExpirationWarningJob] Processed: #{processed}, Skipped: #{skipped}, Cleaned: #{cleanup_count}, Orphans: #{orphan_cleanup_count}"
+            scheduler_logger.info "[ExpirationWarningJob] Processed: #{processed}, Skipped: #{skipped}, Failed: #{failed}, Cleaned: #{cleanup_count}, Orphans: #{orphan_cleanup_count}"
           end
 
           # Decide one timeline entry. Returns:
           #   :sent    - warning enqueued; marked warned and taken off the timeline
           #   :dropped - can never be mailed; taken off the timeline
           #   :kept    - not mailed now but may be later; left on the timeline
-          #   :failed  - enqueue raised; left on the timeline for the next run
+          #   :failed  - enqueue failed; left on the timeline for the next run
+          #
+          # A Redis error outside the enqueue and the receipt removal (the
+          # warned check, a load, the id-only removal) is not rescued here:
+          # it aborts the run, cleanups included, and the next run retries.
           def examine_entry(receipt_id)
             # Already warned: a receipt marked before warned receipts left
             # the timeline, or one whose removal failed. Drop the entry so it
@@ -190,12 +210,15 @@ module Onetime
             # not read it again.
             return drop(receipt) if receipt.anonymous?
 
-            # A missing email is kept, since the owner can still add one. So
-            # is a blank one (empty or whitespace only) on a verified account.
-            # A blank email on an anonymous or unverified account falls
-            # through to the notifiable? check below and is dropped.
+            # The owner record is gone (purged, or expired after deletion):
+            # nobody can ever be mailed, so the entry is dropped. A missing
+            # email is kept, since the owner can still add one. So is a blank
+            # one (empty or whitespace only) on a verified account. A blank
+            # email on an anonymous or unverified account falls through to
+            # the notifiable? check below and is dropped.
             owner = receipt.load_owner
-            return :kept if owner.nil? || owner.email.nil?
+            return drop(receipt) if owner.nil?
+            return :kept if owner.email.nil?
             return :kept if owner.email.to_s.strip.empty? && owner.account_verified?
 
             # Who may get owner mail at all: see Customer#notifiable?. The
@@ -224,8 +247,10 @@ module Onetime
           end
 
           # Take an entry off the timeline. :dropped when it is off; :kept when
-          # the removal failed, so the caller's offset steps past an entry
-          # still in place instead of reading it again in this run.
+          # the receipt's removal raised (unregister_from_expiration_notifications
+          # rescues and returns false), so the caller's offset steps past an
+          # entry still in place instead of reading it again in this run. The
+          # id-only removal does not rescue: an error there aborts the run.
           #
           # @param receipt_or_id [Onetime::Receipt, String]
           # @return [Symbol] :dropped or :kept
