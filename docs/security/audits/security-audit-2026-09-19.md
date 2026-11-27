@@ -85,7 +85,7 @@ The package sets `private, no-store` on Web Core HTML, `GET /bootstrap/me` and `
 
 The package stops `GET /bootstrap/me` polling from extending a session. Two 5-minute timers remain (`src/apps/workspace/dashboard/DashboardRecent.vue`, `src/apps/secret/components/SecretLinksTable.vue`). They call ordinary API routes that user navigation also calls, so the route-level `activity=passive` declaration cannot mark them. A tab left open on the dashboard therefore never reaches the inactivity deadline. Full mode's absolute session lifetime still applies.
 
-**Required action:** let the client declare a timer-driven request passive (for example a request header read by `Onetime::Session::Activity.passive?`). A caller can only shorten its own session that way. It is a new wire contract and wants an ADR note.
+**Required action:** let the client declare a timer-driven request passive (for example a request header read by `Onetime::SessionActivity.passive?`). A caller can only shorten its own session that way. It is a new wire contract and wants an ADR note.
 
 ---
 

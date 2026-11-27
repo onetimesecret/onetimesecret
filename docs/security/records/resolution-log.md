@@ -55,7 +55,7 @@ the original evidence; each entry here identifies the fix and the baseline used 
 - **Source:** [2026-09-19 session-consistency package review](../audits/security-audit-2026-09-19.md),
   finding 1.
 - **Resolution:** `c1fe2f8c4` (merged to `main` in #4496). Every path that deletes a session blob first sets a 300-second
-  ended-marker (`Onetime::Session::Ended`, key `ended_sid:<HMAC-SHA256 of the id>`, never the id),
+  ended-marker (`Onetime::SessionEnded`, key `ended_sid:<HMAC-SHA256 of the id>`, never the id),
   and `Onetime::Session#write_session` looks for it after its own `SET` and takes the copy back
   out, reporting the write as not saved so no cookie is sent. Set-then-delete against
   set-then-check leaves no interleaving in which the copy survives. The review's scope widened
@@ -216,7 +216,7 @@ No test lane was re-run locally for these documentation changes.
   clears. The middleware checks the configured cookie name, clears host and parent-domain
   copies, and keeps its refusal state per request.
   `59a40e1e08` changes simple-mode password sign-in: `AuthenticateSession#start_new_session!`
-  clears the session, calls `Onetime::Session::Rotation.rotate!` before writing identity, and
+  clears the session, calls `Onetime::SessionRotation.rotate!` before writing identity, and
   refuses sign-in when rotation does not complete. Both changes are present at the baseline.
 - **Verification:** The [unit job](https://github.com/onetimesecret/onetimesecret/actions/runs/41167690970/job/124439029352)
   includes `spec/unit/onetime/middleware/cookie_tossing_spec.rb` and the middleware manifest
