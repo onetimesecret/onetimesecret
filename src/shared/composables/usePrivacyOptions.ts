@@ -38,7 +38,6 @@ function includeSelectedTtl(options: number[], selected: number | undefined, max
  * - Password visibility
  */
 
-/* eslint-disable max-lines-per-function */
 export function usePrivacyOptions(formOperations?: {
   updateField: <K extends keyof SecretFormData>(field: K, value: SecretFormData[K]) => void;
 }, selectedTtl?: () => number) {
