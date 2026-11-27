@@ -113,6 +113,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
       .and_return(actor_membership)
     allow(organization).to receive(:secret_activity_events_page).and_return(sample_events)
     allow(organization).to receive(:secret_activity_event_count).and_return(42)
+    allow(organization).to receive(:secret_activity_trimmed?).and_return(false)
   end
 
   describe 'authorization' do
@@ -273,6 +274,12 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
         offset: 0,
         limit: 50,
         actors: { 'cust-actor-789' => { 'email' => 'actor@example.com', 'extid' => 'ext-cust-actor-789' } },
+        retention: {
+          max_events: Onetime::Organization::Features::SecretActivity.max_events,
+          max_guest_events: Onetime::Organization::Features::SecretActivity.max_guest_events,
+          coalesce_window: Onetime::Organization::Features::SecretActivity.coalesce_window,
+          trimmed: false,
+        },
       })
     end
   end

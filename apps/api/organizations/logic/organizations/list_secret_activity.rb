@@ -111,11 +111,24 @@ module OrganizationAPI::Logic
             offset: offset,
             limit: limit,
             actors: @actors,
+            retention: retention,
           },
         }
       end
 
       private
+
+      # The caps and coalescing window in force, so a reader can tell a
+      # short trail from a trimmed one and what a count means.
+      def retention
+        feature = Onetime::Organization::Features::SecretActivity
+        {
+          max_events: feature.max_events,
+          max_guest_events: feature.max_guest_events,
+          coalesce_window: feature.coalesce_window,
+          trimmed: organization.secret_activity_trimmed?,
+        }
+      end
 
       # Read-time actor resolution (never written back into the trail — the
       # trail stays email-free for GDPR minimization). Only currently-active
