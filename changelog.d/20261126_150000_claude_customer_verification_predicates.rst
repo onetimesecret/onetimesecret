@@ -1,18 +1,12 @@
-Changed
--------
-
-- The reveal notice and the expiration warning now share one rule for who
-  may receive owner mail, ``Customer#notifiable?``: a non-anonymous account
-  with an email address, verified by any means. (!5009)
-
 Fixed
 -----
 
-- The expiration warning no longer queues a warning to an empty address.
-  A verified owner with a blank email is now treated like one with no
-  email: nothing is queued and the secret stays registered for expiration
-  warnings. A blank email on an unverified or anonymous account is dropped
-  from the warnings, as before. (!5009)
+- The expiration warning no longer queues a warning to a blank email
+  address (empty or whitespace only). A verified owner with a blank email
+  is treated like one with no email: nothing is queued and the secret stays
+  registered for expiration warnings. A blank email on an unverified or
+  anonymous account is dropped from the warnings, as before. No code path
+  that writes a blank email has been found; this is a guard. (!5009)
 
 Deprecated
 ----------
