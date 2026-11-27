@@ -407,6 +407,7 @@ module V2::Logic
           display_type:,
           org_id: org&.objid,
           domain_id: domain_record&.objid,
+          domain_org_id: domain_record&.org_id,
         ) do |pending_receipt|
           index_receipt(pending_receipt, org, domain_record)
         end

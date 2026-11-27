@@ -188,14 +188,17 @@ module Onetime::Receipt::Features
       # A member of one organization can share on a custom domain another
       # organization owns. The event then also goes to the domain owner's
       # trail, so an organization sees all activity on its branded links.
-      # org_id, the receipt indexes and the mail sender are unchanged. The
-      # owner is skipped when it is the trail's own organization (guests,
-      # same-org members), absent, or archived. Best-effort and separate
-      # from the primary write, which has already happened.
+      # org_id, the receipt indexes and the mail sender are unchanged.
+      #
+      # The audience is domain_org_id, the owner stamped at creation, never
+      # a live domain lookup: a later Domains::Transfer must not give the
+      # new owner the events of receipts shared before the move. Receipts
+      # without the stamp (same-org members, guests, receipts created
+      # before it existed) get no second write; an archived owner is
+      # skipped. Best-effort and separate from the primary write, which has
+      # already happened.
       def record_for_domain_owner(trail_org, kind, at, partition, trail_attrs)
-        return if domain_id.to_s.empty?
-
-        owner_org_id = Onetime::CustomDomain.load(domain_id)&.org_id.to_s
+        owner_org_id = domain_org_id.to_s
         return if owner_org_id.empty? || owner_org_id == trail_org.objid
 
         owner_org = Onetime::Organization.load(owner_org_id)

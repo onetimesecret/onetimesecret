@@ -5,6 +5,7 @@
 require_relative '../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'onetime/security/request_context'
+require 'onetime/operations/domains/transfer'
 
 # Audit-fidelity coverage for the organization audit trail (#3633).
 #
@@ -841,6 +842,7 @@ RSpec.describe Onetime::Organization, type: :integration do
     after do
       @domains&.each { |d| d.destroy! if d.exists? }
       other_org.destroy! if other_org.exists?
+      @new_owner.destroy! if @new_owner&.exists?
       owner.destroy! if owner.exists?
     end
 
@@ -855,10 +857,18 @@ RSpec.describe Onetime::Organization, type: :integration do
       receipt.save_fields(:owner_id)
     end
 
+    # As spawn_pair stamps it: domain_org_id only when the domain's owner
+    # is not the receipt's organization. Call after link_to_org!.
     def on_domain!(receipt, domain)
-      receipt.domain_id    = domain.objid
-      receipt.share_domain = domain.display_domain
-      receipt.save_fields(:domain_id, :share_domain)
+      receipt.domain_id     = domain.objid
+      receipt.share_domain  = domain.display_domain
+      receipt.domain_org_id = domain.org_id unless domain.org_id.to_s == receipt.org_id.to_s
+      receipt.save_fields(:domain_id, :share_domain, :domain_org_id)
+    end
+
+    def transfer!(domain, to_org)
+      Onetime::Operations::Domains::Transfer.new(domain: domain, to_org: to_org, actor: 'spec-admin',
+        dry_run: false).call
     end
 
     it "records a guest receipt's events in the guest partition" do
@@ -913,6 +923,58 @@ RSpec.describe Onetime::Organization, type: :integration do
       expect(org.secret_activity_event_count).to eq(1)
     end
 
+    it 'gives no second write to a receipt without the creation-time binding' do
+      member_owned!(receipt)
+      link_to_org!(receipt, org)
+      domain = domain_owned_by(other_org)
+      receipt.domain_id = domain.objid
+      receipt.save_fields(:domain_id)
+
+      receipt.record_org_secret_activity_event('created', 'actor' => 'creator', 'actor_id' => owner.objid)
+
+      expect(other_org.secret_activity_event_count).to eq(0)
+    end
+
+    context 'after a domain transfer' do
+      # Destroyed by the group's after hook, once its domains are gone.
+      let(:new_owner) do
+        @new_owner = described_class.new(display_name: 'New Domain Owner',
+          contact_email: "new-owner-#{SecureRandom.hex(6)}@example.com").tap(&:save)
+      end
+
+      it 'keeps sending an earlier receipt to the original owner, never the new one' do
+        domain = domain_owned_by(other_org)
+        member_owned!(receipt)
+        link_to_org!(receipt, org)
+        on_domain!(receipt, domain)
+
+        expect(transfer!(domain, new_owner).status).to eq(:transferred)
+        expect(Onetime::CustomDomain.load(domain.objid).org_id).to eq(new_owner.objid)
+
+        receipt.record_org_secret_activity_event('secret_get', 'actor' => 'creator', 'actor_id' => owner.objid)
+        receipt.expired!
+
+        expect(new_owner.secret_activity_event_count).to eq(0)
+        expect(other_org.secret_activity_events_page.map { |e| e['kind'] }).to include('secret_get')
+        expect(org.secret_activity_event_count).to be >= 1
+      end
+
+      it 'sends a receipt created after the transfer to the new owner' do
+        domain = domain_owned_by(other_org)
+        transfer!(domain, new_owner)
+
+        later, _secret = Onetime::Receipt.spawn_pair(owner.objid, 3600, 'later value',
+          org_id: org.objid, domain_id: domain.objid,
+          domain_org_id: Onetime::CustomDomain.load(domain.objid).org_id)
+        expect(later.domain_org_id).to eq(new_owner.objid)
+
+        later.record_org_secret_activity_event('created', 'actor' => 'creator', 'actor_id' => owner.objid)
+
+        expect(new_owner.secret_activity_event_count).to eq(1)
+        expect(other_org.secret_activity_event_count).to eq(0)
+      end
+    end
+
     it 'skips an archived domain owner' do
       member_owned!(receipt)
       link_to_org!(receipt, org)
@@ -929,11 +991,14 @@ RSpec.describe Onetime::Organization, type: :integration do
       member_owned!(receipt)
       link_to_org!(receipt, org)
       on_domain!(receipt, domain_owned_by(other_org))
-      allow(Onetime::CustomDomain).to receive(:load).and_raise(Redis::CannotConnectError)
+      allow(Onetime::Organization).to receive(:load).and_call_original
+      allow(Onetime::Organization).to receive(:load).with(other_org.objid).and_raise(Redis::CannotConnectError)
 
       expect(receipt.record_org_secret_activity_event('created', 'actor' => 'creator',
         'actor_id' => owner.objid)).to include('kind' => 'created')
       expect(org.secret_activity_event_count).to eq(1)
+      # The after hook loads organizations to clean up.
+      allow(Onetime::Organization).to receive(:load).and_call_original
     end
   end
 
