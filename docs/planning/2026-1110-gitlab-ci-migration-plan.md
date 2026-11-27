@@ -1576,11 +1576,17 @@ State on 2026-11-27:
   `ruby-auth-lanes` (`full-pg-agnostic`, `full-mfa`, `full-saml-platform`,
   `full-webauthn-verify`) and `ruby-auth-browser`; `ruby-billing-lanes`
   (`billing-integration`, and `full-sqlite`, `full-pg` and
-  `full-pg-agnostic` with the billing overlay). Each runs
+  `full-pg-agnostic` with the billing overlay). Each lane job runs
   `tests/lanes/run` on `saas-linux-medium-amd64` with the S1 daemon recipe,
   through `bin/ci`: `toolchain`, `docker up`, `services up`, `prepare` and
-  `lane` (`tools/ci/`). `harness` is a job of its own; on GitHub it is a
-  second step of the unit job.
+  `lane` (`tools/ci/`). `rubocop` runs on `saas-linux-small-amd64` and
+  needs only `bin/ci prepare bundle`. `harness` is a job of its own; on
+  GitHub it is a second step of the unit job.
+- `bin/ci prepare` removes group and other write access from the checkout
+  root and the directories above it. GitLab's Docker executor fetches the
+  sources with umask 0000, and `bin/setup --doctor --bundle`, which the unit
+  lane runs, refuses to write under a directory other users can write to
+  (`bundle_check_output_path` in `tools/setup/setup.sh`).
 - In place, in `frontend.yml`: `frontend-build`, the favicon check and the
   build of GitHub's `build-assets`. Every lane job except `smoke-lane` takes
   its `public/web/dist/` as an artifact. No lane waits on `rubocop`.
@@ -1599,6 +1605,10 @@ State on 2026-11-27:
   `host-proxy-wire`, `hygiene` and `check-oci-image`. The first three and
   the last still run on GitHub on mirrored pushes; `hygiene` runs only on
   pull requests, so nowhere (§2.4).
+- The other `ci.yml` jobs: `typescript-unit` is the pilot job. `changes`
+  and `ci-verdict` have no job here; `rules` and the pipeline status do
+  their work (§4.4, §4.5). `publish-oci` stays in `ci.yml`: it is the only
+  path from a `v*` tag to the image workflow, and it needs `ci-verdict`.
 - Not ported from the lane jobs: the RSpec results as JUnit reports and the
   aggregate report (§4.7), the CI metrics (D10), and the unit job's
   non-blocking hash-mismatch probe.
