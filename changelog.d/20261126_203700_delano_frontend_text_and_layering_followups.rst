@@ -53,6 +53,19 @@ Fixed
   regenerating recovery codes), and account deletion closed on neither. While
   a request is running, neither closes a dialog that disables its Cancel
   button.
+- The "Remember me" checkbox is no longer shown on the sign-in forms when the
+  installation has remember-me turned off.
+- When burning secrets is turned off, the recent secrets list no longer shows
+  a Burn link, the receipt page's help no longer describes burning, and the
+  burn page shows Not Found.
+- The incoming secrets form shows the installation's passphrase rules under
+  its required passphrase field and reports a passphrase that breaks them
+  before it is sent.
+- Menus near the bottom of a workspace page open upward when the footer or the
+  mobile navigation bar would cover them, including the member role menu on a
+  phone.
+- A secret lifetime picked earlier that is not one of the preset choices is
+  kept on reload instead of resetting to the default.
 
 AI Assistance
 -------------
