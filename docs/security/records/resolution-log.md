@@ -261,3 +261,35 @@ No test lane was re-run locally for these documentation changes.
   being refused during impersonation. Both issues remain open. This closure neither resolves
   those behaviors nor records an acceptance decision for them.
 - **Closure baseline:** `f42fdedc54afcb5973460358c65e3aef363dd5cd` (`main`) on 2026-10-30.
+
+## 2026-11-27
+
+Closure baseline for the four [August findings](../risk-registers/risk-register-2026-08-14.md)
+below: `v0.26.19` (`e98a88c9b5`). The [release CI run](https://github.com/onetimesecret/onetimesecret/actions/runs/40449322028)
+passed the Ruby unit, MFA and TypeScript unit lanes.
+
+### RISK-2026-08-14-M04 — Resolved
+
+[#4759](https://github.com/onetimesecret/onetimesecret/pull/4759) shipped in `v0.26.17`.
+The dedicated magic-link route and passwordless login dispatch charge the same per-IP and
+per-login budgets. The hook and MFA rate-limit specs cover this behavior. Direct verification
+resend is outside this closure; its request-limit gap remains tracked under M03.
+
+### RISK-2026-08-14-M06 — Resolved
+
+[#4712](https://github.com/onetimesecret/onetimesecret/pull/4712) shipped in `v0.26.16`.
+The receipt listing refuses sibling-domain and organization-wide scope for domain-scoped
+members; the organization activity listing also refuses organization-wide access. The Ruby
+unit lane covers both listing authorization specs.
+
+### RISK-2026-08-14-M08 — Resolved
+
+#4759 removed the nonce from the bootstrap serializer and client contract in `v0.26.17`.
+Neither inline bootstrap nor `/bootstrap/me` emits it. The serializer, bootstrap endpoint
+and DNS widget nonce checks are covered by the Ruby and TypeScript lanes.
+
+### RISK-2026-08-14-M12 — Resolved
+
+#4759 shipped architecture-specific SHA-256 checks for `yq` in `v0.26.17`. The Dockerfile
+verifies the download before installation and rejects unsupported architectures. The tagged
+[OCI build for amd64 and arm64](https://github.com/onetimesecret/onetimesecret/actions/runs/40154023157/job/121051381881) passed.
