@@ -74,10 +74,9 @@ describe('IncomingSecretFormBody expiry line', () => {
   it('shows a lifetime that is not a whole unit as an exact compound', () => {
     defaultTtl.value = 3602;
     const wrapper = mount(IncomingSecretFormBody);
-    const compound = `web.UNITS.ttl.duration_compound${JSON.stringify({
-      head: `web.UNITS.ttl.duration${hour}`,
-      tail: `web.UNITS.ttl.duration${twoSeconds}`,
-    })}`;
+    // The mock has no locale, so the parts are joined with the English list
+    // pattern.
+    const compound = `web.UNITS.ttl.duration${hour}, web.UNITS.ttl.duration${twoSeconds}`;
     expect(wrapper.text()).toContain(
       `incoming.expires_after_duration${JSON.stringify({ duration: compound })}`
     );

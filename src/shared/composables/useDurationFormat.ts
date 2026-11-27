@@ -1,5 +1,6 @@
 // src/shared/composables/useDurationFormat.ts
 
+import { unref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 export type DurationUnit = 'day' | 'hour' | 'minute' | 'second';
@@ -10,57 +11,70 @@ export interface DurationPart {
 }
 
 const DAY = 86400;
-const HOUR = 3600;
-const MINUTE = 60;
+
+const SUB_DAY_UNITS: ReadonlyArray<[DurationUnit, number]> = [
+  ['hour', 3600],
+  ['minute', 60],
+];
 
 /**
- * Splits a number of seconds into the parts shown for a duration. The parts
- * always add up to exactly `seconds`: the display never rounds.
- *
- * - A whole number of one unit is a single part in the largest such unit:
- *   3600 is 1 hour, 90000 is 25 hours, 604800 is 7 days.
- * - Anything else is an exact compound of hours, minutes and seconds with
- *   zero parts left out: 3602 is 1 hour 2 seconds, 90540 is 25 hours
- *   9 minutes. Days appear only for a whole number of days, so a compound
- *   leads with hours.
- * - A value that is not a positive whole number of seconds is returned as a
- *   single part in seconds, unchanged.
+ * Splits a duration into exact parts, largest unit first, with zero parts
+ * left out. Nothing is rounded: 3602 is 1 hour and 2 seconds, not 1 hour.
+ * Days are used only for a whole number of days; anything else is hours,
+ * minutes and seconds (90000 is 25 hours, 90540 is 25 hours and 9 minutes).
+ * An empty list means zero seconds.
  */
 export function durationParts(seconds: number): DurationPart[] {
-  if (!Number.isInteger(seconds) || seconds < 1) {
-    return [{ unit: 'second', count: seconds }];
-  }
-
-  if (seconds % DAY === 0) {
+  if (seconds >= DAY && Number.isInteger(seconds / DAY)) {
     return [{ unit: 'day', count: seconds / DAY }];
   }
-
-  const candidates: DurationPart[] = [
-    { unit: 'hour', count: Math.floor(seconds / HOUR) },
-    { unit: 'minute', count: Math.floor((seconds % HOUR) / MINUTE) },
-    { unit: 'second', count: seconds % MINUTE },
-  ];
-  return candidates.filter((part) => part.count > 0);
+  const parts: DurationPart[] = [];
+  let rest = seconds;
+  for (const [unit, size] of SUB_DAY_UNITS) {
+    const count = Math.floor(rest / size);
+    if (count >= 1) {
+      parts.push({ unit, count });
+      rest -= count * size;
+    }
+  }
+  if (rest > 0) parts.push({ unit: 'second', count: rest });
+  return parts;
 }
 
 /**
- * Formats a duration in seconds for display with the pluralized
- * `web.UNITS.ttl.*` keys. See durationParts for the rule. Display only: the
- * value itself is never changed.
+ * Joins already-translated duration parts with the locale's own unit-list
+ * pattern (English: "25 hours, 9 minutes"). The app's locale codes use
+ * underscores (pt_BR), which Intl does not accept, so they are converted.
+ */
+export function joinDurationParts(parts: string[], locale: string | undefined): string {
+  const tag = (locale || 'en').replace(/_/g, '-');
+  try {
+    return new Intl.ListFormat(tag, { style: 'long', type: 'unit' }).format(parts);
+  } catch {
+    return new Intl.ListFormat('en', { style: 'long', type: 'unit' }).format(parts);
+  }
+}
+
+/**
+ * Formats a duration in seconds for display with the web.UNITS.ttl keys.
  */
 export function useDurationFormat() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
-  const formatPart = ({ unit, count }: DurationPart): string =>
+  const formatPart = (count: number, unit: DurationUnit): string =>
     t('web.UNITS.ttl.duration', {
       count,
       unit: t(`web.UNITS.ttl.time.${unit}`, count),
     });
 
-  const formatDuration = (seconds: number): string =>
-    durationParts(seconds)
-      .map(formatPart)
-      .reduce((head, tail) => t('web.UNITS.ttl.duration_compound', { head, tail }));
+  const formatDuration = (seconds: number): string => {
+    const parts = durationParts(seconds);
+    if (parts.length === 0) return formatPart(0, 'second');
+    return joinDurationParts(
+      parts.map(({ count, unit }) => formatPart(count, unit)),
+      unref(locale)
+    );
+  };
 
   return { formatDuration };
 }
