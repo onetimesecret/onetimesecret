@@ -38,6 +38,13 @@ RSpec.describe Onetime::Customer, '#notifiable?' do
     expect(cust.notifiable?).to be(false)
   end
 
+  it 'is true for a held SSO account once an operator has verified it' do
+    cust                     = customer(verified: true, verified_by: 'colonel_admin')
+    cust.verification_hold   = 'idp_unverified'
+    cust.provisioning_origin = 'sso_jit'
+    expect(cust.notifiable?).to be(true)
+  end
+
   it 'is false for an unverified customer' do
     expect(customer(verified: false, verified_by: nil).notifiable?).to be(false)
   end
@@ -51,6 +58,7 @@ RSpec.describe Onetime::Customer, '#notifiable?' do
   it 'is false for a blank or missing email' do
     expect(customer(email: '').notifiable?).to be(false)
     expect(customer(email: nil).notifiable?).to be(false)
+    expect(customer(email: "  \t").notifiable?).to be(false)
   end
 
   it 'ignores the per-notice reveal preference' do

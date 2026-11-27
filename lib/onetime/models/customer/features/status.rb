@@ -148,6 +148,9 @@ module Onetime::Customer::Features
       #
       # True for any verified_by provenance. It says the account is open, not
       # that anyone proved control of the mailbox: see #mailbox_verified?.
+      # It reads this Customer record's verified flag, not the Rodauth
+      # accounts row (accounts.status_id); the two are kept in step but are
+      # separate records and can differ.
       def account_verified?
         !anonymous? && verified == 'true'
       end
@@ -197,34 +200,41 @@ module Onetime::Customer::Features
       # May this customer receive owner notification mail (the reveal notice,
       # Secret#notify_owner_of_reveal, and the expiration warning,
       # Onetime::Jobs::Scheduled::ExpirationWarningJob)? True for a
-      # non-anonymous customer with a non-empty email whose account is
-      # verified by any provenance.
+      # non-anonymous customer with an email that is not blank whose
+      # account is verified by any provenance.
       #
-      # The rule is account_verified?, the account-level flag, by owner
-      # decision (2026-11-26; see ADR-051 decision 6), not the stricter
-      # mailbox_verified?. An SSO account qualifies: the address its IdP
-      # asserted is sufficient for delivering owner notifications.
+      # The gate is account_verified?, the account-level flag, not the
+      # stricter mailbox_verified?, so every provenance that sets the flag
+      # qualifies (sso, autoverify, stripe_payment, legacy and the mailbox
+      # proofs). That rule came from the reveal and expiration gates as
+      # !5006 left them. For IdP-asserted addresses it is the project
+      # owner's decision of 2026-11-26: such an address is sufficient for
+      # delivering owner notifications (ADR-051 decision 6). Keeping every
+      # verified provenance notifiable was confirmed by the project owner
+      # on 2026-11-27 (a decision in the project thread, not on GitLab).
       # mailbox_verified? stays reserved for gates where holding the
       # mailbox grants authority.
       #
       # An SSO account provisioned at sign-in (JIT) while its IdP reported
-      # the address (or its domain owner)
-      # as unverified, or whose email_verified claim could not be read,
-      # carries a verification_hold (one of
-      # Onetime::Customer::VERIFICATION_HOLDS). The OmniAuth JIT hook
-      # (apps/web/auth/config/hooks/omniauth.rb, where sso_verified is
-      # derived from the account status and the hold) leaves such an
-      # account unverified, so it is not notifiable and gets no owner
-      # notices until it is verified (for example by an operator; see
-      # #verification_held?).
+      # the address (or its domain owner) as unverified, or whose
+      # email_verified claim could not be read, carries a
+      # verification_hold (one of Onetime::Customer::VERIFICATION_HOLDS).
+      # The OmniAuth JIT hook (apps/web/auth/config/hooks/omniauth.rb,
+      # where sso_verified is derived from the account status and the hold)
+      # leaves such an account unverified, so it is not notifiable until it
+      # is verified (for example by an operator; see #verification_held?).
+      # The hold lives only on the Customer record: a record rebuilt by
+      # login recovery has lost it and can come back verified 'sso'
+      # (apps/web/auth/operations/sync_session.rb).
       #
       # Per-notice preferences (notify_on_reveal?) and secret-side guards
-      # (an 'anon' owner_id) stay with the callers. A false answer is a
-      # silent skip for them, never an error.
+      # (an 'anon' owner_id) stay with the callers. A false answer never
+      # raises: the reveal notice skips silently, and the expiration job
+      # also takes the receipt off its timeline.
       #
       # @return [Boolean]
       def notifiable?
-        !anonymous? && !email.to_s.empty? && account_verified?
+        !anonymous? && !email.to_s.strip.empty? && account_verified?
       end
 
       # Must a federated subscription wait for this customer's mailbox proof
