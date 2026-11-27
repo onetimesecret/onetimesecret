@@ -56,6 +56,8 @@ const isCopied = ref(false);
 const showEncryptionTooltip = ref(false);
 
 const bootstrapStore = useBootstrapStore();
+// The Burn link follows ui.capabilities.burn, like the receipt page.
+const burnEnabled = computed(() => bootstrapStore.uiCapabilities?.burn !== false);
 const { site_host } = storeToRefs(bootstrapStore);
 
 /**
@@ -384,6 +386,7 @@ const rowClasses = computed(() => ['font-mono text-sm', isTerminal.value && 'opa
 
           <!-- Burn button: icon-only on mobile, text on sm+ -->
           <router-link
+            v-if="burnEnabled"
             :to="{ name: 'Burn secret', params: { receiptIdentifier: secretReceipt.identifier } }"
             class="rounded border border-red-300 bg-red-50 p-1.5 text-red-700 transition-colors hover:bg-red-100 dark:border-red-700 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 sm:px-2 sm:py-0.5"
             :title="t('web.COMMON.burn')"

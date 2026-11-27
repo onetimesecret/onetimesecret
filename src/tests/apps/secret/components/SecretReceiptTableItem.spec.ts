@@ -95,9 +95,11 @@ type SecretReceiptTableItemModule =
 
 describe('SecretReceiptTableItem', () => {
   let SecretReceiptTableItem: SecretReceiptTableItemModule['default'];
+  let uiCapabilities: Record<string, boolean> | undefined;
 
   beforeEach(async () => {
     vi.resetModules();
+    uiCapabilities = undefined;
 
     vi.doMock('vue-i18n', () => ({
       useI18n: vi.fn(() => ({
@@ -116,6 +118,7 @@ describe('SecretReceiptTableItem', () => {
     vi.doMock('@/shared/stores/bootstrapStore', () => ({
       useBootstrapStore: vi.fn(() => ({
         site_host: 'onetimesecret.com',
+        uiCapabilities: uiCapabilities,
       })),
     }));
 
@@ -231,6 +234,13 @@ describe('SecretReceiptTableItem', () => {
       expect(wrapper.text()).toContain('[ COPY ]');
       expect(wrapper.text()).toContain('[ OPEN');
       expect(wrapper.text()).toContain('[ BURN ]');
+    });
+
+    it('hides the BURN link when ui.capabilities.burn is false', () => {
+      uiCapabilities = { burn: false };
+      const wrapper = mountComponent({ is_revealed: false, is_burned: false });
+      expect(wrapper.text()).toContain('[ COPY ]');
+      expect(wrapper.text()).not.toContain('[ BURN ]');
     });
 
     it('shows action buttons for previewed secrets', () => {

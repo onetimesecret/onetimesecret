@@ -95,3 +95,35 @@ describe('Receipt route - receipt capability gating', () => {
     expect(result).toEqual({ name: 'NotFound' });
   });
 });
+
+describe('Burn route - burn capability gating', () => {
+  const burnRoute = receiptRoutes.find((r) => r.name === 'Burn secret')!;
+  const beforeEnter = burnRoute.beforeEnter as (
+    to: RouteLocationNormalized
+  ) => { name: string } | undefined;
+
+  const setup = (capabilities: Record<string, boolean>) =>
+    createTestingPinia({
+      createSpy: vi.fn,
+      initialState: { bootstrap: { ui: { capabilities } } },
+    });
+
+  it('redirects to NotFound when ui.capabilities.burn is false', () => {
+    setup({ burn: false });
+    expect(beforeEnter(createMockRoute('abc123'))).toEqual({ name: 'NotFound' });
+  });
+
+  it('allows navigation when burn is enabled or unset', () => {
+    setup({ burn: true });
+    expect(beforeEnter(createMockRoute('abc123'))).toBeUndefined();
+    setup({});
+    expect(beforeEnter(createMockRoute('abc123'))).toBeUndefined();
+  });
+
+  it('still applies the receipt capability and key checks', () => {
+    setup({ receipt: false });
+    expect(beforeEnter(createMockRoute('abc123'))).toEqual({ name: 'NotFound' });
+    setup({});
+    expect(beforeEnter(createMockRoute('bad-key!'))).toEqual({ name: 'NotFound' });
+  });
+});
