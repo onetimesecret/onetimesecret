@@ -58,8 +58,7 @@ step() { # <id> <title> <function>
 # checkout's root and the build directories above it are writable by every
 # user. `bin/setup --doctor --bundle` refuses to write under such a directory
 # (bundle_check_output_path in tools/setup/setup.sh), and the unit lane runs
-# it (spec/unit/setup/doctor_bundle_spec.rb). A GitHub runner's checkout and
-# a workstation's are writable by their owner only.
+# it (spec/unit/setup/doctor_bundle_spec.rb).
 #
 # Only a directory the job's user owns is changed. A sticky directory is left
 # alone: that check accepts one. The walk goes up to the filesystem root, as
