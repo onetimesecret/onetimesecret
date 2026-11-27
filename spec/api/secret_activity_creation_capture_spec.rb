@@ -34,8 +34,16 @@ RSpec.describe 'Secret Activity capture at creation', type: :integration do
     owner.destroy!
   end
 
-  def receipt_ids(collection)
-    collection.rangebyscore(0, Familia.now.to_f + 60)
+  # A member's score in an index, or nil when it is not a member. The
+  # organization and domain indexes take the receipt object (a bare
+  # identifier String serializes differently and never matches); the
+  # customer's receipts list stores the identifier string.
+  def indexed_at(collection, member)
+    collection.score(member)
+  end
+
+  def expect_indexed(collection, member)
+    expect(indexed_at(collection, member)).to be_within(60).of(Familia.now.to_f)
   end
 
   def trail
@@ -44,9 +52,12 @@ RSpec.describe 'Secret Activity capture at creation', type: :integration do
 
   # Drives create_secret_pair + handle_success with the state that
   # process_params / validate_sharing_controls would have left behind, so the
-  # spec exercises the capture code and not the validation chain.
-  def prime(logic, domain_record: nil)
+  # spec exercises the capture code and not the validation chain. A guest
+  # request through the full Rack stack (domain strategy, controller,
+  # validation) is in spec/integration/simple/secret_activity_guest_capture_spec.rb.
+  def prime(logic, domain_record: nil, passphrase: nil)
     logic.instance_variable_set(:@kind, :conceal)
+    logic.instance_variable_set(:@passphrase, passphrase)
     logic.instance_variable_set(:@secret_value, 'capture fixture')
     logic.instance_variable_set(:@ttl, 3600)
     logic.instance_variable_set(:@recipient, [])
@@ -55,28 +66,45 @@ RSpec.describe 'Secret Activity capture at creation', type: :integration do
     logic
   end
 
-  def create_v1(cust, org: nil, domain_record: nil)
+  def build_v1(cust, org: nil, domain_record: nil, passphrase: nil)
     logic          = V1::Logic::Secrets::ConcealSecret.new(session, cust, {})
     logic.auth_org = org
-    prime(logic, domain_record: domain_record)
-    logic.send(:create_secret_pair)
-    logic.send(:handle_success)
-    logic
+    prime(logic, domain_record: domain_record, passphrase: passphrase)
   end
 
-  def create_v2(cust, org: nil, domain_record: nil)
+  def build_v2(cust, org: nil, domain_record: nil)
     strategy = double('StrategyResult', user: cust, session: {}, auth_method: cust ? 'sessionauth' : 'noauth',
       authenticated?: !cust.nil?, metadata: { organization_context: { organization: org } })
     logic    = V2::Logic::Secrets::ConcealSecret.new(strategy, { 'secret' => {} })
     allow(logic).to receive(:auth_org).and_return(org)
     prime(logic, domain_record: domain_record)
+  end
+
+  def create_v1(...) = commit(build_v1(...))
+  def create_v2(...) = commit(build_v2(...))
+
+  def commit(logic)
     logic.send(:create_secret_pair)
     logic.send(:handle_success)
     logic
   end
 
   { 'v1' => :create_v1, 'v2' => :create_v2 }.each do |version, creator|
+    builder = :"build_#{version}"
+
     describe "#{version} creation" do
+      # The organization is resolved once, before the commit. A failing read
+      # after the commit must not fail a creation that is already stored.
+      it 'records created without resolving the organization again after the commit' do
+        logic = send(builder, guest, domain_record: domain)
+        logic.send(:create_secret_pair)
+        allow(logic).to receive(:receipt_organization).and_raise(Redis::CannotConnectError)
+        allow(domain).to receive(:primary_organization).and_raise(Redis::CannotConnectError)
+
+        expect { logic.send(:handle_success) }.not_to raise_error
+        expect(trail.count { |event| event['kind'] == 'created' }).to eq(1)
+      end
+
       context 'by an organization member' do
         it 'stamps the receipt, indexes it in the commit, and records created once' do
           logic   = send(creator, owner, org: organization, domain_record: domain)
@@ -84,9 +112,9 @@ RSpec.describe 'Secret Activity capture at creation', type: :integration do
 
           expect(receipt.org_id).to eq(organization.objid)
           expect(receipt.domain_id).to eq(domain.objid)
-          expect(receipt_ids(owner.receipts)).to include(receipt.identifier)
-          expect(receipt_ids(organization.receipts)).to include(receipt.identifier)
-          expect(receipt_ids(domain.receipts)).to include(receipt.identifier)
+          expect_indexed(owner.receipts, receipt.identifier)
+          expect_indexed(organization.receipts, receipt)
+          expect_indexed(domain.receipts, receipt)
 
           created = trail.select { |event| event['kind'] == 'created' }
           expect(created.size).to eq(1)
@@ -108,7 +136,7 @@ RSpec.describe 'Secret Activity capture at creation', type: :integration do
           receipt = Onetime::Receipt.load(logic.receipt.identifier)
 
           expect(receipt.org_id).to eq(organization.objid)
-          expect(receipt_ids(domain.receipts)).to include(receipt.identifier)
+          expect_indexed(domain.receipts, receipt)
 
           created = trail.select { |event| event['kind'] == 'created' }
           expect(created.size).to eq(1)
@@ -117,14 +145,36 @@ RSpec.describe 'Secret Activity capture at creation', type: :integration do
         end
 
         it "keeps the guest receipt out of the organization's receipt index" do
+          logic   = send(creator, guest, domain_record: domain)
+          receipt = Onetime::Receipt.load(logic.receipt.identifier)
+
+          expect_indexed(domain.receipts, receipt)
+          expect(indexed_at(organization.receipts, receipt)).to be_nil
+        end
+
+        it "sends the guest secret's later lifecycle events to the same trail" do
+          logic = send(creator, guest, domain_record: domain)
+          Onetime::Secret.load(logic.secret.identifier).burned!(actor_context: { 'actor' => 'anonymous' })
+
+          burned = trail.find { |event| event['kind'] == 'burned' }
+          expect(burned).to include('actor' => 'anonymous')
+        end
+      end
+
+      context "by a guest on an archived organization's custom domain" do
+        it 'stamps no organization and records nothing' do
+          domain # created while the organization is live
+          organization.archive!
           logic = send(creator, guest, domain_record: domain)
 
-          expect(receipt_ids(organization.receipts)).not_to include(logic.receipt.identifier)
+          expect(Onetime::Receipt.load(logic.receipt.identifier).org_id.to_s).to be_empty
+          expect(trail).to be_empty
         end
       end
 
       context 'by a guest on the canonical host' do
         it 'stamps no organization and records nothing' do
+          domain # the organization and its domain exist before the creation
           logic = send(creator, guest)
 
           expect(Onetime::Receipt.load(logic.receipt.identifier).org_id.to_s).to be_empty
@@ -134,31 +184,44 @@ RSpec.describe 'Secret Activity capture at creation', type: :integration do
     end
   end
 
+  # The v1 controller (V1::Controllers::Index#show_secret) always sends
+  # continue=true, so these fetches go the way a real request does: a fetch
+  # either reveals, or fails on the passphrase.
   describe 'v1 secret link fetch' do
     let(:receipt_and_secret) do
-      logic = create_v1(owner, org: organization)
+      logic = create_v1(owner, org: organization, passphrase: 'right-phrase')
       [logic.receipt, logic.secret]
     end
 
-    def fetch_v1(cust, secret)
-      logic = V1::Logic::Secrets::ShowSecret.new(session, cust, { 'key' => secret.identifier, 'continue' => 'false' })
+    def fetch_v1(cust, secret, passphrase:)
+      logic = V1::Logic::Secrets::ShowSecret.new(session, cust,
+        { 'key' => secret.identifier, 'continue' => 'true', 'passphrase' => passphrase })
       logic.process_params
       logic.raise_concerns
       logic.process
     end
 
-    it "records a third party's metadata fetch as secret_get" do
+    it "records a third party's wrong-passphrase fetch as secret_get" do
       _receipt, secret = receipt_and_secret
-      fetch_v1(guest, secret)
+      fetch_v1(guest, secret, passphrase: 'wrong-phrase')
 
       event = trail.find { |e| e['kind'] == 'secret_get' }
       expect(event).not_to be_nil
       expect(event['actor']).to eq('anonymous')
     end
 
-    it "records the creator's own fetch as previewed" do
+    it "records a reveal as revealed and not as secret_get" do
       _receipt, secret = receipt_and_secret
-      fetch_v1(owner, secret)
+      fetch_v1(guest, secret, passphrase: 'right-phrase')
+
+      kinds = trail.map { |e| e['kind'] }
+      expect(kinds).to include('revealed')
+      expect(kinds).not_to include('secret_get')
+    end
+
+    it "records the creator's own wrong-passphrase fetch as previewed" do
+      _receipt, secret = receipt_and_secret
+      fetch_v1(owner, secret, passphrase: 'wrong-phrase')
 
       event = trail.find { |e| e['kind'] == 'previewed' }
       expect(event).not_to be_nil
