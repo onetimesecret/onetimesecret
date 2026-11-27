@@ -7,9 +7,11 @@
 # job of .github/workflows/ci.yml, with one rewrite: a pattern that ends in
 # `/**` there ends in `/**/*` here. GitLab matches these paths with Ruby's
 # File.fnmatch, where a trailing `/**` matches one directory level and not the
-# whole tree (plan §7, S3 results). tools/testsuite/gitlab-rules-paths-test.sh
-# fails when a list here and its ci.yml filter differ by more than that
-# rewrite. The reasons for individual entries are in ci.yml's comments.
+# whole tree (plan §7, S3 results). `auth` is .github/auth-paths.yml with the
+# same rewrite and without its `.github/` entries, which select GitHub's own
+# workflows. tools/testsuite/gitlab-rules-paths-test.sh fails when a list here
+# and its GitHub source differ by more than that. The reasons for individual
+# entries are in ci.yml's and auth-paths.yml's comments.
 #
 # In a merge request pipeline a list matches when the merge request's diff
 # against its target branch touches a path in it; in a push pipeline, when the
@@ -73,3 +75,75 @@
     - .node-version
     - tests/**/*
     - locales/scripts/**/*
+  # Auth coverage: the code that implements sign-up, sign-in, sessions, SSO,
+  # MFA, invitations and tenant identity, and the tests and configuration
+  # that only the auth lanes run. The brace and class patterns match under
+  # File.fnmatch with the extended-glob flag (plan §7, S3 results).
+  auth:
+    - 'apps/web/auth/**/*'
+    - 'apps/api/account/**/*'
+    - 'apps/api/invite/**/*'
+    - 'src/apps/session/**/*'
+    - '{apps,lib,etc,spec,src}/**/*{[Aa]uth,[Ss]ession,[Ss]so,[Ss]aml,[Oo]idc,[Mm]fa,[Tt]otp,[Pp]asskey,[Mm]agic,[Ss]ignin,[Ss]ignup,[Ll]ogin,[Pp]assword,[Ii]dentit,[Ii]nvit,[Cc]srf,[Tt]enant,[Cc]redential}*'
+    - '{apps,lib,etc,spec,src}/**/*{[Aa]uth,[Ss]ession,[Ss]so,[Ss]aml,[Oo]idc,[Mm]fa,[Tt]otp,[Pp]asskey,[Mm]agic,[Ss]ignin,[Ss]ignup,[Ll]ogin,[Pp]assword,[Ii]dentit,[Ii]nvit,[Cc]srf,[Tt]enant,[Cc]redential}*/**/*'
+    - 'apps/web/core/views/serializers/config_serializer.rb'
+    - 'src/apps/workspace/account/**/*'
+    - 'src/apps/workspace/components/account/**/*'
+    - 'src/**/*[Bb]ootstrap*'
+    - 'apps/web/core/controllers/registration.rb'
+    - 'lib/onetime/mail/views/welcome.rb'
+    - 'lib/onetime/mail/templates/welcome.*'
+    - 'apps/api/v2/logic/secrets/reveal_secret.rb'
+    - 'lib/middleware/detect_host.rb'
+    - 'lib/onetime/middleware/domain_strategy.rb'
+    - 'lib/onetime/middleware/strip_forwarded_host.rb'
+    - 'lib/onetime/middleware/public_host_rewrite.rb'
+    - 'lib/onetime/middleware/http_origin_options.rb'
+    - 'lib/onetime/models/custom_domain.rb'
+    - 'lib/onetime/models/custom_domain/lookup.rb'
+    - 'lib/onetime/models/custom_domain/serving_policy.rb'
+    - 'lib/onetime/application/organization_loader.rb'
+    - 'locales/content/en/session-auth*'
+    - 'etc/defaults/config.defaults.yaml'
+    - 'Gemfile'
+    - 'Gemfile.lock'
+    - '**/spec/integration/full/**/*'
+    - '**/spec/integration/full_mfa/**/*'
+    - '**/spec/integration/full_saml_platform/**/*'
+    - '**/spec/integration/full_webauthn_verify/**/*'
+    - '**/spec/integration/full_webauthn_verify_mfa/**/*'
+    - 'tests/browser/**/*'
+    - 'tests/lanes/browser/**/*'
+    - 'tests/lanes/{full-pg-agnostic,full-mfa,full-saml-platform,full-webauthn-verify}/**/*'
+    - 'e2e/auth/**/*'
+    - 'e2e/system/**/*'
+    - 'e2e/all/auth-hydration*'
+    - 'e2e/support/**/*'
+    - 'e2e/global.setup.ts'
+    - 'e2e/playwright.config.ts'
+    - 'compose.e2e.yml'
+
+# Rule sets for the Ruby jobs (.gitlab/ci/ruby.yml, .gitlab/ci/frontend.yml),
+# shared with !reference. docs/development/auth-ci.md describes the selection
+# these carry over from GitHub.
+.rules:
+  # Every Ruby change, and a change to the pipeline: RuboCop and the lanes
+  # that ran on every Ruby change on GitHub.
+  ruby-lanes:
+    - changes: !reference [.changes, ci]
+    - changes: !reference [.changes, ruby]
+  # Auth coverage. In a merge request: an auth path, or the ci:auth label
+  # (read when the pipeline is created, so a label added later needs a new
+  # pipeline). After the merge, on main and develop: every Ruby change, so a
+  # change to shared code that no auth path names still reaches these lanes.
+  auth-lanes:
+    - if: '$CI_MERGE_REQUEST_LABELS =~ /(^|,)ci:auth(,|$)/'
+    - changes: !reference [.changes, ci]
+    - changes: !reference [.changes, auth]
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      changes: !reference [.changes, ruby]
+  # The billing configurations: scheduled, manual (web or API) and release
+  # tag pipelines. No path selects them, as on GitHub.
+  nightly-lanes:
+    - if: '$CI_PIPELINE_SOURCE =~ /^(schedule|web|api)$/'
+    - if: '$CI_COMMIT_TAG'
