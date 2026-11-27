@@ -86,6 +86,48 @@ describe('AccountDeleteButtonWithModalForm', () => {
     expect(mockCloseAccount).not.toHaveBeenCalled();
   });
 
+  const mountOpen = async () => {
+    const wrapper = mount(AccountDeleteButtonWithModalForm, {
+      props: { cust: mockCustomer },
+      attachTo: document.body,
+      global: {
+        plugins: [createTestI18n()],
+        stubs: { RouterLink: true },
+      },
+    });
+    await wrapper.get('[data-testid="account-delete-open-btn"]').trigger('click');
+    return wrapper;
+  };
+  const modal = (wrapper: ReturnType<typeof mount>) =>
+    wrapper.find('[data-testid="account-delete-modal"]');
+
+  it('closes on Escape', async () => {
+    const wrapper = await mountOpen();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    await nextTick();
+    expect(modal(wrapper).exists()).toBe(false);
+    wrapper.unmount();
+  });
+
+  it('closes on a backdrop click but not on a click inside the panel', async () => {
+    const wrapper = await mountOpen();
+    await wrapper.get('form').trigger('click');
+    expect(modal(wrapper).exists()).toBe(true);
+    await modal(wrapper).trigger('click');
+    expect(modal(wrapper).exists()).toBe(false);
+    wrapper.unmount();
+  });
+
+  it('stays open on Escape and backdrop click while a deletion is in progress', async () => {
+    const wrapper = await mountOpen();
+    mockIsLoading.value = true;
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    await modal(wrapper).trigger('click');
+    await nextTick();
+    expect(modal(wrapper).exists()).toBe(true);
+    wrapper.unmount();
+  });
+
   it('clears authentication errors before opening and after closing the modal', async () => {
     const wrapper = mount(AccountDeleteButtonWithModalForm, {
       props: { cust: mockCustomer },

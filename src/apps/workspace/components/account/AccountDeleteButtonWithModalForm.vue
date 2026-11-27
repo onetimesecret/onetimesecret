@@ -5,6 +5,7 @@
   import { type Customer } from '@/schemas/shapes/v3';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useAuth } from '@/shared/composables/useAuth';
+  import { onKeyStroke } from '@vueuse/core';
   import { ref } from 'vue';
 
   const { t } = useI18n();
@@ -34,11 +35,17 @@
     showDeleteModal.value = true;
   };
 
+  // Escape and a backdrop click close the dialog too, except mid-request.
   const closeDeleteModal = () => {
+    if (isDeleting.value) return;
     clearErrors();
     showDeleteModal.value = false;
     deletePassword.value = '';
   };
+
+  onKeyStroke('Escape', () => {
+    if (showDeleteModal.value) closeDeleteModal();
+  });
 </script>
 
 <template>
@@ -84,7 +91,10 @@
   <div
     v-if="showDeleteModal"
     data-testid="account-delete-modal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    role="dialog"
+    aria-modal="true"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    @click.self="closeDeleteModal">
     <form
       @submit.prevent="submitDeleteAccount"
       class="w-full max-w-md">

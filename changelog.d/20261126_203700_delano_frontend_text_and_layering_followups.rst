@@ -45,6 +45,13 @@ Fixed
   removes the organization's limit.
 - Validation messages on the secret form, and three labels read by screen
   readers, can now be translated.
+- Confirmation dialogs now all close the same way: Escape and a click on the
+  dimmed background both cancel. Before, some closed only on Escape (removing
+  one session, removing a member or domain) and others only on a background
+  click (logging out all other sessions, disabling two-factor authentication,
+  regenerating recovery codes), and account deletion closed on neither. While
+  a request is running, neither closes a dialog that disables its Cancel
+  button.
 
 AI Assistance
 -------------

@@ -249,6 +249,12 @@ describe('AdminConfirmDialog (CONTRACT 4 — typed-confirmation gate)', () => {
       expect(cancelBtn().attributes('disabled')).toBeDefined();
     });
 
+    it('ignores Escape and backdrop close while loading', async () => {
+      wrapper = mountDialog({ loading: true });
+      await wrapper.findComponent({ name: 'Dialog' }).vm.$emit('close');
+      expect(wrapper.emitted('cancel')).toBeUndefined();
+    });
+
     it('keeps confirm disabled while loading even when the token matches', async () => {
       wrapper = mountDialog({ confirmToken: 'tok', loading: false });
       await typedInput().setValue('tok');

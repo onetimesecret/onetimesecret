@@ -7,6 +7,7 @@
   import { useClipboard } from '@/shared/composables/useClipboard';
   import { useUnrecoverableContent } from '@/shared/composables/useUnrecoverableContent';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+  import { onKeyStroke } from '@vueuse/core';
   import { ref, onMounted, computed } from 'vue';
 
   const { t } = useI18n();
@@ -58,10 +59,16 @@
   };
 
   // Cancel generate confirmation
+  // Escape and a backdrop click close the dialog too, except mid-request.
   const cancelGenerate = () => {
+    if (isLoading.value) return;
     showGenerateConfirm.value = false;
     regeneratePassword.value = '';
   };
+
+  onKeyStroke('Escape', () => {
+    if (showGenerateConfirm.value) cancelGenerate();
+  });
 
   // Generate new codes
   const handleGenerateNew = async () => {

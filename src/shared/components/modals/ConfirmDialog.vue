@@ -32,6 +32,8 @@ const confirm = () => {
 };
 
 const cancel = () => {
+  // Unmounting the focus trap after confirm also fires @deactivate.
+  if (!isVisible.value) return;
   isVisible.value = false;
   emit('cancel');
 };
@@ -48,7 +50,8 @@ const cancel = () => {
       aria-labelledby="confirm-dialog-title"
       aria-describedby="confirm-dialog-message"
       role="dialog"
-      aria-modal="true">
+      aria-modal="true"
+      @click.self="cancel">
       <FocusTrap
         :active="isVisible"
         :escape-deactivates="true"

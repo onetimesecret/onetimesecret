@@ -86,6 +86,48 @@ describe('ConfirmDialog', () => {
     expect(dialog()).toBeNull();
   });
 
+  it('emits cancel when the backdrop is clicked', async () => {
+    mountInCard();
+
+    dialog()!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('cancel')).toHaveLength(1);
+    expect(dialog()).toBeNull();
+  });
+
+  it('ignores clicks inside the panel', async () => {
+    mountInCard();
+
+    document.body.querySelector<HTMLElement>('[data-testid="confirm-dialog"]')!.click();
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('cancel')).toBeUndefined();
+    expect(dialog()).not.toBeNull();
+  });
+
+  it('emits cancel when Escape deactivates the focus trap', async () => {
+    mountInCard();
+
+    wrapper.findComponent({ name: 'FocusTrap' }).vm.$emit('deactivate');
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('cancel')).toHaveLength(1);
+    expect(dialog()).toBeNull();
+  });
+
+  it('does not emit cancel when the trap deactivates after confirm', async () => {
+    mountInCard();
+    const trap = wrapper.findComponent({ name: 'FocusTrap' });
+
+    document.body.querySelector<HTMLElement>('[data-testid="confirm-dialog-confirm"]')!.click();
+    trap.vm.$emit('deactivate');
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('confirm')).toHaveLength(1);
+    expect(wrapper.emitted('cancel')).toBeUndefined();
+  });
+
   it('removes the overlay from body when the host unmounts', () => {
     mountInCard();
     wrapper.unmount();
