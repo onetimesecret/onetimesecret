@@ -51,7 +51,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
   end
 
   # The receipt's secret: still stored, not an account verification link.
-  let(:live_secret) { instance_double('Onetime::Secret', verification?: false) }
+  let(:live_secret) { instance_double('Onetime::Secret', account_mechanics?: false) }
 
   # Mock metadata with owner
   let(:metadata_with_owner) do
@@ -416,18 +416,49 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       end
     end
 
-    context "when the receipt's secret is an account verification link" do
-      let(:live_secret) { instance_double('Onetime::Secret', verification?: true) }
+    # Real (unsaved) secrets, so the job exercises Secret#account_mechanics?
+    # itself: every account-mechanics kind, with and without the legacy
+    # verification flag, and the flag alone.
+    [
+      ['account_verification', true], ['account_verification', false],
+      ['password_reset', true], ['password_reset', false],
+      ['email_change', true], ['email_change', false],
+      [nil, true]
+    ].each do |kind, flag|
+      context "when the receipt's secret is account mechanics (kind #{kind.inspect}, verification flag #{flag})" do
+        let(:live_secret) do
+          Onetime::Secret.new.tap do |s|
+            s.kind         = kind unless kind.nil?
+            s.verification = flag ? 'true' : 'false'
+          end
+        end
 
-      it 'sends nothing and drops the timeline entry' do
+        it 'sends nothing and drops the timeline entry' do
+          expect(live_secret.account_mechanics?).to be(true)
+          allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
+          allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
+
+          expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
+
+          described_class.send(:process_expiring_secrets)
+
+          expect(metadata_with_owner).to have_received(:unregister_from_expiration_notifications)
+        end
+      end
+    end
+
+    context "when the receipt's secret is a shared secret (no kind, flag unset)" do
+      let(:live_secret) { Onetime::Secret.new.tap { |s| s.verification = 'false' } }
+
+      it 'enqueues the warning' do
+        expect(live_secret.account_mechanics?).to be(false)
         allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta123'])
         allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
 
-        expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
-
         described_class.send(:process_expiring_secrets)
 
-        expect(metadata_with_owner).to have_received(:unregister_from_expiration_notifications)
+        expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email)
+          .with(:expiration_warning, anything, domain_id: anything)
       end
     end
 

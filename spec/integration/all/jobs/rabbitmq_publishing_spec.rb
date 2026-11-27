@@ -250,7 +250,7 @@ RSpec.describe 'RabbitMQ Publishing', :rabbitmq, type: :integration do
 
       expires_at = Familia.now.to_i + 7200
       owner      = instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'de', verified?: true)
-      secret     = instance_double('Onetime::Secret', verification?: false)
+      secret     = instance_double('Onetime::Secret', account_mechanics?: false)
       receipt    = instance_double(
         'Onetime::Receipt',
         identifier: 'rcpt-rabbit',

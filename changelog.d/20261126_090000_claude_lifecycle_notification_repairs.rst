@@ -12,7 +12,9 @@ Fixed
   secrets, including v1 and incoming secrets, use the default sender. The
   expiration warning is now sent in the owner's language. (!5006)
 - The expiration warning is no longer sent for a secret that was already
-  revealed or burned, and never for an account verification link. (!5006)
+  revealed or burned, and never for an account verification,
+  password-reset or email-change link: the reveal notice and the
+  expiration warning exclude the same secrets. (!5006)
 - The reveal notice and the expiration warning now go only to owners
   whose account is verified. Owners with an unverified account no longer
   get the reveal notices the v3 reveal route used to send them, nor
