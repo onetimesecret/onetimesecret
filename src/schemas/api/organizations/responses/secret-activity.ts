@@ -58,8 +58,9 @@ export const secretActivityEventSchema = z.looseObject({
   // `at` is the latest occurrence (= last_at). Identical fetches inside the
   // coalesce window share one row: `count` is how many there were, between
   // `first_at` and `last_at`. Lifecycle events always have count 1. `id` is
-  // the row id; events stored before coalescing carry only `nonce`, and
-  // older backends send neither id nor count.
+  // the row id. The backend also sends `nonce` (the id, or a migrated legacy
+  // row's original nonce) for clients that predate `id`; older backends send
+  // only `nonce`, with no id or count.
   at: transforms.fromNumber.toDate,
   id: z.string().optional(),
   nonce: z.string().optional(),

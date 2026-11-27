@@ -336,6 +336,26 @@ RSpec.describe Onetime::Organization, type: :integration do
         expect(org.secret_activity_member.element_count).to eq(feature::MIN_MAX_EVENTS)
         expect(hash_size(org.secret_activity_detail)).to eq(feature::MIN_MAX_EVENTS)
         expect(hash_size(org.secret_activity_count)).to eq(feature::MIN_MAX_EVENTS)
+        expect(hash_size(org.secret_activity_first_at)).to eq(feature::MIN_MAX_EVENTS)
+      end
+    end
+
+    it 'is not trimmed at the cap exactly, and stays trimmed after the cap is raised' do
+      cap  = feature::MIN_MAX_EVENTS
+      base = Familia.now.to_f - 500
+      with_secret_activity_settings(max_events: cap) do
+        cap.times { |i| org.record_secret_activity_event('revealed', at: base + i) }
+        expect(org.secret_activity_event_count).to eq(cap)
+        expect(org.secret_activity_trimmed?).to be(false)
+
+        org.record_secret_activity_event('revealed', at: base + cap)
+        expect(org.secret_activity_trimmed?).to be(true)
+        expect(org.secret_activity_trim.dbclient.hget(org.secret_activity_trim.dbkey, 'member:evicted')).to eq('1')
+      end
+
+      with_secret_activity_settings(max_events: cap * 2) do
+        org.record_secret_activity_event('revealed', at: base + cap + 1)
+        expect(org.secret_activity_trimmed?).to be(true)
       end
     end
 
@@ -362,6 +382,7 @@ RSpec.describe Onetime::Organization, type: :integration do
 
       event = org.secret_activity_events_page.first
       expect(event['count']).to eq(2)
+      expect(event['first_at']).to be_within(0.001).of(at)
       expect(event['last_at']).to be_within(0.001).of(at + 50)
     end
 
@@ -372,32 +393,119 @@ RSpec.describe Onetime::Organization, type: :integration do
     end
   end
 
-  # Reads merge both partitions and the read-only legacy trail newest-first.
+  # Reads merge both partitions newest-first.
   describe 'read merge' do
-    it 'merges member, guest and legacy rows newest-first and pages across them' do
+    it 'merges member and guest rows newest-first and pages across them' do
       base = Familia.now.to_f - 100
-      legacy = { 'kind' => 'burned', 'at' => base + 1, 'nonce' => 'abcd1234', 'receipt' => 'old12345' }
-      org.secret_activity_events.add(legacy, base + 1)
       org.record_secret_activity_event('revealed', at: base + 2, 'receipt' => 'mem12345')
       org.record_secret_activity_event('created', at: base + 3, partition: :guest, 'receipt' => 'gst12345')
       org.record_secret_activity_event('created', at: base + 4, 'receipt' => 'mem12345')
 
-      expect(org.secret_activity_event_count).to eq(4)
-      expect(org.secret_activity_trimmed?).to be(false)
-
       page = org.secret_activity_events_page(limit: 10)
-      expect(page.map { |e| e['receipt'] }).to eq(%w[mem12345 gst12345 mem12345 old12345])
+      expect(page.map { |e| e['receipt'] }).to eq(%w[mem12345 gst12345 mem12345])
+      expect(org.secret_activity_events_page(offset: 1, limit: 1).map { |e| e['receipt'] }).to eq(%w[gst12345])
+    end
 
-      old = page.last
-      expect(old).to include('id' => 'abcd1234', 'count' => 1, 'kind' => 'burned')
-      expect(old['first_at']).to eq(old['at'])
-      expect(old['last_at']).to eq(old['at'])
-      expect(old).not_to have_key('nonce')
+    it 'returns every tied row exactly once across a page boundary' do
+      at = Familia.now.to_f - 50
+      5.times { |i| org.record_secret_activity_event('revealed', at: at, 'receipt' => "tie#{i}xxxx") }
+      2.times { |i| org.record_secret_activity_event('created', at: at, partition: :guest, 'receipt' => "gtie#{i}xxx") }
 
-      expect(org.secret_activity_events_page(offset: 1, limit: 2).map { |e| e['receipt'] })
-        .to eq(%w[gst12345 mem12345])
-      expect(org.secret_activity_events_page(offset: 3, limit: 2).map { |e| e['receipt'] })
-        .to eq(%w[old12345])
+      paged = (0...7).flat_map { |offset| org.secret_activity_events_page(offset: offset, limit: 1) }
+      ids   = paged.map { |e| e['id'] }
+      expect(ids.size).to eq(7)
+      expect(ids.uniq.size).to eq(7)
+      expect(ids).to eq(org.secret_activity_events_page(limit: 10).map { |e| e['id'] })
+
+      pairs = (0...7).step(2).flat_map { |offset| org.secret_activity_events_page(offset: offset, limit: 2) }
+      expect(pairs.map { |e| e['id'] }).to eq(ids)
+    end
+
+    # The base revision's client schema requires a string nonce, a number
+    # at and a string kind on every record. A tab still running that bundle
+    # during the rollout must keep parsing both row types.
+    it 'keeps the previous client contract (string nonce) on new and migrated rows' do
+      base = Familia.now.to_f - 100
+      org.secret_activity_events.add({ 'kind' => 'burned', 'at' => base, 'nonce' => 'abcd1234' }, base)
+      org.record_secret_activity_event('secret_get', at: base + 1, 'receipt' => 'mem12345')
+
+      rows = org.secret_activity_events_page(limit: 10)
+      expect(rows.size).to eq(2)
+      rows.each do |row|
+        expect(row['nonce']).to be_a(String).and(satisfy { |n| !n.empty? })
+        expect(row['at']).to be_a(Numeric)
+        expect(row['kind']).to be_a(String)
+      end
+      new_row, legacy_row = rows
+      expect(new_row['nonce']).to eq(new_row['id'])
+      expect(legacy_row['nonce']).to eq('abcd1234')
+    end
+  end
+
+  # The pre-coalescing trail moves into the member partition on first use,
+  # so the member cap covers it.
+  describe 'legacy trail migration' do
+    def add_legacy(count, base)
+      count.times do |i|
+        org.secret_activity_events.add(
+          { 'kind' => 'revealed', 'at' => base + i, 'nonce' => format('n%07d', i), 'receipt' => 'old12345' },
+          base + i,
+        )
+      end
+    end
+
+    it 'keeps 100 rows when 100 legacy rows meet one new event under a cap of 100' do
+      cap  = feature::MIN_MAX_EVENTS
+      base = Familia.now.to_f - 1000
+      with_secret_activity_settings(max_events: cap) do
+        add_legacy(cap, base)
+        org.record_secret_activity_event('created', at: base + 500, 'receipt' => 'new12345')
+
+        expect(org.secret_activity_events.exists?).to be(false)
+        expect(org.secret_activity_event_count).to eq(cap)
+        rows = org.secret_activity_events_page(limit: 200)
+        expect(rows.size).to eq(cap)
+        expect(rows.map { |e| e['nonce'] }).not_to include('n0000000')
+        expect(rows.first['receipt']).to eq('new12345')
+        expect(org.secret_activity_trimmed?).to be(true)
+      end
+    end
+
+    it 'migrates a legacy row as count 1 with its original nonce and times' do
+      base = Familia.now.to_f - 100
+      add_legacy(1, base)
+
+      row = org.secret_activity_events_page.first
+      expect(row).to include('id' => 'l1:n0000000', 'nonce' => 'n0000000', 'count' => 1, 'kind' => 'revealed',
+        'receipt' => 'old12345')
+      expect(row['first_at']).to be_within(0.001).of(base)
+      expect(row['last_at']).to be_within(0.001).of(base)
+      expect(row['at']).to be_within(0.001).of(base)
+      expect(org.secret_activity_events.exists?).to be(false)
+    end
+
+    it 'trims migrated rows on the next write after the cap is lowered' do
+      cap  = feature::MIN_MAX_EVENTS
+      base = Familia.now.to_f - 1000
+      add_legacy(cap + 20, base)
+      expect(org.migrate_legacy_secret_activity!).to eq(cap + 20)
+      expect(org.secret_activity_event_count).to eq(cap + 20)
+
+      with_secret_activity_settings(max_events: cap) do
+        org.record_secret_activity_event('created', at: base + 900)
+        expect(org.secret_activity_event_count).to eq(cap)
+      end
+    end
+
+    it 'is a no-op when run twice' do
+      base = Familia.now.to_f - 100
+      add_legacy(3, base)
+
+      expect(org.migrate_legacy_secret_activity!).to eq(3)
+      before = raw_details(org)
+      expect(org.migrate_legacy_secret_activity!).to eq(0)
+      expect(raw_details(org)).to eq(before)
+      expect(org.secret_activity_event_count).to eq(3)
     end
   end
 
