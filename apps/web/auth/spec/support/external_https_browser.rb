@@ -11,7 +11,7 @@
 # the proxy tells the application about the scheme (X-Forwarded-Proto, or
 # nothing) is the example's to send.
 #
-# WHY. Onetime::Session#set_cookie adds Secure to the session cookie on
+# WHY. Onetime::Session::RackStore#set_cookie adds Secure to the session cookie on
 # every request the application sees as https, including one a trusted
 # proxy forwards with X-Forwarded-Proto: https (audit L-1). Rack::Test's
 # cookie jar applies the Secure attribute the way a browser does: a Secure

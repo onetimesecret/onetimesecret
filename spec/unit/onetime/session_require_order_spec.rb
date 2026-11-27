@@ -10,6 +10,16 @@ RSpec.describe Onetime::Session do
     Open3.capture2e(RbConfig.ruby, '-Ilib', '-e', script, *, chdir: Onetime::HOME)
   end
 
+  it 'loads the namespace without the Rack store' do
+    output, status = run_isolated_ruby(<<~RUBY)
+      require 'onetime/session'
+      abort 'expected a module' unless Onetime::Session.instance_of?(Module)
+      abort 'namespace loaded the Rack store' if defined?(Onetime::Session::RackStore)
+      abort 'namespace loaded rack-session' if defined?(Rack::Session::Abstract::PersistedSecure)
+    RUBY
+    expect(status.success?).to be(true), output
+  end
+
   {
     active_session_gate: 'ActiveSessionGate',
     activity: 'Activity',
@@ -32,11 +42,11 @@ RSpec.describe Onetime::Session do
         require "onetime/session/#{ARGV.fetch(0)}"
         session = Onetime::Session
         session.const_get(ARGV.fetch(1), false)
-        abort 'leaf loaded the Rack store' if session.instance_method(:initialize).owner == session
+        abort 'helper loaded the Rack store' if defined?(Onetime::Session::RackStore)
+        abort 'helper loaded rack-session' if defined?(Rack::Session::Abstract::PersistedSecure)
 
-        require 'onetime/session'
-        abort 'wrong Rack superclass' unless session.superclass == Rack::Session::Abstract::PersistedSecure
-        abort 'Rack store did not load' unless session.instance_method(:initialize).owner == session
+        require 'onetime/session/rack_store'
+        abort 'wrong Rack superclass' unless session::RackStore.superclass == Rack::Session::Abstract::PersistedSecure
       RUBY
       expect(status.success?).to be(true), output
     end
@@ -44,11 +54,10 @@ RSpec.describe Onetime::Session do
 
   it 'loads the Rack store before individual helpers' do
     output, status = run_isolated_ruby(<<~RUBY)
-      require 'onetime/session'
+      require 'onetime/session/rack_store'
       Dir['lib/onetime/session/*.rb'].sort.each { |file| require file.delete_prefix('lib/') }
-      session = Onetime::Session
-      abort 'wrong Rack superclass' unless session.superclass == Rack::Session::Abstract::PersistedSecure
-      abort 'Rack store did not load' unless session.instance_method(:initialize).owner == session
+      store = Onetime::Session::RackStore
+      abort 'wrong Rack superclass' unless store.superclass == Rack::Session::Abstract::PersistedSecure
     RUBY
     expect(status.success?).to be(true), output
   end

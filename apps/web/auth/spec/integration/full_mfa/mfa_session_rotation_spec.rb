@@ -9,7 +9,7 @@
 # sidecar keys, metadata record) and the session data is written back under
 # a fresh id in the same request.
 #
-# Asserted here, against the real /auth routes and the real Onetime::Session
+# Asserted here, against the real /auth routes and the real Onetime::Session::RackStore
 # store:
 #   - the id before and after the second factor differ;
 #   - the pending id's blob is gone, its marker is set, its sidecar keys are

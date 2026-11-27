@@ -96,7 +96,7 @@ RSpec.describe 'Logout ends the active session (#4451)', type: :integration do
   # does not cover it: a request in flight would write back a copy the row
   # still vouches for. The ended-marker refuses that write
   # (Onetime::Session::Ended). Driven through a real held request, so the late
-  # write is Onetime::Session#write_session's own.
+  # write is Onetime::Session::RackStore#write_session's own.
   it 'a revoked session is not written back by a request that was in flight', :aggregate_failures do
     sid = current_session_id
 

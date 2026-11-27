@@ -198,7 +198,7 @@ module V2::Logic
           # ('stripe_payment', 'autoverify') is still upgraded to 'email'.
           Auth::Operations::SetCustomerVerification.record_mailbox_proof(owner, secret) if owner.mailbox_proof_secret?(secret)
           # sess.clear wipes session data for this request. sess.destroy! does
-          # not exist here — OT::Session wraps Rack::Session::Abstract::PersistedSecure,
+          # not exist here — OT::Session::RackStore wraps Rack::Session::Abstract::PersistedSecure,
           # which exposes no public destroy method. clear is the correct call.
           # Skip for stateless auth (BasicAuth provides empty session)
           sess.clear unless sess.empty?

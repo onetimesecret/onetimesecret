@@ -4,7 +4,7 @@
 
 require 'openssl'
 
-require_relative 'namespace'
+require_relative '../session'
 require_relative 'sidecar'
 
 module Onetime

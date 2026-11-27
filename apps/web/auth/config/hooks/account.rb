@@ -1168,7 +1168,7 @@ module Auth::Config::Hooks
         # ROTATION (session-fixation finding): a credential change is a privilege
         # boundary, so the sid that existed before the change must not remain
         # valid after it. Setting :renew makes Rack's commit path call
-        # Onetime::Session#delete_session (which DELETES the old sid's blob) and
+        # Onetime::Session::RackStore#delete_session (which DELETES the old sid's blob) and
         # re-persist the session data under a fresh sid — the same lever the
         # logout controller uses. write_session then re-creates the sidecar +
         # index entry for the NEW sid via TrackMetadata, so only the old sid's

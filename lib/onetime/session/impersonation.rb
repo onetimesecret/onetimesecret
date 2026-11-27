@@ -5,7 +5,7 @@
 require 'securerandom'
 require 'familia'
 
-require_relative 'namespace'
+require_relative '../session'
 require_relative '../models/colonel_audit_event'
 
 module Onetime

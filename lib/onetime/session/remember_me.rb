@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative 'namespace'
+require_relative '../session'
 
 module Onetime
   # Extends one session for a fixed {DURATION} from sign-in, with no extra
@@ -70,7 +70,7 @@ module Onetime
     # can give a session a longer life than a fresh sign-in would.
     #
     # A stamp in the past is nil too, but never reaches this in practice:
-    # {Onetime::Session#find_session} ends a session whose integer stamp has
+    # {Onetime::Session::RackStore#find_session} ends a session whose integer stamp has
     # passed before anything reads it (see #absolute_remaining there), and a
     # write that straddled the deadline gets a blob TTL of one second, not
     # the rolling default. So a nil here means "not remembered", and the

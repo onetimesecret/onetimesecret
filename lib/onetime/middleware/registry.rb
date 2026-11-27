@@ -141,7 +141,7 @@ module Onetime
               #     includes `sessionauth` lists it before `basicauth`, so the session
               #     answers and the header is never read; a session-only route ignores
               #     the header entirely. NOTE: the discriminator is the authenticated
-              #     session, not the route's auth chain. `Onetime::Session` sits in the
+              #     session, not the route's auth chain. `Onetime::Session::RackStore` sits in the
               #     universal stack (application/middleware_stack.rb), so EVERY /api/
               #     request carries `rack.session` even on surfaces (v1, basicauth-only
               #     routes) that never consult it to authenticate. A client that holds
@@ -267,7 +267,7 @@ module Onetime
         # host cannot compete with the real one. Onetime::Middleware::
         # CookieTossing binds the gem's check to site.session.key and gives it
         # per-request state (see that file). On by default since v0.26.14.
-        # Mounted by MiddlewareStack directly above Onetime::Session, not by
+        # Mounted by MiddlewareStack directly above Onetime::Session::RackStore, not by
         # Security.
         'CookieTossing' => {
           key: :cookie_tossing,

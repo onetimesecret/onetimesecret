@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative 'namespace'
+require_relative '../session'
 
 module Onetime
   # Classifies requests for the session inactivity clocks: active-session

@@ -14,13 +14,9 @@ require 'rack'
 require_relative '../support/test_helpers'
 
 require 'onetime'
-require 'onetime/session'
+require 'onetime/session/rack_store'
 
 OT.boot! :test, false
-
-Session = Onetime::Session
-
-
 
 # Helper class for mocking Rack requests
 class MockRequest
@@ -60,14 +56,14 @@ end
   expire_after: 3600,
   namespace: 'testsession'
 }
-@session = Session.new(@app, @session_opts)
+@session = Onetime::Session::RackStore.new(@app, @session_opts)
 
 # Sidecar (#3858) fixtures: a middleware instance on the DEFAULT 'session'
 # namespace, because the sidecar TTL clamp probes the blob at 'session:<sid>'
 # (sidecar keys are ALWAYS sidecar:<sid>:<field>, whatever the blob
 # namespace — a blob on any other namespace is invisible to the clamp). The codec is built from the same secret so seeded envelopes
 # verify against the middleware's own codec.
-@sidecar_session = Session.new(@app, {
+@sidecar_session = Onetime::Session::RackStore.new(@app, {
   secret: @secret,
   key: 'test.session',
   expire_after: 3600,
@@ -83,9 +79,9 @@ end
 
 ## Session initializes using site secret fallback when secret not provided
 begin
-  session = Session.new(@app, { key: 'test' })
+  session = Onetime::Session::RackStore.new(@app, { key: 'test' })
   # Falls back to site secret in test config, so this should succeed
-  session.is_a?(Session)
+  session.is_a?(Onetime::Session::RackStore)
 rescue ArgumentError => e
   # Only fails if site secret is also not available
   false
@@ -93,8 +89,8 @@ end
 #=> true
 
 ## Session initializes successfully with secret
-session = Session.new(@app, @session_opts)
-session.is_a?(Session)
+session = Onetime::Session::RackStore.new(@app, @session_opts)
+session.is_a?(Onetime::Session::RackStore)
 #=> true
 
 ## Generate secure session ID with correct format (wrapped in SessionId)
@@ -309,8 +305,8 @@ result == false
 #=> true
 
 ## Session without redis_uri still initializes
-session_no_redis = Session.new(@app, { secret: @secret })
-session_no_redis.is_a?(Session)
+session_no_redis = Onetime::Session::RackStore.new(@app, { secret: @secret })
+session_no_redis.is_a?(Onetime::Session::RackStore)
 #=> true
 
 # ---- Per-value sidecar integration (#3858) ----------------------------
@@ -514,7 +510,7 @@ class SessionLogCapture
   end
 end
 @capture     = SessionLogCapture.new
-@log_session = Session.new(@app, { secret: @secret, key: 'test.session', expire_after: 3600, namespace: 'session' })
+@log_session = Onetime::Session::RackStore.new(@app, { secret: @secret, key: 'test.session', expire_after: 3600, namespace: 'session' })
 capture      = @capture
 @log_session.define_singleton_method(:session_logger) { capture }
 @log_sid = SecureRandom.hex(32)

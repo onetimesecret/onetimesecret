@@ -500,7 +500,7 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
           expect(sid_after).not_to eq(sid_before)
 
           # Old sid fully retired: blob deleted by Rack's renew path
-          # (Onetime::Session#delete_session), sidecar + index tidied by the hook.
+          # (Onetime::Session::RackStore#delete_session), sidecar + index tidied by the hook.
           expect(Onetime::Operations::Sessions::Store.find_key(Familia.dbclient, sid_before)).to be_nil
           expect(Onetime::SessionMetadata.load(sid_before)).to be_nil
 

@@ -131,7 +131,7 @@ module Auth::Config::Hooks
         # this hook fires, so authenticated_by.first is the PRIMARY login method:
         # 'password', 'email_auth' (magic link), 'webauthn', or 'omniauth'. This is
         # the only point where the mechanism is reliably known — downstream (e.g.
-        # Session#write_session) cannot re-derive it (the omniauth markers are
+        # Onetime::Session::RackStore#write_session) cannot re-derive it (the omniauth markers are
         # deleted later in the callback, and password/magic-link/webauthn leave no
         # trace in session_data). The value persists in the encrypted session and
         # is copied verbatim into the SessionMetadata sidecar (spec

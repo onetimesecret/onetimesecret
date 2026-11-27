@@ -9,7 +9,7 @@ module Onetime
       # (#4331).
       #
       # SCOPE IS THE SURFACE, NOT THE SESSION. One onetime.session cookie serves
-      # the colonel API, the tenant app and the Rodauth app (Onetime::Session is
+      # the colonel API, the tenant app and the Rodauth app (Onetime::Session::RackStore is
       # mounted once, in the universal middleware stack), so expiring the session
       # object would log a colonel out of the customer app too — and on a
       # self-hosted install the colonel often IS the only customer. Bounding the

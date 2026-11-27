@@ -4,7 +4,7 @@
 
 require 'familia'
 
-require_relative 'namespace'
+require_relative '../session'
 require_relative 'codec'
 require_relative '../logger_methods'
 
@@ -20,7 +20,7 @@ module Onetime
     extend self
     extend Onetime::LoggerMethods
 
-    # Same format Session#valid_session_id? enforces. Every mutator is gated on
+    # Same format Onetime::Session::RackStore#valid_session_id? enforces. Every mutator is gated on
     # it, which guarantees two things at once: (1) every key this module ever
     # creates has the canonical `sidecar:<hex-sid>:<registered-field>` shape,
     # and (2) a sid can never inject `:`-delimited segments into the keyspace.
@@ -440,7 +440,7 @@ module Onetime
 
     # Report which destroy_warn fields currently hold a live TRUTHY value for
     # this sid — the probe behind the middleware's destroyed-with-in-flight-
-    # state warning (Session#delete_session), the tripwire for the
+    # state warning (Onetime::Session::RackStore#delete_session), the tripwire for the
     # sid-stability assumption the hand-off fields ride on.
     #
     # TRUTHY, not merely present, is the line: a stored FALSY value is healthy
@@ -492,7 +492,7 @@ module Onetime
     end
     alias delete_all purge
 
-    # Read-side middleware hook (used only by Onetime::Session#find_session):
+    # Read-side middleware hook (used only by Onetime::Session::RackStore#find_session):
     # overlay every merge_on_read+externalize field onto the freshly-decoded
     # session hash, in one pipeline.
     #
@@ -556,7 +556,7 @@ module Onetime
       { data: data, fields: merged }
     end
 
-    # Write-side middleware hook (used only by Onetime::Session#write_session,
+    # Write-side middleware hook (used only by Onetime::Session::RackStore#write_session,
     # BEFORE blob serialization): externalize every registered field out of the
     # session hash. Per externalize field:
     #

@@ -224,7 +224,7 @@ module CustomerSessionFailureMatrix
   # runs on its own thread, joined before the held request continues, right
   # after that request's first customer-session evaluation (which has loaded
   # the session). The interleaving is therefore exact, not timed, and the late
-  # write goes through the real Onetime::Session#write_session.
+  # write goes through the real Onetime::Session::RackStore#write_session.
   #
   # @return [Rack::MockResponse] the held request's response
   def hold_request_while

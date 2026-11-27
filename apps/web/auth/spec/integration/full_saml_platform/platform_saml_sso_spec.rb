@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # =============================================================================
-# TEST TYPE: Integration (full Rack stack, real Rodauth, real Onetime::Session)
+# TEST TYPE: Integration (full Rack stack, real Rodauth, real Onetime::Session::RackStore)
 # =============================================================================
 #
 # PLATFORM SAML SSO end to end (#4450): the env-configured IdP on the
@@ -40,7 +40,7 @@
 # skip.
 #
 # EVERY REQUEST IS https://. The Secure cookie is withheld by Rack::Test on
-# http and dropped by Onetime::Session on a non-SSL request.
+# http and dropped by Onetime::Session::RackStore on a non-SSL request.
 #
 # The 'domains enabled' context is included ONLY by the off-host describe.
 # With the domains feature on, DomainStrategy.canonical_host? consults the

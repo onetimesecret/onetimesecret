@@ -5,7 +5,7 @@
 require 'openssl'
 require 'familia'
 
-require_relative 'namespace'
+require_relative '../session'
 
 module Onetime
   # Short-lived tombstone for an intentionally ended session ID. It prevents

@@ -6,14 +6,14 @@
 #
 # 1) Store.destroy_blob: when Onetime::Session::Ended.mark fails transiently, the DEL
 #    must be REFUSED (marker+DEL are one atomic step in the invariant).
-# 2) Session#delete_session: same contract on the Rack middleware path.
-# 3) Session#write_session: when the post-SET Onetime::Session::Ended.ended? check
+# 2) Onetime::Session::RackStore#delete_session: same contract on the Rack middleware path.
+# 3) Onetime::Session::RackStore#write_session: when the post-SET Onetime::Session::Ended.ended? check
 #    raises (datastore error), the freshly-written blob must be deleted so
 #    the browser cannot keep a working session under an already-ended sid.
 
 require 'spec_helper'
 require 'securerandom'
-require 'onetime/session'
+require 'onetime/session/rack_store'
 require 'onetime/session/ended'
 require 'onetime/operations/sessions/store'
 
@@ -41,12 +41,12 @@ RSpec.describe 'Onetime::Session::Ended marker refusal contract' do
     end
   end
 
-  describe 'Onetime::Session#delete_session' do
+  describe 'Onetime::Session::RackStore#delete_session' do
     # Instantiate without going through initialize (which requires a secret /
     # site config): the method under test only reads @dbclient and calls
     # session_logger, both stubbed below.
     let(:session) do
-      s = Onetime::Session.allocate
+      s = Onetime::Session::RackStore.allocate
       s.instance_variable_set(:@dbclient, db)
       s.instance_variable_set(:@namespace, 'session')
       s.instance_variable_set(:@expire_after, 86_400)
@@ -90,9 +90,9 @@ RSpec.describe 'Onetime::Session::Ended marker refusal contract' do
     end
   end
 
-  describe 'Onetime::Session#write_session' do
+  describe 'Onetime::Session::RackStore#write_session' do
     let(:session) do
-      s = Onetime::Session.allocate
+      s = Onetime::Session::RackStore.allocate
       s.instance_variable_set(:@dbclient, db)
       s.instance_variable_set(:@namespace, 'session')
       s.instance_variable_set(:@expire_after, 86_400)

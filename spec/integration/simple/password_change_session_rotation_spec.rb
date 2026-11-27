@@ -12,7 +12,7 @@
 # Abstract::Persisted#commit_session (rack-session 2.1): with :renew set it
 # calls `delete_session(req, session.id, options)` and writes the session
 # data under the id that call returns. On this store
-# (Onetime::Session#delete_session) that call is the same step a logout
+# (Onetime::Session::RackStore#delete_session) that call is the same step a logout
 # takes: it writes the Onetime::Session::Ended marker for the old id, deletes the old
 # blob, purges its sidecar keys, and returns a fresh id.
 #

@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative 'namespace'
+require_relative '../session'
 require_relative 'activity'
 require_relative 'remember_me'
 
@@ -133,7 +133,7 @@ module Onetime
     # (SESSION_ABSOLUTE_TIMEOUT), {DEFAULT_LIFETIME_DEADLINE} when unset.
     # Applied by this gate to the row's `created_at` (and handed to Rodauth
     # as `session_lifetime_deadline`, where nil means none) and by
-    # Onetime::Session to the blob's `authenticated_at`, so both auth modes
+    # Onetime::Session::RackStore to the blob's `authenticated_at`, so both auth modes
     # share the one bound.
     #
     # Read on every call, never memoised, so a config reload takes effect
@@ -241,7 +241,7 @@ module Onetime
     # Remembered, and the remember deadline has passed. Not subject to the
     # switch: a deadline that has passed has passed, whatever the operator
     # has since decided about new sign-ins (the same rule the session store
-    # applies to the blob's stamp, Onetime::Session#find_session).
+    # applies to the blob's stamp, Onetime::Session::RackStore#find_session).
     def remember_lapsed_condition
       Sequel.&(Sequel.~(remember_until: nil), Sequel[:remember_until] < Sequel::CURRENT_TIMESTAMP)
     end
@@ -298,7 +298,7 @@ module Onetime
     # sessions off) would bring it back for that long. Dropping the stamp
     # returns the session to the default lifetime on this request's write:
     # a refused request is not activity, so the blob keeps at most the
-    # default TTL (Onetime::Session#expiration_for_write). Not done for
+    # default TTL (Onetime::Session::RackStore#expiration_for_write). Not done for
     # :unavailable, where the session is meant to be honoured again.
     def forfeit_remember(session)
       session.delete(Session::RememberMe::SESSION_KEY) if session.respond_to?(:delete)

@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative 'namespace'
+require_relative '../session'
 require_relative 'customer_session_evaluator'
 
 module Onetime

@@ -372,7 +372,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         # user then sees can be tied to the revocation, and the stranded
         # stash is purged with the clear: this codebase overrides
         # clear_session to session.destroy, which routes through the store's
-        # delete path (Onetime::Session#delete_session) and purges the sid's
+        # delete path (Onetime::Session::RackStore#delete_session) and purges the sid's
         # sidecar registry keys — including the explicit-use stash — so it
         # does not outlive the sign-out.
         it 'warns, naming the dropped OmniAuth keys and stranded sidecar fields, and purges them, when revoked mid-SSO',

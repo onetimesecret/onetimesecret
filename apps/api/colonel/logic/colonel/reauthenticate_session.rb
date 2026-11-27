@@ -58,7 +58,7 @@ module ColonelAPI
       #      (#refuse_if_credentials_changed!).
       #
       # Re-stamping authenticated_at is what a sign-in does, so it also
-      # restarts the site-wide absolute lifetime Onetime::Session measures
+      # restarts the site-wide absolute lifetime Onetime::Session::RackStore measures
       # from the blob's stamp (simple mode). In full mode the active-session
       # row keeps its created_at, and that bound still counts from the
       # original sign-in.

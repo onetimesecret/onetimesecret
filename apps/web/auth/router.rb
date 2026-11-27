@@ -277,7 +277,7 @@ module Auth
     #
     # This codebase overrides Rodauth's clear_session to `session.destroy`
     # (see Auth::Config::Base), so rodauth.clear_session routes through the
-    # store's delete path (Onetime::Session#delete_session). That path
+    # store's delete path (Onetime::Session::RackStore#delete_session). That path
     # already DELs the session blob, purges the sid's sidecar registry keys
     # (Onetime::Session::Sidecar.purge — including the explicit-use hand-off stashes
     # sso_connect_intent / link_sso_pending_bind), and runs the in-flight

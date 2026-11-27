@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative 'namespace'
+require_relative '../session'
 require_relative 'ended'
 require_relative 'sidecar'
 
@@ -190,7 +190,7 @@ module Onetime
 
     # Loaded at first use, not at the top of this file: store.rb uses
     # absolute `require 'onetime/...'` lines, which need lib on the load path,
-    # and the boot require chain (lib/onetime/session.rb pulls this file in)
+    # and the boot require chain (lib/onetime/session/rack_store.rb pulls this file in)
     # cannot assume that; the Puma fork specs boot from a generated rackup
     # that only require_relatives lib/onetime.rb.
     def store_operations

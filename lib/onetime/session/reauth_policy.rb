@@ -4,7 +4,7 @@
 
 require 'uri'
 
-require_relative 'namespace'
+require_relative '../session'
 require_relative 'surface'
 
 module Onetime

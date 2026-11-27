@@ -4,7 +4,7 @@
 
 # "Remember me" in simple mode, where the Rack session is the only record:
 # Core::Controllers::Authentication stamps `remember_until` and
-# Onetime::Session gives the blob and the cookie that fixed lifetime. The
+# Onetime::Session::RackStore gives the blob and the cookie that fixed lifetime. The
 # same store behaviour serves full mode (spec/integration/full/remember_me_spec.rb).
 
 require_relative '../integration_spec_helper'
@@ -101,7 +101,7 @@ RSpec.describe 'Remember me: a fixed 30-day session (simple mode)', type: :integ
     expect(session_blob).not_to have_key('remember_until')
   end
 
-  # The deadlines are decided when the session is READ (Onetime::Session#find_session),
+  # The deadlines are decided when the session is READ (Onetime::Session::RackStore#find_session),
   # not by the blob's TTL: a session past one is ended like a logout ends it,
   # whatever TTL the key still had, so no write can hand it a rolling lifetime.
   describe 'the absolute deadlines' do
@@ -193,7 +193,7 @@ RSpec.describe 'Remember me: a fixed 30-day session (simple mode)', type: :integ
       # Read before the deadline, commit after: the store sees a lapsed
       # session only on the write. Driven directly, since no request can be
       # held open across the boundary from here.
-      store   = Onetime::Session.new(->(_env) { [200, {}, []] }, secret: 'x' * 64)
+      store   = Onetime::Session::RackStore.new(->(_env) { [200, {}, []] }, secret: 'x' * 64)
       sid     = store.send(:generate_sid)
       options = {}
       request = Rack::Request.new(Rack::MockRequest.env_for('/'))

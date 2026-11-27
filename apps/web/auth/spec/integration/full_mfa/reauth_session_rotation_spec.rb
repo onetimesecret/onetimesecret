@@ -9,7 +9,7 @@
 # logout ends it and the session data is written back under a new id, so a
 # copy of the pre-ceremony id is signed out rather than handed the proof.
 #
-# Asserted here, against the real /auth routes and the real Onetime::Session
+# Asserted here, against the real /auth routes and the real Onetime::Session::RackStore
 # store:
 #   - the id before and after the ceremony differ, and the proof is under
 #     the new id only;

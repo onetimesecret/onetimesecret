@@ -125,7 +125,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
       # CookieTossing must stay directly above Onetime::Session: a refused
       # request loads no session and its 403 sets no session cookie.
       'Onetime::Middleware::CookieTossing',
-      'Onetime::Session',
+      'Onetime::Session::RackStore',
       'Onetime::Middleware::SessionSkip',
       'Onetime::Middleware::IdentityResolution',
       'Onetime::Middleware::EntitlementPreviewContext',

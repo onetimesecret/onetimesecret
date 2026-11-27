@@ -161,7 +161,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
 
   # The plain (64-hex) session id behind the current Rack::Test cookie jar —
   # the sid the sidecar keys are derived from. The cookie value IS the sid
-  # (Onetime::Session stores it unencrypted; only the blob is ciphered).
+  # (Onetime::Session::RackStore stores it unencrypted; only the blob is ciphered).
   def current_sid
     rack_mock_session.cookie_jar['onetime.session']
   end

@@ -9,7 +9,7 @@
 #      #ssl_enabled?), and (b) be applied per-request whenever the request
 #      itself is HTTPS — Rack::Request#ssl? honors X-Forwarded-Proto, and the
 #      AssumeHttps middleware (#3837/#3843) covers tunnels that don't forward
-#      it — via the upgrade-only Onetime::Session#set_cookie override.
+#      it — via the upgrade-only Onetime::Session::RackStore#set_cookie override.
 #
 # L-3: no log line carries the session id; the full id is the bearer
 #      credential. Log lines carry session_handle, the keyed digest of the id
@@ -19,9 +19,9 @@
 #      account_id/external_id/MFA state/key names.
 
 require 'spec_helper'
-require 'onetime/session'
+require 'onetime/session/rack_store'
 
-RSpec.describe Onetime::Session do
+RSpec.describe Onetime::Session::RackStore do
   let(:secret)   { 'a' * 64 }
   let(:app)      { ->(_env) { [200, {}, []] } }
   let(:dbclient) { double('dbclient') }

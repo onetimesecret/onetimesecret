@@ -403,7 +403,7 @@ module Onetime
       # Apply SSL fallback if secure not explicitly set: true when site.ssl is
       # configured OR the app runs in production (see ssl_enabled?), so the
       # Secure cookie flag fails safe in production even when the SSL env var
-      # is unset (2026-08-02 audit, L-1). Onetime::Session#set_cookie adds a
+      # is unset (2026-08-02 audit, L-1). Onetime::Session::RackStore#set_cookie adds a
       # per-request upgrade for TLS-terminating proxies on top of this.
       result['secure'] = ssl_enabled? if result['secure'].nil?
 

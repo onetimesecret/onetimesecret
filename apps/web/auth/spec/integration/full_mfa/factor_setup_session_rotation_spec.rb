@@ -10,7 +10,7 @@
 # before_/after_webauthn_setup in hooks/webauthn.rb) call the helpers in
 # hooks/two_factor.rb, which renew the id when the setup marked the session.
 #
-# Asserted here, against the real /auth routes and the real Onetime::Session
+# Asserted here, against the real /auth routes and the real Onetime::Session::RackStore
 # store:
 #   - TOTP setup and passkey setup on a password-only session move it to a
 #     new id, end the old one, and the new id carries the factor;

@@ -31,7 +31,7 @@ module Onetime
     # Each protection can be individually enabled/disabled via configuration.
     #
     # Cookie tossing prevention is not mounted here: it must run above
-    # Onetime::Session, and MiddlewareStack mounts it there.
+    # Onetime::Session::RackStore, and MiddlewareStack mounts it there.
     #
     class Security
       # The components this wrapper mounts, in mount order. The definitions

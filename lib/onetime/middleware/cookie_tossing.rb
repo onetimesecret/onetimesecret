@@ -51,7 +51,7 @@ module Onetime
     # 1. The cookie name. The gem's `session_key` option shares its name with
     #    Base's env-key option and defaults to 'rack.session', but here it
     #    means the COOKIE name. Ours is `site.session.key`, the value
-    #    MiddlewareStack hands Onetime::Session, so it is read from the same
+    #    MiddlewareStack hands Onetime::Session::RackStore, so it is read from the same
     #    accessor (Onetime.session_config) and the two cannot disagree.
     #
     # 2. Malformed cookie names. The gem compares every OTHER cookie's name
@@ -67,7 +67,7 @@ module Onetime
     # `bad_cookies(env)`, so this class no longer duplicates the middleware
     # instance to isolate requests.
     #
-    # Where it runs: in the universal stack directly above Onetime::Session
+    # Where it runs: in the universal stack directly above Onetime::Session::RackStore
     # (lib/onetime/application/middleware_stack.rb), so a refused request
     # never loads or commits a session. Mounted below the session middleware
     # (inside Onetime::Middleware::Security, until the #4223 review), the
@@ -79,7 +79,7 @@ module Onetime
     # survived the refusal meant to remove it.
     class CookieTossing < Rack::Protection::CookieTossing
       # The cookie name when Onetime.session_config cannot be asked (a
-      # standalone unit context). Same literal as Onetime::Session's default
+      # standalone unit context). Same literal as Onetime::Session::RackStore's default
       # and boot.rb's SESSION_DEFAULTS.
       DEFAULT_SESSION_KEY = 'onetime.session'
 

@@ -1,16 +1,16 @@
-# spec/unit/onetime/session/absolute_deadline_spec.rb
+# spec/unit/onetime/session/rack_store_absolute_deadline_spec.rb
 #
 # frozen_string_literal: true
 
-# Onetime::Session.absolute_deadline: the one definition of when a session
+# Onetime::Session::RackStore.absolute_deadline: the one definition of when a session
 # ends whatever it does, shared by the store's read and write paths and by
 # IdentityResolution's `expires_at`. The store's use of it is exercised end
 # to end in spec/integration/{simple,full}/remember_me_spec.rb.
 
 require 'spec_helper'
-require 'onetime/session'
+require 'onetime/session/rack_store'
 
-RSpec.describe Onetime::Session, '.absolute_deadline' do
+RSpec.describe Onetime::Session::RackStore, '.absolute_deadline' do
   let(:signed_in) { 1_800_000_000 }
   let(:lifetime) { Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE }
 

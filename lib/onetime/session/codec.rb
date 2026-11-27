@@ -6,7 +6,7 @@ require 'base64'
 require 'openssl'
 require 'familia'
 
-require_relative 'namespace'
+require_relative '../session'
 
 module Onetime
   # Shared at-rest format for the Rack session store and session admin reader:
@@ -24,7 +24,7 @@ module Onetime
     attr_reader :encryption_key_raw
 
     # Build a codec from the running app config, resolving the session secret
-    # with the SAME fallback {Onetime::Session} uses (session secret, then the
+    # with the SAME fallback {Onetime::Session::RackStore} uses (session secret, then the
     # site secret). Returns nil when neither is set so read callers can degrade
     # to the legacy/`_raw` path rather than raising. The plain {.new} stays pure
     # (secret in, no globals) for the writer and for tests.
@@ -42,7 +42,7 @@ module Onetime
     end
 
     # @param secret [String] the session master secret; both subkeys are
-    #   HKDF-derived from it (RFC 5869), matching {Onetime::Session}.
+    #   HKDF-derived from it (RFC 5869), matching {Onetime::Session::RackStore}.
     def initialize(secret)
       raise ArgumentError, 'session secret is required' if secret.to_s.empty?
 
@@ -52,7 +52,7 @@ module Onetime
     end
 
     # Derive a purpose-specific subkey as hex. Parity with the original
-    # Session#derive_key so callers (and the session tryout) see one behaviour.
+    # Onetime::Session::RackStore#derive_key so callers (and the session tryout) see one behaviour.
     def derive_key(purpose)
       require 'onetime/key_derivation'
       Onetime::KeyDerivation.derive_session_subkey(@secret, purpose)

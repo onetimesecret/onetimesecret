@@ -13,7 +13,7 @@ module Onetime
     # Suppresses session persistence for anonymous, unauthenticated probe
     # endpoints (#3997).
     #
-    # {Onetime::Session} is a `Rack::Session::Abstract::PersistedSecure`
+    # {Onetime::Session::RackStore} is a `Rack::Session::Abstract::PersistedSecure`
     # subclass, so every request that merely *loads* the session commits it —
     # writing a `session:<64-hex>` key to Valkey with the full 24h TTL and
     # returning a `Set-Cookie`. Health and status probes are polled constantly
@@ -42,7 +42,7 @@ module Onetime
     #
     # ## Mounting
     #
-    # Must be mounted AFTER {Onetime::Session}: `prepare_session` installs
+    # Must be mounted AFTER {Onetime::Session::RackStore}: `prepare_session` installs
     # `env['rack.session.options']` before calling the downstream app, so
     # anything below the session middleware can mutate that hash and the
     # session middleware will read the mutation on the way back out. Same

@@ -27,7 +27,7 @@
 # Site 3 runs against an inline Rodauth app: spec/auth.test.yaml pins
 # full.features.webauthn false, so the booted app has no webauthn routes. The
 # inline app mounts the PRODUCTION hook module (Auth::Config::Hooks::WebAuthn)
-# behind the PRODUCTION session middleware (Onetime::Session), because the
+# behind the PRODUCTION session middleware (Onetime::Session::RackStore), because the
 # proof is keyed on the Rack session id and Roda's own sessions plugin has no
 # id at all.
 #
@@ -154,10 +154,10 @@ RSpec.describe 'Onetime::Session::RecentReauth.clear call sites (#4420)', :full_
 
       Class.new(Roda) do
         # key/expire_after are passed explicitly, as middleware_stack.rb does:
-        # Onetime::Session's `unless defined?(DEFAULT_OPTIONS)` guard sees the
+        # Onetime::Session::RackStore's `unless defined?(DEFAULT_OPTIONS)` guard sees the
         # constant inherited from Rack::Session::Abstract::Persisted, so its
         # own defaults (key 'onetime.session', 24h) never install.
-        use Onetime::Session, secret: SecureRandom.hex(64), secure: false, key: 'onetime.session', expire_after: 86_400
+        use Onetime::Session::RackStore, secret: SecureRandom.hex(64), secure: false, key: 'onetime.session', expire_after: 86_400
         plugin :json
         plugin :json_parser, content_type_regexp: %r{\Aapplication/json\b}i
         plugin :halt
@@ -201,7 +201,7 @@ RSpec.describe 'Onetime::Session::RecentReauth.clear call sites (#4420)', :full_
       post_json('/login', login: email, password: password)
       expect(last_response.status).to eq(200), "Login failed (#{last_response.status}): #{last_response.body}"
       sid = current_sid
-      expect(sid).to match(/\A\h{64}\z/), 'Precondition failed: no Onetime::Session cookie'
+      expect(sid).to match(/\A\h{64}\z/), 'Precondition failed: no Onetime::Session::RackStore cookie'
 
       # Seeded AFTER login so the session was established without a pending
       # second factor; the remove route only needs the row to exist now.

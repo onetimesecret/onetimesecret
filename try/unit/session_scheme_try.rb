@@ -11,7 +11,7 @@
 #
 #   Part 1: Onetime::Middleware::AssumeHttps upgrades the request scheme to
 #           HTTPS when site.network.assume_https is enabled (upgrade-only).
-#   Part 2: Onetime::Session#security_matches? emits a throttled warning when
+#   Part 2: Onetime::Session::RackStore#security_matches? emits a throttled warning when
 #           a Secure cookie is dropped because the request is seen as non-SSL.
 #
 # The unit under test for cookie persistence is Rack's own decision method
@@ -27,12 +27,10 @@ require 'rack'
 require_relative '../support/test_helpers'
 
 require 'onetime'
-require 'onetime/session'
+require 'onetime/session/rack_store'
 require 'onetime/middleware/assume_https'
 
 OT.boot! :test, false
-
-Session = Onetime::Session
 
 # Minimal downstream app for driving the middleware.
 class MockApp
@@ -43,7 +41,7 @@ end
 
 @app     = MockApp.new
 @secret  = SecureRandom.hex(64)
-@session = Session.new(@app, { secret: @secret, key: 'test.session', expire_after: 3600 })
+@session = Onetime::Session::RackStore.new(@app, { secret: @secret, key: 'test.session', expire_after: 3600 })
 
 # Build a Rack::Request from a raw env hash.
 def request_for(env = {})
@@ -52,7 +50,7 @@ end
 
 # Reset the process-wide throttle guard so each warn-expecting case can fire.
 def reset_warn_guard!
-  Onetime::Session.secure_cookie_warned_at = nil
+  Onetime::Session::RackStore.secure_cookie_warned_at = nil
   CAPTURED_WARNINGS.clear
   CAPTURED_PAYLOADS.clear
 end
@@ -65,7 +63,7 @@ def assume_https_middleware(enabled)
 end
 
 # Capture the dropped-secure-cookie warning at the LoggerMethods seam:
-# Session#warn_dropped_secure_cookie logs through the instance `logger`, so a
+# Onetime::Session::RackStore#warn_dropped_secure_cookie logs through the instance `logger`, so a
 # singleton stub on this one @session captures message + payload with zero
 # process-wide state — it dies with @session and cannot leak into later files
 # in the shared tryouts process, so no teardown restore is needed.
@@ -105,7 +103,7 @@ CAPTURED_PAYLOADS.first
 #=> { rack_url_scheme: nil, x_forwarded_proto: nil, forwarded: false, x_forwarded_ssl: nil, https: nil, untrusted_scheme_headers: [] }
 
 ## (a4b) ...and `forwarded:` still reports the edge's RFC 7239 header after
-## StripForwardedHost (mounted above Session) has deleted it: the middleware
+## StripForwardedHost (mounted above Onetime::Session::RackStore) has deleted it: the middleware
 ## leaves the deleted carrier's NAME in the env, and only the name is read, so
 ## the `for=` client IP the header carried never reaches the log.
 reset_warn_guard!

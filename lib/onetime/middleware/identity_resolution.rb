@@ -43,13 +43,13 @@ module Onetime
     #
     # ### Session lifetime is not decided here
     #
-    # This runs after Onetime::Session, which has already ended any session
+    # This runs after Onetime::Session::RackStore, which has already ended any session
     # past its absolute deadline (a remember-me stamp, or the lifetime
     # deadline after `authenticated_at`) and holds every other session to
     # the rolling inactivity lifetime through the blob's TTL. A session that
     # reaches this middleware is therefore live, and it is resolved as such
     # without a second age check. `metadata[:expires_at]` reports the
-    # session's absolute deadline ({Onetime::Session.absolute_deadline}),
+    # session's absolute deadline ({Onetime::Session::RackStore.absolute_deadline}),
     # and is nil for a session that has none (a rolling default session).
     #
     # ### Performance Optimization
@@ -149,7 +149,7 @@ module Onetime
               account_id: session['account_id'],
               auth_method: 'full',
               authenticated_at: session['authenticated_at'],
-              expires_at: Onetime::Session.absolute_deadline(session),
+              expires_at: Onetime::Session::RackStore.absolute_deadline(session),
             },
           }
       rescue StandardError => ex
@@ -207,7 +207,7 @@ module Onetime
             external_id: session['external_id'],
             email: session['email'],
             session_id: session.id&.private_id,
-            expires_at: Onetime::Session.absolute_deadline(session),
+            expires_at: Onetime::Session::RackStore.absolute_deadline(session),
             ip_address: session['ip_address'] || Onetime::Utils::ClientIp.from_request(request),
           },
         }

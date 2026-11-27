@@ -127,7 +127,7 @@ RSpec.describe 'Remember me: a fixed 30-day session (full mode)', type: :integra
       expect(activity_count).to eq(0)
     end
 
-    # The blob's own stamp ends the session on the read (Onetime::Session#find_session),
+    # The blob's own stamp ends the session on the read (Onetime::Session::RackStore#find_session),
     # before the gate ever sees it: the same rule as simple mode, so the two
     # clocks (Ruby's in the blob, the database's in the row) both fail closed.
     it 'is ended on the read once the blob\'s remember_until has passed, whatever the row says', :aggregate_failures do

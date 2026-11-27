@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative 'namespace'
+require_relative '../session'
 
 module Onetime
   # Classifies request surfaces, stamps the login surface, and checks it on

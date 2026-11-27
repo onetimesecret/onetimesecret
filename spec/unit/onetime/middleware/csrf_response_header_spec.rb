@@ -41,7 +41,7 @@ RSpec.describe Onetime::Middleware::CsrfResponseHeader do
 
   let(:middleware) { described_class.new(downstream) }
 
-  # A plain Hash stands in for Onetime::Session's SessionHash: both respond to
+  # A plain Hash stands in for Onetime::Session::RackStore's SessionHash: both respond to
   # []/[]= with symbol keys, which is all AuthenticityToken.token touches.
   let(:session) { {} }
 

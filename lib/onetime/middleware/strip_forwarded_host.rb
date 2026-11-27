@@ -124,7 +124,7 @@ module Onetime
     # ## What was deleted is recorded by NAME
     #
     # Two readers mounted below this middleware diagnose the edge's forwarding
-    # topology from the PRESENCE of these carriers: Onetime::Session's
+    # topology from the PRESENCE of these carriers: Onetime::Session::RackStore's
     # dropped-secure-cookie warning (its `forwarded:` field exists to spot the
     # "edge speaks only `Forwarded`" deployment) and the colonel
     # `/system/proxy-headers` report. Deleting the headers would leave both

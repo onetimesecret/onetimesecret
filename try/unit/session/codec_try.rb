@@ -4,7 +4,7 @@
 
 #
 # Unit tryouts for Onetime::Session::Codec — the canonical session-blob codec
-# extracted from Onetime::Session so the live Rack store (writer) and the
+# extracted from Onetime::Session::RackStore so the live Rack store (writer) and the
 # session admin read verbs (reader) share ONE definition of the at-rest format
 # `base64(iv+auth_tag+AES-256-GCM(JSON))--hmac`.
 #
