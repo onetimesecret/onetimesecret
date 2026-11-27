@@ -494,10 +494,10 @@ module Onetime
         true
       end
 
-      # The Rack env keys Onetime::SessionSurface.for_env reads, rebuilt from
+      # The Rack env keys Onetime::Session::Surface.for_env reads, rebuilt from
       # the strategy metadata (logic classes never see the env). For a logic
       # class that mints an authenticated session itself rather than through
-      # a login path, this is what `SessionSurface.record(sess, surface_env)`
+      # a login path, this is what `Onetime::Session::Surface.record(sess, surface_env)`
       # takes so the session carries the same marker a login would stamp.
       #
       # @return [Hash]

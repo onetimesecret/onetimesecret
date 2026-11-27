@@ -7,19 +7,19 @@
 # =============================================================================
 #
 # FINDING: one onetime.session cookie served colonel and customer alike on a 24h
-# ROLLING TTL. Onetime::Session#write_session re-applies expire_after on every
+# ROLLING TTL. Onetime::Session::RackStore#write_session re-applies expire_after on every
 # commit and Rack commits on essentially every request, so a colonel session left
 # open in a tab was a standing administrative capability with no absolute cap and
 # no idle timeout.
 #
 # CODE PATH under test, end to end through the real Rack::URLMap:
 #
-#   Onetime::Session (universal mount)
+#   Onetime::Session::RackStore (universal mount)
 #     -> BaseSessionAuthStrategy#authenticate       (after the credential watermark)
 #     -> AdminSessionLifetime#admin_session_expiry_reason
 #     -> 401 [ADMIN_SESSION_EXPIRED] ...            (JSON, via Otto's ResponseBuilder)
 #   ... and on the way out:
-#   Onetime::Session#write_session -> Sessions::TrackMetadata (SKIPPED when refused)
+#   Onetime::Session::RackStore#write_session -> Sessions::TrackMetadata (SKIPPED when refused)
 #
 # What only THIS file can prove, and what the design exists to guarantee:
 #
@@ -105,7 +105,7 @@ RSpec.describe 'Admin-surface session lifetime (#4331)', type: :integration do
       'external_id' => user.extid,
       'authenticated' => true,
       # #4409: hand-seeded sessions need the surface marker the login hooks record.
-      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+      Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
       'authenticated_at' => authenticated_at,
       'role' => user.role,
     }

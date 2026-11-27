@@ -2,14 +2,14 @@
 #
 # frozen_string_literal: true
 
-# Onetime::RememberMe: parameter parsing and the deadline arithmetic the
+# Onetime::Session::RememberMe: parameter parsing and the deadline arithmetic the
 # session store derives the blob TTL and cookie lifetime from. The store
 # itself is exercised end to end in spec/integration/{simple,full}/remember_me_spec.rb.
 
 require 'spec_helper'
 require 'onetime/session/remember_me'
 
-RSpec.describe Onetime::RememberMe do
+RSpec.describe Onetime::Session::RememberMe do
   let(:now) { Time.at(1_800_000_000) }
 
   describe '.requested?' do

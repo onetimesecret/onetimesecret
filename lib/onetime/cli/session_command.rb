@@ -67,7 +67,7 @@ module Onetime
         # Inject the shared codec so `bin/ots session inspect/search` decrypt the
         # value like the colonel console does; without it every field reads nil
         # and search-by-email never matches (session values are encrypted).
-        Store.load_data(dbclient, key, codec: Onetime::SessionCodec.from_config)
+        Store.load_data(dbclient, key, codec: Onetime::Session::Codec.from_config)
       end
 
       def extract_session_id_from_key(key)

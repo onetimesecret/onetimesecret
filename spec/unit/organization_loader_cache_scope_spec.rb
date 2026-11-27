@@ -20,7 +20,7 @@ require 'onetime/application/organization_loader'
 require 'onetime/application/request_helpers'
 require 'onetime/middleware/domain_strategy'
 require 'onetime/middleware/public_host_rewrite'
-require 'onetime/session'
+require 'onetime/session/rack_store'
 require_relative '../../apps/api/v2/application'
 
 RSpec.describe Onetime::Application::OrganizationLoader do
@@ -581,7 +581,7 @@ RSpec.describe Onetime::Application::OrganizationLoader do
     end
 
     describe 'across requests (real session store)' do
-      let(:store) { Onetime::Session.new(->(_env) { [200, {}, []] }, secret: 'x' * 64) }
+      let(:store) { Onetime::Session::RackStore.new(->(_env) { [200, {}, []] }, secret: 'x' * 64) }
       let(:rack_request) { Rack::Request.new(Rack::MockRequest.env_for('/')) }
 
       it 'is read back from the stored session and decides a request with no header' do

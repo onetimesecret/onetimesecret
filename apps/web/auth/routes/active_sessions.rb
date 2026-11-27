@@ -53,7 +53,7 @@ module Auth
             # the gate's deadlines are: remember_until is written in that clock.
             # With remember-me switched off no row is remembered (the gate
             # ignores remember_until too).
-            remember_on    = Onetime::RememberMe.enabled?
+            remember_on    = Onetime::Session::RememberMe.enabled?
             remembered     = Sequel.case({ (Sequel[:remember_until] > Sequel::CURRENT_TIMESTAMP) => 1 }, 0)
             sessions       = rodauth.db[:account_active_session_keys]
               .where(account_id: account_id)

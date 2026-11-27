@@ -8,7 +8,7 @@ require 'rack/parser'
 require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
-require_relative '../session'
+require_relative '../session/rack_store'
 require_relative '../middleware/assume_https'
 require_relative '../middleware/public_host_rewrite'
 require_relative '../middleware/strip_forwarded_host'
@@ -622,7 +622,7 @@ module Onetime
           #     already-validated detected host. Mounted above DetectHost (where
           #     this was until #4062) the key is unset and the gate would deny
           #     every request it is asked to judge.
-          #   - ABOVE Onetime::Session (and CSRF/Security below it), so a denied
+          #   - ABOVE Onetime::Session::RackStore (and CSRF/Security below it), so a denied
           #     admin request costs no session write or CSRF work.
           #
           # One consequence of running below StartupReadiness: during boot
@@ -679,14 +679,14 @@ module Onetime
           # Request store for the customer's organization memberships
           # (Onetime::MembershipSnapshot): the auth-phase organization load,
           # the bootstrap serializer and the session commit read them once.
-          # Above Onetime::Session so the store is still open when the
+          # Above Onetime::Session::RackStore so the store is still open when the
           # session commits on the way out, and above CookieTossing so that
           # one stays directly above the session.
           builder.use Onetime::Middleware::MembershipSnapshotContext
 
           # Cookie tossing (#4466, RISK-2026-08-14-COOKIE-TOSSING): refuses a
           # request that carries the session cookie more than once. Directly
-          # above Onetime::Session, so the refusal loads no session and its
+          # above Onetime::Session::RackStore, so the refusal loads no session and its
           # 403 carries only the clears; below it, the session commit on the
           # way out set the first cookie's session again after them. Below
           # Rack::DetectHost (the clears are scoped to the host it resolved)
@@ -704,7 +704,7 @@ module Onetime
           # Add session middleware early in the stack (before other middleware)
           session_config = Onetime.session_config
 
-          builder.use Onetime::Session,
+          builder.use Onetime::Session::RackStore,
             {
               secret: session_config['secret'],
               expire_after: session_config['expire_after'],
@@ -714,7 +714,7 @@ module Onetime
             }
 
           # Suppress session persistence for anonymous probe endpoints (#3997).
-          # Must come after Onetime::Session so env['rack.session.options']
+          # Must come after Onetime::Session::RackStore so env['rack.session.options']
           # already exists to be mutated. Exact, mount-aware path matching —
           # see Onetime::Middleware::SessionSkip.
           builder.use Onetime::Middleware::SessionSkip,

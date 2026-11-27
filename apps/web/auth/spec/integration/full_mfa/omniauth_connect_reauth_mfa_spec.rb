@@ -45,7 +45,7 @@ RSpec.describe 'Tenant Connect re-authentication with MFA (#4411/#3849)',
     expect(last_response.status).to eq(200)
 
     sid = current_sid
-    Onetime::SessionSidecar.delete(sid, Onetime::RecentReauth::KEY)
+    Onetime::Session::Sidecar.delete(sid, Onetime::Session::RecentReauth::KEY)
 
     clear_body_headers
     header 'Host', host
@@ -60,7 +60,7 @@ RSpec.describe 'Tenant Connect re-authentication with MFA (#4411/#3849)',
     password_only = json_body
     expect(password_only['mfa_required']).to eq(true)
     expect(password_only['mfa_methods']).to include('otp')
-    expect(Onetime::SessionSidecar.exists?(sid, Onetime::RecentReauth::KEY)).to be(false)
+    expect(Onetime::Session::Sidecar.exists?(sid, Onetime::Session::RecentReauth::KEY)).to be(false)
 
     setup_mock_auth(email: unique_test_email('asserted-victim'), uid: uid)
     begin
@@ -68,7 +68,7 @@ RSpec.describe 'Tenant Connect re-authentication with MFA (#4411/#3849)',
       skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if last_response.status == 404
       expect(last_response.status).to eq(302)
       expect(last_response.location.to_s).to include(Auth::Config::Hooks::OmniAuth.connect_reauth_redirect)
-      expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(false)
 
       allow_immediate_otp_reuse!(account_id)
       csrf_json_post(
@@ -81,7 +81,7 @@ RSpec.describe 'Tenant Connect re-authentication with MFA (#4411/#3849)',
       # The proof is recorded under a new session id (#4466).
       expect(current_sid).not_to eq(sid)
       sid = current_sid
-      expect(Onetime::SessionSidecar.read(sid, Onetime::RecentReauth::KEY)).to include(
+      expect(Onetime::Session::Sidecar.read(sid, Onetime::Session::RecentReauth::KEY)).to include(
         'account_id' => account_id,
         'surface' => { 'kind' => 'custom', 'id' => tenant[:domain].identifier },
         'methods' => %w[password totp],
@@ -89,8 +89,8 @@ RSpec.describe 'Tenant Connect re-authentication with MFA (#4411/#3849)',
 
       initiate_sso_connect(host)
       expect(last_response.status).to eq(302)
-      expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(true)
-      expect(Onetime::SessionSidecar.exists?(sid, Onetime::RecentReauth::KEY)).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(true)
+      expect(Onetime::Session::Sidecar.exists?(sid, Onetime::Session::RecentReauth::KEY)).to be(false)
 
       clear_body_headers
       header 'Host', host
@@ -98,7 +98,7 @@ RSpec.describe 'Tenant Connect re-authentication with MFA (#4411/#3849)',
       expect(last_response.status).to eq(302)
       expect(identities.where(provider: 'oidc', uid: uid).all)
         .to contain_exactly(hash_including(account_id: account_id))
-      expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(false)
     ensure
       teardown_mock_auth
     end

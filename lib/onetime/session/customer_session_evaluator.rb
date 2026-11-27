@@ -2,29 +2,22 @@
 #
 # frozen_string_literal: true
 
+require_relative '../session'
 require_relative 'active_session_gate'
 require_relative 'impersonation'
 require_relative 'surface'
 
 module Onetime
-  # Resolves the customer-session identity shared by protected routes, public
-  # routes, compatibility helpers, and bootstrap serialization.
+  # Resolves customer identity for routes, helpers, and bootstrap.
   #
-  # The order is policy and must remain stable:
-  # session, MFA, authenticated flag, external identity, tenant surface,
-  # customer load, suspension, credential watermark, the caller-owned admin
-  # boundary, active-session evaluation, then impersonation.
+  # Keep the checks in policy order: session, MFA, authenticated flag,
+  # external identity, surface, customer load, suspension, credential watermark,
+  # caller-owned admin boundary (`before_active`), active-session gate, then
+  # impersonation. Route authorization and organization context follow.
   #
-  # Admin expiry is deliberately not a customer-identity predicate. Protected
-  # strategies may supply +before_active+ to enforce it at its existing boundary.
-  # Route authorization and organization context run after this evaluator.
-  #
-  # Full-mode Rack sessions without +active_session_id_hmac+ retain the existing
-  # legacy exemption in ActiveSessionGate: the gate returns :skipped. That means
-  # only that membership could not be joined and checked; it does not prove an
-  # active-session row exists. The exemption is neither widened nor converted
-  # into verified membership here.
-  class CustomerSessionEvaluator
+  # A legacy Rack session without a join key can yield `:skipped` from the
+  # active-session gate. That is an exemption, not verified membership.
+  class Session::CustomerSessionEvaluator
     ENV_KEY = 'onetime.customer_session_verdict'
 
     STATUSES = [:authenticated, :anonymous, :mfa_pending, :rejected, :unavailable].freeze
@@ -143,7 +136,7 @@ module Onetime
       # refuse, as the compatibility helper did before the evaluator.
       return verdict(:rejected, :surface_mismatch) unless @env.is_a?(Hash)
 
-      case SessionSurface.match_status(@session, @env)
+      case Session::Surface.match_status(@session, @env)
       when :mismatch
         return verdict(:rejected, :surface_mismatch)
       when :unavailable
@@ -165,14 +158,14 @@ module Onetime
       boundary_verdict = @before_active&.call(principal)
       return boundary_verdict if boundary_verdict
 
-      case ActiveSessionGate.verdict(@session, env: @env)
+      case Session::ActiveSessionGate.verdict(@session, env: @env)
       when :revoked
         return verdict(:rejected, :active_session_revoked)
       when :unavailable
         return verdict(:unavailable, :active_session_unavailable)
       end
 
-      customer, marker = SessionImpersonation.resolve(@session, principal, env: @env)
+      customer, marker = Session::Impersonation.resolve(@session, principal, env: @env)
       verdict(
         :authenticated,
         :authenticated,
@@ -195,7 +188,7 @@ module Onetime
     # loaded record return the typed unavailable verdict, so public routes
     # remain reachable while protected routes see the refusal. The surface
     # check reaches the same verdict when it cannot read the request's
-    # surface (Onetime::SessionSurface.match_status). Caller-owned,
+    # surface (Onetime::Session::Surface.match_status). Caller-owned,
     # active-session, and impersonation errors remain outside this boundary
     # and retain their existing handling.
     def resolve_customer(external_id)

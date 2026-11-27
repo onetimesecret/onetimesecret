@@ -4,7 +4,7 @@
 
 # "Remember me" in simple mode, where the Rack session is the only record:
 # Core::Controllers::Authentication stamps `remember_until` and
-# Onetime::Session gives the blob and the cookie that fixed lifetime. The
+# Onetime::Session::RackStore gives the blob and the cookie that fixed lifetime. The
 # same store behaviour serves full mode (spec/integration/full/remember_me_spec.rb).
 
 require_relative '../integration_spec_helper'
@@ -15,7 +15,7 @@ RSpec.describe 'Remember me: a fixed 30-day session (simple mode)', type: :integ
   include CustomerSessionFailureMatrix
 
   let(:matrix_password) { 'Remember-Simple1234!' }
-  let(:duration) { Onetime::RememberMe::DURATION }
+  let(:duration) { Onetime::Session::RememberMe::DURATION }
   let(:app) do
     @simple_remember_app ||= begin
       Onetime::Application::Registry.reset!
@@ -101,7 +101,7 @@ RSpec.describe 'Remember me: a fixed 30-day session (simple mode)', type: :integ
     expect(session_blob).not_to have_key('remember_until')
   end
 
-  # The deadlines are decided when the session is READ (Onetime::Session#find_session),
+  # The deadlines are decided when the session is READ (Onetime::Session::RackStore#find_session),
   # not by the blob's TTL: a session past one is ended like a logout ends it,
   # whatever TTL the key still had, so no write can hand it a rolling lifetime.
   describe 'the absolute deadlines' do
@@ -127,7 +127,7 @@ RSpec.describe 'Remember me: a fixed 30-day session (simple mode)', type: :integ
     it 'ends a session signed in more than 30 days ago, remembered or not', :aggregate_failures do
       login!
       old_sid, old_key = sid_and_blob_key
-      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 86_400) }
+      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 86_400) }
 
       expect(account_request).to eq(401)
       expect(current_session_id).not_to eq(old_sid)
@@ -136,7 +136,7 @@ RSpec.describe 'Remember me: a fixed 30-day session (simple mode)', type: :integ
 
     it 'keeps a session signed in 29 days ago, on a blob TTL that ends by the 30th', :aggregate_failures do
       login!
-      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE - 86_400) }
+      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE - 86_400) }
 
       expect(account_request).to eq(200)
       expect(blob_ttl).to be_between(1, 86_400)
@@ -172,7 +172,7 @@ RSpec.describe 'Remember me: a fixed 30-day session (simple mode)', type: :integ
       it 'applies no absolute bound when set to 0', :aggregate_failures do
         with_absolute_timeout(0)
         login!
-        rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 86_400) }
+        rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 86_400) }
 
         expect(account_request).to eq(200)
         expect(blob_ttl).to be_between(1, 86_400)
@@ -182,7 +182,7 @@ RSpec.describe 'Remember me: a fixed 30-day session (simple mode)', type: :integ
 
     it 'sizes the blob and the cookie to the lifetime deadline when that is nearer than the rolling 24 hours', :aggregate_failures do
       login!
-      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE - 3600) }
+      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE - 3600) }
 
       expect(account_request).to eq(200)
       expect(blob_ttl).to be_between(1, 3600)
@@ -193,7 +193,7 @@ RSpec.describe 'Remember me: a fixed 30-day session (simple mode)', type: :integ
       # Read before the deadline, commit after: the store sees a lapsed
       # session only on the write. Driven directly, since no request can be
       # held open across the boundary from here.
-      store   = Onetime::Session.new(->(_env) { [200, {}, []] }, secret: 'x' * 64)
+      store   = Onetime::Session::RackStore.new(->(_env) { [200, {}, []] }, secret: 'x' * 64)
       sid     = store.send(:generate_sid)
       options = {}
       request = Rack::Request.new(Rack::MockRequest.env_for('/'))
@@ -208,7 +208,7 @@ RSpec.describe 'Remember me: a fixed 30-day session (simple mode)', type: :integ
 
     it 'ends a remembered session at the lifetime deadline too' do
       login!('remember-me' => true)
-      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 60) }
+      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 60) }
 
       expect(account_request).to eq(401)
     end

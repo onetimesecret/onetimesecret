@@ -16,7 +16,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
     @customer = Onetime::Customer.find_by_extid(session_blob.fetch('external_id'))
     raise 'login did not resolve a Customer' unless @customer
 
-    allow(Onetime::CustomerSessionEvaluator).to receive(:evaluate).and_call_original
+    allow(Onetime::Session::CustomerSessionEvaluator).to receive(:evaluate).and_call_original
     allow(Auth::Logging).to receive(:log_auth_event).and_call_original
   end
 
@@ -25,7 +25,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
     # verdict is captured where the router obtains it, not read back from
     # last_request.env.
     reasons = []
-    allow(Onetime::CustomerSessionEvaluator).to receive(:evaluate).and_wrap_original do |original, *args, **kwargs|
+    allow(Onetime::Session::CustomerSessionEvaluator).to receive(:evaluate).and_wrap_original do |original, *args, **kwargs|
       original.call(*args, **kwargs).tap { |verdict| reasons << verdict.reason }
     end
 
@@ -34,8 +34,8 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
     expect(last_response.status).to eq(200), last_response.body
     expect(reasons).not_to be_empty
     expect(reasons).to all(eq(:authenticated))
-    expect(last_request.env).not_to have_key(Onetime::CustomerSessionEvaluator::ENV_KEY)
-    expect(last_request.env).not_to have_key(Onetime::ActiveSessionGate::ENV_KEY)
+    expect(last_request.env).not_to have_key(Onetime::Session::CustomerSessionEvaluator::ENV_KEY)
+    expect(last_request.env).not_to have_key(Onetime::Session::ActiveSessionGate::ENV_KEY)
   end
 
   it 'destroys a revoked session and retains the established 401 JSON response' do
@@ -52,7 +52,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
       'code_scope' => 'customer_session',
     )
     expect(session_store.find_key(Familia.dbclient, sid)).to be_nil
-    expect(Onetime::CustomerSessionEvaluator).to have_received(:evaluate).at_least(:once)
+    expect(Onetime::Session::CustomerSessionEvaluator).to have_received(:evaluate).at_least(:once)
   end
 
   it 'destroys a revoked session even when suspension rejects before the shared active-session check' do
@@ -223,7 +223,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
     it 'is destroyed and refused on a surface other than the one it was established on' do
       sid = current_session_id
       rewrite_session_blob do |blob|
-        blob[Onetime::SessionSurface::KEY] = { 'kind' => 'custom', 'id' => 'other-domain' }
+        blob[Onetime::Session::Surface::KEY] = { 'kind' => 'custom', 'id' => 'other-domain' }
       end
 
       get_json '/auth/account'
@@ -308,7 +308,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
 
     expect(last_response.status).to eq(200), last_response.body
     expect(session_store.find_key(Familia.dbclient, sid)).to be_nil
-    expect(Onetime::CustomerSessionEvaluator).to have_received(:evaluate).at_least(:once)
+    expect(Onetime::Session::CustomerSessionEvaluator).to have_received(:evaluate).at_least(:once)
   end
 
   it 'preserves an unavailable session on 503, then keeps logout available and destroys it' do
@@ -335,7 +335,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
   it 'uses the shared surface-mismatch verdict and destroys the session' do
     sid = current_session_id
     rewrite_session_blob do |blob|
-      blob[Onetime::SessionSurface::KEY] = { 'kind' => 'custom', 'id' => 'other-domain' }
+      blob[Onetime::Session::Surface::KEY] = { 'kind' => 'custom', 'id' => 'other-domain' }
     end
 
     get_json '/auth/account'
@@ -359,7 +359,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
 
     expect(last_response.status).to eq(200), last_response.body
     expect(last_response.body).not_to include('web.auth.security.session_expired')
-    expect(Onetime::CustomerSessionEvaluator).to have_received(:evaluate).at_least(:once)
+    expect(Onetime::Session::CustomerSessionEvaluator).to have_received(:evaluate).at_least(:once)
   end
 
   def current_session_id
@@ -371,7 +371,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
   end
 
   def session_codec
-    Onetime::SessionCodec.from_config
+    Onetime::Session::Codec.from_config
   end
 
   def session_blob
@@ -400,7 +400,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
       'code' => 'awaiting_mfa',
       'code_scope' => 'customer_session',
     )
-    expect(last_request.env.fetch(Onetime::CustomerSessionEvaluator::ENV_KEY).reason).to eq(:awaiting_mfa)
+    expect(last_request.env.fetch(Onetime::Session::CustomerSessionEvaluator::ENV_KEY).reason).to eq(:awaiting_mfa)
     expect_no_account_data
   end
 

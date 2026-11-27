@@ -2,140 +2,25 @@
 #
 # frozen_string_literal: true
 
+require_relative '../session'
 require_relative 'activity'
 require_relative 'remember_me'
 
 module Onetime
-  # Per-request enforcement of Rodauth's active-session table in full auth
-  # mode.
+  # Enforces Rodauth active-session membership when enabled in full auth mode.
+  # See docs/architecture/terminology.md (Session Terminology) for the two stores.
   #
-  # ## Terms
+  # The gate joins on `(account_id, active_session_id_hmac)` and memoizes one
+  # lookup per request. Sessions missing either join field are skipped;
+  # login must refuse if a required stamp fails. A missing or expired row refuses the
+  # session as `:revoked` and forfeits remember-me. An authdb failure refuses
+  # as `:unavailable` without destroying the Rack session.
   #
-  # In full mode a signed-in browser is backed by two records in two stores,
-  # and this module is the only place that reads both. The names below are
-  # used throughout the gate, its callers and its specs, and are recorded in
-  # docs/architecture/terminology.md under "Session Terminology".
-  #
-  # - **Rack session**: the per-request HTTP session at `env['rack.session']`,
-  #   bound to the `onetime.session` cookie and stored by {Onetime::Session}
-  #   as an encrypted blob at `session:<sid>` in Redis. It carries
-  #   `authenticated`, `external_id`, `account_id` and the join key. Every
-  #   per-request gate reads it; so does Rodauth.
-  # - **active-session row**: a row in Rodauth's `account_active_session_keys`
-  #   table in the authdb, primary key `(account_id, session_id)`, written by
-  #   Rodauth's active_sessions feature at login. The account's sessions page,
-  #   "sign out everywhere", Rodauth's inactivity/lifetime sweep and Rodauth
-  #   Admin operate on these rows and on nothing else.
-  # - **join key**: `active_session_id_hmac`, the HMAC of Rodauth's
-  #   active_session_id, stamped into the Rack session at every login path by
-  #   apps/web/auth/config/features/active_sessions.rb. It equals the row's
-  #   `session_id` column, the only form Rodauth persists.
-  # - **revoke**: remove an active-session row. **destroy**: delete a Rack
-  #   session's blob from Redis, which is what logout does. **refuse**: answer
-  #   a request 401 (strategies) or `authenticated? == false` (helpers) while
-  #   leaving the Rack session in Redis. Refusing is all this gate ever does,
-  #   with one addition: a Rack session refused as :revoked loses its
-  #   remember-me deadline (see {forfeit_remember}).
-  #
-  # ## The gap this closes
-  #
-  # Before this gate only the `/auth/active-sessions` routes consulted the
-  # active-session row. Revoking it therefore ended nothing: the Rack session
-  # kept answering `authenticated` until it expired on its own. The gate makes
-  # the row load-bearing: a Rack session whose row is gone is refused on its
-  # next request at all three places a full-mode request is authenticated:
-  # the Otto auth strategies (BaseSessionAuthStrategy), the controller-side
-  # SessionHelpers, and the Roda auth router ahead of every `/auth/*` route,
-  # Rodauth's own included.
-  #
-  # ## The join
-  #
-  # One indexed SELECT on the table's primary key per authenticated request,
-  # `(session['account_id'], session['active_session_id_hmac'])`, memoized in
-  # the Rack env so the strategy and the helpers never both pay for it. The
-  # same SELECT asks the database whether the row is past either deadline
-  # and whether `last_use` is due a refresh (both below), so the steady state
-  # stays read-only.
-  #
-  # ## Deadlines
-  #
-  # Rodauth's two session deadlines are enforced here, in the same SELECT:
-  # a row whose `last_use` is older than {INACTIVITY_DEADLINE} or whose
-  # `created_at` is older than {lifetime_deadline} is removed, as Rodauth's
-  # own sweep (`remove_inactive_sessions`) would remove it, and the Rack
-  # session is refused as :revoked. They cannot live anywhere else: the gate
-  # keeps `last_use` fresh on every request (below), so a deadline checked
-  # only on the sessions page would find every row active, and Rodauth's
-  # `check_active_session` has no call site on this surface. The two values
-  # are owned by this module and fed to Rodauth's configuration from here
-  # (apps/web/auth/config/features/active_sessions.rb), so the gate and the
-  # sessions page's sweep can never disagree about when a row is dead.
-  #
-  # An expired row is refused before `last_use` is touched, so it is never
-  # revived by the request that finds it.
-  #
-  # A remembered row (`remember_until` set, see {Onetime::RememberMe}) is
-  # exempt from the inactivity deadline and refused instead once
-  # `remember_until` has passed; the lifetime deadline still applies. The
-  # full rule is {expired_condition}, which Rodauth's sweep is configured
-  # with as well, so a remembered row left idle on one device is not swept
-  # away by the sessions page opened on another. With remember-me switched
-  # off, the exemption ends (every row is held to the inactivity deadline)
-  # but a lapsed `remember_until` still refuses: the switch is about new
-  # sign-ins and idle exemptions, not about reviving a deadline that passed.
-  #
-  # ## Failure posture: closed
-  #
-  # A Rack session whose active-session row cannot be checked is refused. The
-  # row is the revocation authority in full mode, so an unreachable authdb
-  # means the question "is this Rack session still valid" has no answer, and
-  # an unanswered question is not a yes. Logins already need the same
-  # database, so the site is degraded either way; what failing closed adds is
-  # that a revoked Rack session never outlives the outage. The verdict stays
-  # distinguishable (:unavailable, not :revoked) so the refusal is logged and
-  # reported as an outage, not as a revocation, and the Rack session is left
-  # in Redis to be honoured again when the database returns.
-  #
-  # ## What is deliberately NOT enforced
-  #
-  # - **Rack sessions without a join key.** One signed in before the stamp
-  #   existed, or with the active_sessions feature off, cannot be joined to a
-  #   row and is left alone rather than mass-logged-out on deploy. This
-  #   exemption covers only sessions that already exist: since the stamp
-  #   became load-bearing, a login whose stamp fails is refused outright
-  #   (apps/web/auth/config/features/active_sessions.rb), so no new Rack
-  #   session can be minted without a join key. The unstamped population
-  #   ages out within Rodauth's session_lifetime_deadline.
-  #
-  # ## The `last_use` refresh
-  #
-  # The row's `last_use` is what the inactivity deadline reads, so the gate
-  # refreshes it, throttled to once per {TOUCH_INTERVAL}, and an active user
-  # is never signed out for inactivity. The deadline decisions, the throttle
-  # decision and the refreshed value are all computed by the database
-  # against its own CURRENT_TIMESTAMP, the clock Rodauth wrote the columns
-  # with. They are naive timestamps; comparing them with Ruby's Time.now
-  # would silently break on any host whose process TZ differs from the
-  # database session's, in one direction expiring live sessions and never
-  # refreshing, in the other never expiring and refreshing on every request.
-  #
-  # ## Passive verification (#4455)
-  #
-  # A request whose route declares `activity=passive`
-  # ({Onetime::SessionActivity}) is verified in full: the same SELECT, the
-  # same two deadlines, the same removal of an expired row. It does not
-  # refresh `last_use`. A tab that only polls therefore reaches the
-  # inactivity deadline exactly when a closed tab would. Passivity is a
-  # property of the request (route options + request header) and does not
-  # change mid-request, so there is nothing to defer: a passive reader
-  # skips the touch outright.
-  #
-  # ## Counts
-  #
-  # Each request's SELECT and write counts against the table are kept under
-  # {STATS_ENV_KEY} so the bootstrap endpoint can report them (#4463 rollout
-  # review) without a SQL logger.
-  module ActiveSessionGate
+  # The gate and Rodauth's sweep share deadline rules. Use the database clock
+  # for deadline checks and `last_use` updates: these timestamps have no time
+  # zone. Check expiry before touching the row. Passive requests still verify
+  # and expire rows but never refresh `last_use`.
+  module Session::ActiveSessionGate
     extend self
 
     # Per-request memo of the verdict, keyed in the Rack env.
@@ -248,7 +133,7 @@ module Onetime
     # (SESSION_ABSOLUTE_TIMEOUT), {DEFAULT_LIFETIME_DEADLINE} when unset.
     # Applied by this gate to the row's `created_at` (and handed to Rodauth
     # as `session_lifetime_deadline`, where nil means none) and by
-    # Onetime::Session to the blob's `authenticated_at`, so both auth modes
+    # Onetime::Session::RackStore to the blob's `authenticated_at`, so both auth modes
     # share the one bound.
     #
     # Read on every call, never memoised, so a config reload takes effect
@@ -311,7 +196,7 @@ module Onetime
     # `last_use` is due a refresh. An activity request refreshes it; a
     # passive one leaves it alone (see the class docstring).
     def record_activity(row_ds, session, env)
-      touch(row_ds, session, env) unless SessionActivity.passive?(env)
+      touch(row_ds, session, env) unless Session::Activity.passive?(env)
     end
 
     def count(env, key)
@@ -348,7 +233,7 @@ module Onetime
     # inactivity deadline (it still ends the row when it lapses, below).
     def inactive_condition
       idle = past_condition(:last_use, INACTIVITY_DEADLINE)
-      return idle unless RememberMe.enabled?
+      return idle unless Session::RememberMe.enabled?
 
       Sequel.&({ remember_until: nil }, idle)
     end
@@ -356,7 +241,7 @@ module Onetime
     # Remembered, and the remember deadline has passed. Not subject to the
     # switch: a deadline that has passed has passed, whatever the operator
     # has since decided about new sign-ins (the same rule the session store
-    # applies to the blob's stamp, Onetime::Session#find_session).
+    # applies to the blob's stamp, Onetime::Session::RackStore#find_session).
     def remember_lapsed_condition
       Sequel.&(Sequel.~(remember_until: nil), Sequel[:remember_until] < Sequel::CURRENT_TIMESTAMP)
     end
@@ -408,15 +293,15 @@ module Onetime
 
     # A revoked Rack session stays in Redis (refuse, not destroy), and with
     # its remember-me deadline the blob and cookie would live on for up to
-    # {RememberMe::DURATION}. The row is the only thing refusing it, so a
+    # {Session::RememberMe::DURATION}. The row is the only thing refusing it, so a
     # later change that takes the gate out of play (simple mode, active
     # sessions off) would bring it back for that long. Dropping the stamp
     # returns the session to the default lifetime on this request's write:
     # a refused request is not activity, so the blob keeps at most the
-    # default TTL (Onetime::Session#expiration_for_write). Not done for
+    # default TTL (Onetime::Session::RackStore#expiration_for_write). Not done for
     # :unavailable, where the session is meant to be honoured again.
     def forfeit_remember(session)
-      session.delete(RememberMe::SESSION_KEY) if session.respond_to?(:delete)
+      session.delete(Session::RememberMe::SESSION_KEY) if session.respond_to?(:delete)
     end
 
     # The join, for log lines. The join key is a digest of a random token,

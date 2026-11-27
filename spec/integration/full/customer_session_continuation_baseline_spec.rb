@@ -108,7 +108,7 @@ RSpec.describe 'Customer-session rotation and continuation baseline (#4466/#4467
 
   # #4467 pinned that Rodauth's remember credential outlived an active-session
   # revocation (nothing consumed it). The remember-me checkbox now extends the
-  # session itself (Onetime::RememberMe), so there is no second credential
+  # session itself (Onetime::Session::RememberMe), so there is no second credential
   # left behind: revoking the remembered session's row ends it.
   describe 'remember-me continuation revocation (#4467)' do
     it 'leaves no remember credential behind when a remembered session is revoked', :aggregate_failures do

@@ -24,7 +24,7 @@ module Onetime
   # Redis key name of the live blob (`session:<sid>`) and already the cookie
   # value. It is deliberately NOT an HMAC(sid): in this codebase a session dies by
   # deleting the encrypted `session:<sid>` blob (Onetime::Operations::Sessions::
-  # Delete + Onetime::Session#delete_session), NOT by removing a Rodauth
+  # Delete + Onetime::Session::RackStore#delete_session), NOT by removing a Rodauth
   # active_session_keys row — that table only gates Rodauth-mounted routes
   # (mode=full), not the general blob-validated request path. So joining on an
   # HMAC would buy nothing here, and the plain sid introduces NO new exposure: it
@@ -50,7 +50,7 @@ module Onetime
   # ## Population + lifetime
   #
   # Written best-effort from Onetime::Operations::Sessions::TrackMetadata, called
-  # from Onetime::Session#write_session (the one place the plain sid and the
+  # from Onetime::Session::RackStore#write_session (the one place the plain sid and the
   # post-login session_data hash are both present, refreshed ~per request). TTL
   # mirrors the session lifetime (30d); the sidecar is never authoritative — the
   # live blob is — so a lost or stale record only degrades the convenience index,

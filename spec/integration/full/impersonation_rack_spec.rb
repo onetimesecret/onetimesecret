@@ -81,7 +81,7 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
       'role' => 'colonel',
       'authenticated' => true,
       # #4409: hand-seeded sessions need the surface marker the login hooks record.
-      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+      Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
       'authenticated_at' => Familia.now.to_i,
     }
   end
@@ -99,7 +99,7 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
   end
 
   after do
-    Onetime::SessionImpersonation.clear_context
+    Onetime::Session::Impersonation.clear_context
     target_secret&.destroy! rescue nil
     target&.destroy! rescue nil
     colonel&.destroy! rescue nil
@@ -163,8 +163,8 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
       start_impersonation
 
       expect(last_response.status).to eq(200), "start failed: #{last_response.body}"
-      # #4466: no new id at start or stop, by rule (lib/onetime/session/
-      # rotation.rb, "Which transitions renew the id"): any holder of the
+      # #4466: no new id at start or stop, by rule (session-consistency-
+      # rollout.md, "Session-id renewal by path"): any holder of the
       # colonel id can start, stop, or wait out an impersonation, so a new
       # id would defend nothing, and it would start a new snapshot epoch
       # (ADR-046).
@@ -189,7 +189,7 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
         'expires_at' => payload['impersonation']['expires_at'],
       )
       expect(payload['impersonation']['expires_at'] - payload['impersonation']['started_at'])
-        .to eq(Onetime::SessionImpersonation::TTL)
+        .to eq(Onetime::Session::Impersonation::TTL)
 
       # --- 3. customer-surface READ is allowed -------------------------
       get '/api/account/'
@@ -327,20 +327,20 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
     # No time travel: the marker carries its own deadline, so seeding one that
     # is already past exercises the same branch deterministically.
     let(:expired_marker) do
-      started = Familia.now.to_i - Onetime::SessionImpersonation::TTL - 60
+      started = Familia.now.to_i - Onetime::Session::Impersonation::TTL - 60
       {
         'id' => "imp_#{SecureRandom.hex(8)}",
         'target_extid' => target.extid,
         'target_email' => target.email,
         'reason' => 'ticket #expired',
         'started_at' => started,
-        'expires_at' => started + Onetime::SessionImpersonation::TTL,
+        'expires_at' => started + Onetime::Session::Impersonation::TTL,
       }
     end
 
     before do
       env 'rack.session',
-        seed_session.merge(Onetime::SessionImpersonation::SESSION_KEY => expired_marker)
+        seed_session.merge(Onetime::Session::Impersonation::SESSION_KEY => expired_marker)
     end
 
     it 'ends the impersonation, audits it as expired, and stops guarding' do

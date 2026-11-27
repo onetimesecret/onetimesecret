@@ -48,7 +48,7 @@ DB    = Familia.dbclient
 
 @timestamp = Familia.now.to_i
 @nonce     = Familia.generate_id[0, 12]
-@codec     = Onetime::SessionCodec.from_config
+@codec     = Onetime::Session::Codec.from_config
 
 @colonel = Onetime::Customer.create!(email: "colonel_racs_#{@timestamp}@example.com")
 @colonel.role = 'colonel'

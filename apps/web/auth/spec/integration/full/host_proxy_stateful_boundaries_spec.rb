@@ -162,7 +162,7 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
     db = Familia.dbclient
     key = Onetime::Operations::Sessions::Store.find_key(db, sid)
     expect(key).not_to be_nil, 'HP-PRE-02: login did not persist a session in the lane datastore'
-    Onetime::Operations::Sessions::Store.load_data(db, key, codec: Onetime::SessionCodec.from_config)
+    Onetime::Operations::Sessions::Store.load_data(db, key, codec: Onetime::Session::Codec.from_config)
   end
 
   def login_on(host, colonel: false)
@@ -246,7 +246,7 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
     set_cookie.split(/;\s*/).drop(1).map { |attribute| attribute.sub(/\Aexpires=.*/i, 'expires=<time>') }
   end
 
-  # Onetime::Session takes these when the stack is built, which is the
+  # Onetime::Session::RackStore takes these when the stack is built, which is the
   # example's first request.
   def with_session_cookie_config(secure:, same_site:)
     session = OT.conf.get('site.session')
@@ -257,11 +257,11 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
     session.replace(saved)
   end
 
-  # Onetime::Session sits above the rewrite and commits the session after the
+  # Onetime::Session::RackStore sits above the rewrite and commits the session after the
   # layers below have returned, so on the way out it sees the rewritten Host.
   # Its cookie carries no Domain and takes SameSite from site.session. Secure
   # it takes from site.session too, and adds on any request it sees as https
-  # (Onetime::Session#set_cookie, upgrade-only): proxy_headers forwards
+  # (Onetime::Session::RackStore#set_cookie, upgrade-only): proxy_headers forwards
   # https, so the lane's own secure:false still yields a Secure cookie, and
   # is run next to secure:true.
   describe 'the session Set-Cookie, compared across the setting' do
@@ -365,10 +365,10 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
         it "HP-SESSION-#{from}-#{to}: refuses replay on a different surface after accepting the issuing surface" do
           hosts = { tenant: tenant_domain, other: other_host, canonical: canonical_host }
           login_on(hosts.fetch(from))
-          marker = from == :canonical ? Onetime::SessionSurface::CANONICAL : {
+          marker = from == :canonical ? Onetime::Session::Surface::CANONICAL : {
             'kind' => 'custom', 'id' => (from == :tenant ? test_custom_domain : other_domain).identifier,
           }
-          expect(stored_session(@sid)[Onetime::SessionSurface::KEY]).to eq(marker)
+          expect(stored_session(@sid)[Onetime::Session::Surface::KEY]).to eq(marker)
           proxy_get(hosts.fetch(from), '/auth/account', cookie: @cookie)
           expect(last_response.status).to eq(200)
           expect(last_request.env.key?(Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST))
@@ -381,7 +381,7 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
         end
       end
 
-      # Onetime::Session writes the session's metadata row after the layers
+      # Onetime::Session::RackStore writes the session's metadata row after the layers
       # below have returned, and resolves the active organization then
       # (Sessions::TrackMetadata -> OrganizationLoader, which reads HTTP_HOST).
       # The account belongs to the organization that owns the tenant domain
@@ -690,7 +690,7 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
       # The one Set-Cookie writer whose Domain is taken from the request:
       # CookieTossing expires a duplicated session cookie on the host
       # DetectHost resolved and each parent domain. It runs above
-      # Onetime::Session and the rewrite, so the setting does not change the
+      # Onetime::Session::RackStore and the rewrite, so the setting does not change the
       # host, and the refusal sets no session cookie.
       it 'HP-COOKIE-03: expires a duplicated session cookie on the public host and its parent domains' do
         proxy_get(tenant_domain, '/auth', cookie: 'onetime.session=a; onetime.session=b')

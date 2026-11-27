@@ -9,7 +9,7 @@
 # Regression guard for #3997: anonymous probe endpoints minted a persisted
 # session per request.
 #
-# Onetime::Session is a Rack::Session::Abstract::PersistedSecure subclass, so
+# Onetime::Session::RackStore is a Rack::Session::Abstract::PersistedSecure subclass, so
 # any request that loads AND dirties the session commits it — a
 # `session:<64-hex>` string key in Valkey with the full 24h TTL, plus a
 # Set-Cookie. The dirtiers are middleware, not the app, and there is more than
@@ -21,7 +21,7 @@
 # cookies, so every poll leaked a key nobody would ever use.
 #
 # The fix mounts Onetime::Middleware::SessionSkip immediately below
-# Onetime::Session; it sets `env['rack.session.options'][:skip] = true` for an
+# Onetime::Session::RackStore; it sets `env['rack.session.options'][:skip] = true` for an
 # exact-match list of full external paths, which rack-session's
 # `commit_session?` short-circuits on before any dirty check.
 #

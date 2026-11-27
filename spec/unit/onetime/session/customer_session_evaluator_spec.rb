@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'onetime/session/customer_session_evaluator'
 
-RSpec.describe Onetime::CustomerSessionEvaluator do
+RSpec.describe Onetime::Session::CustomerSessionEvaluator do
   # A session Hash that records which keys the evaluator reads, in order.
   let(:tracking_session_class) do
     Class.new(Hash) do
@@ -30,7 +30,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
         'authenticated' => true,
         'authenticated_at' => 101,
         'external_id' => 'ur_principal',
-        Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+        Onetime::Session::Surface::KEY => { 'kind' => 'canonical' },
       },
       events,
     )
@@ -45,7 +45,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
   let(:effective_customer) { principal }
 
   before do
-    allow(Onetime::SessionSurface).to receive(:match_status) do
+    allow(Onetime::Session::Surface).to receive(:match_status) do
       events << :surface
       :match
     end
@@ -61,11 +61,11 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
       events << :credential_watermark
       100
     end
-    allow(Onetime::ActiveSessionGate).to receive(:verdict) do
+    allow(Onetime::Session::ActiveSessionGate).to receive(:verdict) do
       events << :active_session
       :active
     end
-    allow(Onetime::SessionImpersonation).to receive(:resolve) do
+    allow(Onetime::Session::Impersonation).to receive(:resolve) do
       events << :impersonation
       [effective_customer, nil]
     end
@@ -109,7 +109,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
   end
 
   it 'returns unavailable without exposing an identity when active membership cannot be checked' do
-    allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:unavailable)
+    allow(Onetime::Session::ActiveSessionGate).to receive(:verdict).and_return(:unavailable)
 
     verdict = described_class.evaluate(session, env: env)
 
@@ -117,7 +117,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
     expect(verdict.reason).to eq(:active_session_unavailable)
     expect(verdict.principal).to be_nil
     expect(verdict.customer).to be_nil
-    expect(Onetime::SessionImpersonation).not_to have_received(:resolve)
+    expect(Onetime::Session::Impersonation).not_to have_received(:resolve)
   end
 
   it 'returns unavailable without exposing an identity when customer resolution raises' do
@@ -130,8 +130,8 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
     expect(verdict.reason).to eq(:customer_unavailable)
     expect(verdict.principal).to be_nil
     expect(verdict.customer).to be_nil
-    expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
-    expect(Onetime::SessionImpersonation).not_to have_received(:resolve)
+    expect(Onetime::Session::ActiveSessionGate).not_to have_received(:verdict)
+    expect(Onetime::Session::Impersonation).not_to have_received(:resolve)
   end
 
   it 'returns unavailable when a loaded customer cannot be checked for suspension' do
@@ -144,7 +144,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
     expect(verdict.principal).to be_nil
     expect(verdict.customer).to be_nil
     expect(principal).not_to have_received(:last_password_update)
-    expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+    expect(Onetime::Session::ActiveSessionGate).not_to have_received(:verdict)
   end
 
   it 'returns unavailable when a loaded customer credential watermark cannot be checked' do
@@ -156,11 +156,11 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
     expect(verdict.reason).to eq(:customer_unavailable)
     expect(verdict.principal).to be_nil
     expect(verdict.customer).to be_nil
-    expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+    expect(Onetime::Session::ActiveSessionGate).not_to have_received(:verdict)
   end
 
   it 'refuses a session on another surface as a surface mismatch' do
-    allow(Onetime::SessionSurface).to receive(:match_status).and_return(:mismatch)
+    allow(Onetime::Session::Surface).to receive(:match_status).and_return(:mismatch)
 
     verdict = described_class.evaluate(session, env: env)
 
@@ -174,7 +174,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
   # verdict, which refuses the request and keeps the session, not the
   # mismatch verdict, which destroys it.
   it 'returns unavailable, not a surface mismatch, when the request surface cannot be read' do
-    allow(Onetime::SessionSurface).to receive(:match_status).and_return(:unavailable)
+    allow(Onetime::Session::Surface).to receive(:match_status).and_return(:unavailable)
 
     verdict = described_class.evaluate(session, env: env)
 
@@ -182,11 +182,11 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
     expect(verdict.reason).to eq(:customer_unavailable)
     expect(verdict.principal).to be_nil
     expect(Onetime::Customer).not_to have_received(:find_by_extid)
-    expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+    expect(Onetime::Session::ActiveSessionGate).not_to have_received(:verdict)
   end
 
   it 'does not broaden compatibility handling to surface predicate programmer errors' do
-    allow(Onetime::SessionSurface).to receive(:match_status).and_raise(NoMethodError, 'surface bug')
+    allow(Onetime::Session::Surface).to receive(:match_status).and_raise(NoMethodError, 'surface bug')
 
     expect { described_class.evaluate(session, env: env) }
       .to raise_error(NoMethodError, 'surface bug')
@@ -218,23 +218,23 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
     expect(verdict.reason).to eq(:account_suspended)
     expect(verdict.customer).to be_nil
     expect(principal).not_to have_received(:last_password_update)
-    expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
-    expect(Onetime::SessionImpersonation).not_to have_received(:resolve)
+    expect(Onetime::Session::ActiveSessionGate).not_to have_received(:verdict)
+    expect(Onetime::Session::Impersonation).not_to have_received(:resolve)
   end
 
   it 'keeps the legacy unstamped active-session exemption as skipped, not verified membership' do
     session.delete('active_session_id_hmac')
-    allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:skipped)
+    allow(Onetime::Session::ActiveSessionGate).to receive(:verdict).and_return(:skipped)
 
     verdict = described_class.evaluate(session, env: env)
 
     expect(verdict.status).to eq(:authenticated)
-    expect(Onetime::ActiveSessionGate).to have_received(:verdict).with(session, env: env)
+    expect(Onetime::Session::ActiveSessionGate).to have_received(:verdict).with(session, env: env)
   end
 
   it 'accepts an authenticated impersonation target only after the principal gates pass' do
     target = instance_double(Onetime::Customer)
-    allow(Onetime::SessionImpersonation).to receive(:resolve).and_return([target, { 'id' => 'imp_1' }])
+    allow(Onetime::Session::Impersonation).to receive(:resolve).and_return([target, { 'id' => 'imp_1' }])
 
     verdict = described_class.evaluate(session, env: env)
 
@@ -277,7 +277,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
     end
 
     it 'does not run the boundary against a cached refusal' do
-      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+      allow(Onetime::Session::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
       cached   = described_class.evaluate(session, env: env)
       boundary = ->(_cust) { raise 'boundary must not run' }
 
@@ -286,7 +286,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
   end
 
   it 'refuses an authenticated session as a surface mismatch when there is no Rack env' do
-    allow(Onetime::SessionSurface).to receive(:match_status).and_call_original
+    allow(Onetime::Session::Surface).to receive(:match_status).and_call_original
 
     verdict = described_class.evaluate(session, env: nil)
 

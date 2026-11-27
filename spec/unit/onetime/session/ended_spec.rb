@@ -13,7 +13,7 @@ require 'onetime/session/snapshot_ordering'
 require 'onetime/models/session_metadata'
 require 'onetime/operations/sessions/store'
 
-RSpec.describe Onetime::SessionEnded do
+RSpec.describe Onetime::Session::Ended do
   let(:sid) { SecureRandom.hex(32) }
   let(:db) { instance_double(Redis) }
 
@@ -40,7 +40,7 @@ RSpec.describe Onetime::SessionEnded do
       key = described_class.key_for(sid)
 
       expect(key).not_to include(Onetime::SessionMetadata.handle_for(sid))
-      expect(key).not_to include(Onetime::SnapshotOrdering.epoch_for(sid))
+      expect(key).not_to include(Onetime::Session::SnapshotOrdering.epoch_for(sid))
     end
 
     # The session operations list every string key matching this pattern as a

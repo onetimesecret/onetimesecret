@@ -65,7 +65,7 @@ RSpec.describe Auth::Config::Overrides::SurfaceBinding::UpdateSession do
 
     expect(auth.calls).to eq([:base_update_session])
     expect(auth.session['account_id']).to eq(42)
-    expect(auth.session[Onetime::SessionSurface::KEY]).to eq(Onetime::SessionSurface::CANONICAL)
+    expect(auth.session[Onetime::Session::Surface::KEY]).to eq(Onetime::Session::Surface::CANONICAL)
   end
 
   it 'stamps a custom surface keyed by CustomDomain#identifier' do
@@ -78,15 +78,15 @@ RSpec.describe Auth::Config::Overrides::SurfaceBinding::UpdateSession do
     )
     auth.update_session
 
-    expect(auth.session[Onetime::SessionSurface::KEY]).to eq({ 'kind' => 'custom', 'id' => 'cd_abc123' })
+    expect(auth.session[Onetime::Session::Surface::KEY]).to eq({ 'kind' => 'custom', 'id' => 'cd_abc123' })
   end
 
   it 'stamps nil (fail closed) when the request surface is unresolved' do
     auth = klass.new({ 'onetime.domain_strategy' => :invalid })
     auth.update_session
 
-    expect(auth.session).to have_key(Onetime::SessionSurface::KEY)
-    expect(auth.session[Onetime::SessionSurface::KEY]).to be_nil
+    expect(auth.session).to have_key(Onetime::Session::Surface::KEY)
+    expect(auth.session[Onetime::Session::Surface::KEY]).to be_nil
   end
 
   it 'leaves an internal request session unstamped (no marker key at all)' do
@@ -94,7 +94,7 @@ RSpec.describe Auth::Config::Overrides::SurfaceBinding::UpdateSession do
     auth.update_session
 
     expect(auth.calls).to eq([:base_update_session])
-    expect(auth.session).not_to have_key(Onetime::SessionSurface::KEY)
+    expect(auth.session).not_to have_key(Onetime::Session::Surface::KEY)
   end
 
   it 'uses string keys so the marker survives the JSON session codec' do
@@ -102,7 +102,7 @@ RSpec.describe Auth::Config::Overrides::SurfaceBinding::UpdateSession do
     auth.update_session
 
     round_tripped = JSON.parse(JSON.generate(auth.session))
-    expect(round_tripped[Onetime::SessionSurface::KEY]).to eq(Onetime::SessionSurface::CANONICAL)
+    expect(round_tripped[Onetime::Session::Surface::KEY]).to eq(Onetime::Session::Surface::CANONICAL)
   end
 
   describe '.configure' do

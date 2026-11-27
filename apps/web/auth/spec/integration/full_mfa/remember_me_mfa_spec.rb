@@ -26,7 +26,7 @@ RSpec.describe 'Remember me across the second factor', :full_auth_mode, type: :i
 
   def session_blob
     db    = Familia.dbclient
-    codec = Onetime::SessionCodec.from_config
+    codec = Onetime::Session::Codec.from_config
     key   = Onetime::Operations::Sessions::Store.find_key(db, rack_mock_session.cookie_jar['onetime.session'])
     Onetime::Operations::Sessions::Store.load_data(db, key, codec: codec)
   end
@@ -57,7 +57,7 @@ RSpec.describe 'Remember me across the second factor', :full_auth_mode, type: :i
 
     otp_step
 
-    expect(session_blob['remember_until']).to be > (Time.now.to_i + Onetime::RememberMe::DURATION - 120)
+    expect(session_blob['remember_until']).to be > (Time.now.to_i + Onetime::Session::RememberMe::DURATION - 120)
     expect(session_blob).not_to have_key('remember_me_pending')
     expect(current_row[:remember_until]).not_to be_nil
   end

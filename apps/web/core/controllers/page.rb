@@ -52,7 +52,7 @@ module Core
       def bootstrap_me
         # Guard the debug payload behind OT.debug? — Ruby always evaluates
         # method arguments, so an ungated call would run the full
-        # CustomerSessionEvaluator (customer load + active-session gate) on
+        # Onetime::Session::CustomerSessionEvaluator (customer load + active-session gate) on
         # every request via `authenticated?`, even when the logger is silenced.
         if OT.debug?
           rack_session = req.env['rack.session']
@@ -130,7 +130,7 @@ module Core
       private
 
       # What verifying the session cost this poll, for the #4463 rollout
-      # review (#4455): the queries and writes ActiveSessionGate issued
+      # review (#4455): the queries and writes Onetime::Session::ActiveSessionGate issued
       # against the active-session table, and whether the route was passive.
       # A passive poll of a live session reads `queries: 1, writes: 0`; a
       # write here means an expired row was removed, which is the one write a
@@ -140,13 +140,13 @@ module Core
       # session is skipped: it is most of the traffic and verifies nothing.
       # The join is the request id; the line carries no session identifier.
       def log_bootstrap_verification
-        verdict = req.env[Onetime::CustomerSessionEvaluator::ENV_KEY]
+        verdict = req.env[Onetime::Session::CustomerSessionEvaluator::ENV_KEY]
         return if verdict.nil? || verdict.anonymous?
 
-        stats = req.env[Onetime::ActiveSessionGate::STATS_ENV_KEY] || {}
+        stats = req.env[Onetime::Session::ActiveSessionGate::STATS_ENV_KEY] || {}
         session_logger.info 'Bootstrap verification',
           {
-            passive: Onetime::SessionActivity.passive?(req.env),
+            passive: Onetime::Session::Activity.passive?(req.env),
             verdict: verdict.status,
             reason: verdict.reason,
             active_session_queries: stats.fetch(:queries, 0),

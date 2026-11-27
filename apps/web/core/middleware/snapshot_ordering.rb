@@ -31,7 +31,7 @@ module Core
     # hydration renders without the pair. A route that serializes no snapshot
     # is unaffected, and so is the session write.
     class SnapshotOrdering
-      ENV_KEY = Onetime::SnapshotOrdering::ENV_KEY
+      ENV_KEY = Onetime::Session::SnapshotOrdering::ENV_KEY
 
       def initialize(app)
         @app = app
@@ -46,9 +46,9 @@ module Core
 
       def allocate(env)
         session = env['rack.session']
-        return unless Onetime::SnapshotOrdering.ordered?(session)
+        return unless Onetime::Session::SnapshotOrdering.ordered?(session)
 
-        env[ENV_KEY] = Onetime::SnapshotOrdering.allocate(session, ttl: expire_after(env))
+        env[ENV_KEY] = Onetime::Session::SnapshotOrdering.allocate(session, ttl: expire_after(env))
       rescue StandardError => ex
         env[ENV_KEY] = { error: ex.class.name }
         log_failure(env, ex)

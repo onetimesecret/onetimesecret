@@ -27,7 +27,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
   end
   let(:offer) do
     {
-      surface: Onetime::SessionSurface::CANONICAL,
+      surface: Onetime::Session::Surface::CANONICAL,
       methods: %w[webauthn password],
       webauthn_credentials: [{ scope: :platform }],
       related_origins: [],
@@ -55,10 +55,10 @@ RSpec.describe Auth::Operations::Reauthenticate do
     allow(Auth::Config).to receive(:valid_login_and_password?).and_return(true)
     checker = instance_double(Auth::Operations::MfaStateChecker, check: mfa_state)
     allow(Auth::Operations::MfaStateChecker).to receive(:new).with(db).and_return(checker)
-    allow(Onetime::RecentReauth).to receive(:record).and_return(
+    allow(Onetime::Session::RecentReauth).to receive(:record).and_return(
       'account_id' => 42,
       'at' => Time.now.to_i,
-      'surface' => Onetime::SessionSurface::CANONICAL,
+      'surface' => Onetime::Session::Surface::CANONICAL,
       'methods' => %w[password],
     )
   end
@@ -72,7 +72,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
 
     expect(result.status).to eq(400)
     expect(result.body['error_code']).to eq('invalid_method')
-    expect(session).not_to have_key(Onetime::RecentReauth::KEY)
+    expect(session).not_to have_key(Onetime::Session::RecentReauth::KEY)
   end
 
   it 'records a password proof only after successful verification' do
@@ -84,7 +84,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
 
     expect(result.status).to eq(200)
     expect(result.body).to eq('success' => 'Re-authentication complete')
-    expect(Onetime::RecentReauth).to have_received(:record).with(
+    expect(Onetime::Session::RecentReauth).to have_received(:record).with(
       session,
       env,
       account_id: 42,
@@ -93,7 +93,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
   end
 
   it 'fails closed when the proof cannot be persisted' do
-    allow(Onetime::RecentReauth).to receive(:record).and_return(nil)
+    allow(Onetime::Session::RecentReauth).to receive(:record).and_return(nil)
 
     result = operation.call(
       account_id: 42,
@@ -109,8 +109,8 @@ RSpec.describe Auth::Operations::Reauthenticate do
   end
 
   it 'refuses a request with no surface before the session id moves' do
-    allow(Onetime::SessionSurface).to receive(:for_env).with(env).and_return(nil)
-    allow(Onetime::SessionRotation).to receive(:rotate!)
+    allow(Onetime::Session::Surface).to receive(:for_env).with(env).and_return(nil)
+    allow(Onetime::Session::Rotation).to receive(:rotate!)
 
     result = operation.call(
       account_id: 42,
@@ -121,8 +121,8 @@ RSpec.describe Auth::Operations::Reauthenticate do
     expect(result.status).to eq(403)
     expect(result.body['error_code']).to eq('invalid_surface')
     expect(result.body).not_to have_key('session_rotated')
-    expect(Onetime::SessionRotation).not_to have_received(:rotate!)
-    expect(Onetime::RecentReauth).not_to have_received(:record)
+    expect(Onetime::Session::Rotation).not_to have_received(:rotate!)
+    expect(Onetime::Session::RecentReauth).not_to have_received(:record)
   end
 
   # #4466: the proof goes under a new session id. The integration side (a
@@ -139,18 +139,18 @@ RSpec.describe Auth::Operations::Reauthenticate do
     end
 
     it 'renews the id before it records the proof' do
-      rotation = Onetime::SessionRotation::Result.new(old_sid: 'old', new_sid: 'new', complete: true)
-      allow(Onetime::SessionRotation).to receive(:rotate!).with(session).and_return(rotation)
+      rotation = Onetime::Session::Rotation::Result.new(old_sid: 'old', new_sid: 'new', complete: true)
+      allow(Onetime::Session::Rotation).to receive(:rotate!).with(session).and_return(rotation)
 
       expect(password_ceremony.status).to eq(200)
-      expect(Onetime::SessionRotation).to have_received(:rotate!).ordered
-      expect(Onetime::RecentReauth).to have_received(:record).ordered
+      expect(Onetime::Session::Rotation).to have_received(:rotate!).ordered
+      expect(Onetime::Session::RecentReauth).to have_received(:record).ordered
     end
 
     it 'signals the completed rotation when the proof write fails after it' do
-      rotation = Onetime::SessionRotation::Result.new(old_sid: 'old', new_sid: 'new', complete: true)
-      allow(Onetime::SessionRotation).to receive(:rotate!).with(session).and_return(rotation)
-      allow(Onetime::RecentReauth).to receive(:record).and_return(nil)
+      rotation = Onetime::Session::Rotation::Result.new(old_sid: 'old', new_sid: 'new', complete: true)
+      allow(Onetime::Session::Rotation).to receive(:rotate!).with(session).and_return(rotation)
+      allow(Onetime::Session::RecentReauth).to receive(:record).and_return(nil)
 
       result = password_ceremony
 
@@ -160,10 +160,10 @@ RSpec.describe Auth::Operations::Reauthenticate do
     end
 
     it 'records no proof and answers 503 when the old id could not be ended' do
-      rotation = Onetime::SessionRotation::Result.new(
+      rotation = Onetime::Session::Rotation::Result.new(
         old_sid: 'old', new_sid: 'old', complete: false, reason: :marker_not_written,
       )
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(rotation)
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(rotation)
 
       result = password_ceremony
 
@@ -171,50 +171,50 @@ RSpec.describe Auth::Operations::Reauthenticate do
       expect(result.body['error_code']).to eq('session_not_rotated')
       expect(result.body).not_to have_key('session_rotated')
       expect(result.password_verified).to be(true)
-      expect(Onetime::RecentReauth).not_to have_received(:record)
+      expect(Onetime::Session::RecentReauth).not_to have_received(:record)
     end
 
     it 'does not signal an unconfirmed rotation even if the id changed' do
-      rotation = Onetime::SessionRotation::Result.new(
+      rotation = Onetime::Session::Rotation::Result.new(
         old_sid: 'old', new_sid: 'new', complete: false, reason: :marker_not_confirmed,
       )
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(rotation)
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(rotation)
 
       result = password_ceremony
 
       expect(result.status).to eq(503)
       expect(result.body).not_to have_key('session_rotated')
-      expect(Onetime::RecentReauth).not_to have_received(:record)
+      expect(Onetime::Session::RecentReauth).not_to have_received(:record)
     end
 
     it 'answers 503, not a failed passkey, when the rotation raises' do
       # #call maps ArgumentError to invalid_webauthn; the rotation's own
       # failure must not be reported as a rejected credential.
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_raise(ArgumentError, 'boom')
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_raise(ArgumentError, 'boom')
 
       result = password_ceremony
 
       expect(result.status).to eq(503)
       expect(result.body['error_code']).to eq('session_not_rotated')
       expect(result.body).not_to have_key('session_rotated')
-      expect(Onetime::RecentReauth).not_to have_received(:record)
+      expect(Onetime::Session::RecentReauth).not_to have_received(:record)
     end
 
     it 'records the proof when the session has no server-side id to renew' do
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(nil)
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(nil)
 
       expect(password_ceremony.status).to eq(200)
-      expect(Onetime::RecentReauth).to have_received(:record)
+      expect(Onetime::Session::RecentReauth).to have_received(:record)
     end
 
     it 'does not renew the id when the ceremony stops at the second-factor prompt' do
-      allow(Onetime::SessionRotation).to receive(:rotate!)
+      allow(Onetime::Session::Rotation).to receive(:rotate!)
       allow(mfa_state).to receive_messages(mfa_enabled?: true, has_otp_secret: true)
 
       result = password_ceremony
 
       expect(result.body).to include('mfa_required' => true)
-      expect(Onetime::SessionRotation).not_to have_received(:rotate!)
+      expect(Onetime::Session::Rotation).not_to have_received(:rotate!)
     end
   end
 
@@ -229,7 +229,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
 
     expect(result.status).to eq(401)
     expect(result.body['error_code']).to eq('invalid_password')
-    expect(session).not_to have_key(Onetime::RecentReauth::KEY)
+    expect(session).not_to have_key(Onetime::Session::RecentReauth::KEY)
   end
 
   describe 'WebAuthn RP selection' do
@@ -270,7 +270,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
         user_verification: 'preferred',
         rp_id: 'example.com',
       ).and_return(options)
-      allow(Onetime::SessionSidecar).to receive(:write).and_return(120)
+      allow(Onetime::Session::Sidecar).to receive(:write).and_return(120)
       allow(rodauth).to receive(:compute_hmac).with('challenge').and_return('hmac')
 
       result = operation.send(
@@ -297,7 +297,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
       {
         'account_id' => '42',
         'challenge' => 'challenge',
-        'surface' => Onetime::SessionSurface::CANONICAL,
+        'surface' => Onetime::Session::Surface::CANONICAL,
         'rp_id' => 'example.com',
         'primary' => true,
       }
@@ -377,7 +377,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
         )
 
         expect(result.status).to eq(200)
-        expect(Onetime::RecentReauth).to have_received(:record).with(
+        expect(Onetime::Session::RecentReauth).to have_received(:record).with(
           session,
           env,
           account_id: 42,
@@ -394,7 +394,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
 
         expect(result.status).to eq(403)
         expect(result.body['error_code']).to eq('webauthn_unavailable')
-        expect(Onetime::RecentReauth).not_to have_received(:record)
+        expect(Onetime::Session::RecentReauth).not_to have_received(:record)
       end
     end
 
@@ -422,7 +422,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
 
         expect(result.status).to eq(200)
         expect(result.body).to eq('mfa_required' => true, 'mfa_methods' => %w[otp])
-        expect(Onetime::RecentReauth).not_to have_received(:record)
+        expect(Onetime::Session::RecentReauth).not_to have_received(:record)
       end
     end
 
@@ -470,7 +470,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
         'mfa_required' => true,
         'mfa_methods' => %w[otp recovery_codes],
       )
-      expect(session).not_to have_key(Onetime::RecentReauth::KEY)
+      expect(session).not_to have_key(Onetime::Session::RecentReauth::KEY)
     end
 
     it 'records password and OTP only after a valid non-replayed code' do
@@ -493,7 +493,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
       )
 
       expect(result.status).to eq(200)
-      expect(Onetime::RecentReauth).to have_received(:record).with(
+      expect(Onetime::Session::RecentReauth).to have_received(:record).with(
         session,
         env,
         account_id: 42,
@@ -515,7 +515,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
       )
 
       expect(result.status).to eq(200)
-      expect(Onetime::RecentReauth).to have_received(:record).with(
+      expect(Onetime::Session::RecentReauth).to have_received(:record).with(
         session,
         env,
         account_id: 42,

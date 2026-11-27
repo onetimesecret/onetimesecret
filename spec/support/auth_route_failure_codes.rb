@@ -43,8 +43,8 @@ require 'onetime/session/failure_code'
 module AuthRouteFailureCodes
   ROOT = Onetime::HOME
 
-  SESSION_CODES    = Onetime::SessionFailureCode::SESSION_REASON_SCOPES.keys.freeze
-  CREDENTIAL_CODES = Onetime::SessionFailureCode::CREDENTIAL_REASON_SCOPES.keys.freeze
+  SESSION_CODES    = Onetime::Session::FailureCode::SESSION_REASON_SCOPES.keys.freeze
+  CREDENTIAL_CODES = Onetime::Session::FailureCode::CREDENTIAL_REASON_SCOPES.keys.freeze
 
   # ---------------------------------------------------------------------------
   # 1. Otto surfaces

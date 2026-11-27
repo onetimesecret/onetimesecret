@@ -146,7 +146,7 @@ RSpec.describe 'Passkey verify-account with recovery codes auto-added', :full_au
     db    = Familia.dbclient
     key   = store.find_key(db, rack_mock_session.cookie_jar['onetime.session'])
     expect(key).not_to be_nil, 'no server-side session for the current cookie'
-    store.load_data(db, key, codec: Onetime::SessionCodec.from_config)['account_id']
+    store.load_data(db, key, codec: Onetime::Session::Codec.from_config)['account_id']
   end
 
   # The key from the verification email delivered to +email+.

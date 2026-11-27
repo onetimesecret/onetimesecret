@@ -192,7 +192,7 @@ module Onetime
     end
 
     # Whether the sign-in form's "remember me" checkbox is honoured
-    # (Onetime::RememberMe). Same switch as #remember_me_enabled?
+    # (Onetime::Session::RememberMe). Same switch as #remember_me_enabled?
     # (AUTH_REMEMBER_ME_ENABLED), but not full-mode-only: in simple mode the
     # session store alone carries a remembered session.
     def remember_me_sessions_enabled?

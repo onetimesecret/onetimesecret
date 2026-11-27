@@ -19,7 +19,7 @@ RSpec.describe 'Bootstrap snapshot ordering (ADR-046, #4457)', type: :integratio
   include CustomerSessionFailureMatrix
 
   let(:matrix_password) { 'Matrix-Test1234!' }
-  let(:counter_key) { Onetime::SessionSidecar.key_for(current_session_id, 'snapshot_version') }
+  let(:counter_key) { Onetime::Session::Sidecar.key_for(current_session_id, 'snapshot_version') }
 
   before { @matrix_customer = anonymous_probe_customer }
 
@@ -28,7 +28,7 @@ RSpec.describe 'Bootstrap snapshot ordering (ADR-046, #4457)', type: :integratio
   end
 
   def fail_allocation!
-    allow(Onetime::SessionSidecar).to receive(:allocate_counter)
+    allow(Onetime::Session::Sidecar).to receive(:allocate_counter)
       .and_raise(Redis::CannotConnectError, 'snapshot ordering spec: simulated Redis failure')
   end
 
@@ -46,7 +46,7 @@ RSpec.describe 'Bootstrap snapshot ordering (ADR-046, #4457)', type: :integratio
     it 'derives the epoch from the session id without exposing it' do
       observation = snapshot(:bootstrap)
 
-      expect(observation[:snapshot_epoch]).to eq(Onetime::SnapshotOrdering.epoch_for(current_session_id))
+      expect(observation[:snapshot_epoch]).to eq(Onetime::Session::SnapshotOrdering.epoch_for(current_session_id))
       expect(observation[:session_id_exposed]).to be(false)
       expect(observation[:snapshot_epoch]).not_to eq(Onetime::SessionMetadata.handle_for(current_session_id))
     end
@@ -75,7 +75,7 @@ RSpec.describe 'Bootstrap snapshot ordering (ADR-046, #4457)', type: :integratio
       [Onetime::Application::AuthStrategies::NoAuthStrategy,
        Onetime::Application::AuthStrategies::SessionAuthStrategy].each do |strategy|
         allow_any_instance_of(strategy).to receive(:authenticate).and_wrap_original do |original, env, *rest|
-          seen << env[Onetime::SnapshotOrdering::ENV_KEY]&.dup
+          seen << env[Onetime::Session::SnapshotOrdering::ENV_KEY]&.dup
           original.call(env, *rest)
         end
       end
@@ -92,7 +92,7 @@ RSpec.describe 'Bootstrap snapshot ordering (ADR-046, #4457)', type: :integratio
       after_loss = snapshot(:bootstrap)
 
       expect(Integer(after_loss[:snapshot_version])).to be > before_loss
-      expect(after_loss[:snapshot_epoch]).to eq(Onetime::SnapshotOrdering.epoch_for(current_session_id))
+      expect(after_loss[:snapshot_epoch]).to eq(Onetime::Session::SnapshotOrdering.epoch_for(current_session_id))
     end
 
     it 'starts a new epoch when the session id is renewed, and purges the old counter' do
@@ -113,14 +113,14 @@ RSpec.describe 'Bootstrap snapshot ordering (ADR-046, #4457)', type: :integratio
   describe 'an anonymous session' do
     it 'allocates nothing: no fields on either path and no Redis key' do
       clear_cookies
-      allow(Onetime::SessionSidecar).to receive(:allocate_counter).and_call_original
+      allow(Onetime::Session::Sidecar).to receive(:allocate_counter).and_call_original
 
       bootstrap = snapshot(:bootstrap)
       hydrated  = snapshot(:hydrated_html)
 
       expect(bootstrap[:snapshot_keys]).to eq([])
       expect(hydrated[:snapshot_keys]).to eq([])
-      expect(Onetime::SessionSidecar).not_to have_received(:allocate_counter)
+      expect(Onetime::Session::Sidecar).not_to have_received(:allocate_counter)
       # The anonymous request did persist a (CSRF-bearing) session; it has no
       # counter beside it.
       expect(current_session_id.to_s).not_to be_empty
@@ -168,7 +168,7 @@ RSpec.describe 'Bootstrap snapshot ordering (ADR-046, #4457)', type: :integratio
       expect(current_session_id).to eq(sid)
       expect(session_store.find_key(Familia.dbclient, sid)).not_to be_nil
 
-      allow(Onetime::SessionSidecar).to receive(:allocate_counter).and_call_original
+      allow(Onetime::Session::Sidecar).to receive(:allocate_counter).and_call_original
       recovered = snapshot(:bootstrap)
       expect(recovered).to include(status: 200, auth_status: 'authenticated')
       expect(recovered[:snapshot_version]).to match(/\A[1-9][0-9]*\z/)
@@ -212,7 +212,7 @@ RSpec.describe 'Bootstrap snapshot ordering (ADR-046, #4457)', type: :integratio
     it 'session expiry: the inactivity deadline ends the stream the same way' do
       expect(snapshot(:bootstrap)[:snapshot_version]).not_to be_nil
 
-      active_session_rows.update(last_use: Time.now - (Onetime::ActiveSessionGate::INACTIVITY_DEADLINE + 60))
+      active_session_rows.update(last_use: Time.now - (Onetime::Session::ActiveSessionGate::INACTIVITY_DEADLINE + 60))
       ended = snapshot(:hydrated_html)
 
       expect(ended).to include(status: 200, auth_status: 'anonymous', authenticated: false)

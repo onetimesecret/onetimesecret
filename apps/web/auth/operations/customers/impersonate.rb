@@ -54,7 +54,7 @@ module Auth
       # is written with `fail_closed: true` (the #4333 family). Unlike the
       # destructive members of that family this op CAN roll back: the only
       # mutation is a session key. On {Onetime::AuditWriteFailure} the marker
-      # is removed with {Onetime::SessionImpersonation.clear!} and the same
+      # is removed with {Onetime::Session::Impersonation.clear!} and the same
       # exception is re-raised, so an impersonation that has no start event
       # never takes effect and the operator never sees :started for it. The
       # {audit_failures} wrapper then records the raise under
@@ -63,7 +63,7 @@ module Auth
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
 
-        AUDIT_VERB = Onetime::SessionImpersonation::AUDIT_VERB_START
+        AUDIT_VERB = Onetime::Session::Impersonation::AUDIT_VERB_START
 
         # The privilege / precondition guards below raise BEFORE the
         # success-path record, so without this a refused impersonation attempt
@@ -137,7 +137,7 @@ module Auth
           # narrows what the id can do (read-only, /auth and /api/colonel
           # refused by Middleware::ImpersonationContext). A new id would defend
           # nothing and would start a new snapshot epoch (ADR-046).
-          marker = Onetime::SessionImpersonation.start!(
+          marker = Onetime::Session::Impersonation.start!(
             @session,
             target: @customer,
             reason: @reason,
@@ -156,7 +156,7 @@ module Auth
             # pair at all. Bare `raise` re-raises the SAME instance so the
             # audit_failures wrapper's RECORDED_FLAG and audit.write_failure
             # handling apply to it unchanged.
-            Onetime::SessionImpersonation.clear!(@session)
+            Onetime::Session::Impersonation.clear!(@session)
             raise
           end
 
@@ -181,7 +181,7 @@ module Auth
           raise PrivilegedTarget, 'Cannot impersonate a colonel-role account.' if @customer.role.to_s == 'colonel'
           raise SuspendedTarget, 'Cannot impersonate a suspended account.' if @customer.suspended?
 
-          return unless Onetime::SessionImpersonation.active(@session)
+          return unless Onetime::Session::Impersonation.active(@session)
 
           raise AlreadyImpersonating, 'This session is already impersonating a customer.'
         end

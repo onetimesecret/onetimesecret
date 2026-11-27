@@ -51,7 +51,7 @@ module ColonelAPI
       #
       # SESSION ID (#4466). The window gives this session id tier-1 capability,
       # so it is written under a NEW id: once the factor verifies,
-      # {Onetime::SessionRotation.rotate!} ends the old id the way a logout
+      # {Onetime::Session::Rotation.rotate!} ends the old id the way a logout
       # does and carries the session data (identity, active-session join key,
       # surface marker, CSRF token) to a new one, then the window is written.
       # A copy of the pre-step-up id is then signed out rather than elevated
@@ -147,7 +147,7 @@ module ColonelAPI
           previous_handle = session_log_handle
 
           rotation = begin
-            Onetime::SessionRotation.rotate!(sess)
+            Onetime::Session::Rotation.rotate!(sess)
           rescue StandardError => ex
             refuse_unrotated_session!(previous_handle, reason: :error, error: "#{ex.class}: #{ex.message}")
           end
@@ -163,8 +163,8 @@ module ColonelAPI
 
           OT.li '[ElevateSession] session id rotated',
             user_id: cust.objid,
-            previous_session_handle: Onetime::SessionEnded.handle_for(rotation.old_sid),
-            session_handle: Onetime::SessionEnded.handle_for(rotation.new_sid)
+            previous_session_handle: Onetime::Session::Ended.handle_for(rotation.old_sid),
+            session_handle: Onetime::Session::Ended.handle_for(rotation.new_sid)
         end
 
         # No window on a session whose old id could not be ended. rotate!

@@ -59,7 +59,7 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
     expect(last_response.status).to eq(302)
     expect(last_response.location).to start_with('https://idp.example.com/sso?')
     @sid = last_request.env['rack.session'].id.public_id
-    expect(Onetime::SessionSidecar.exists?(@sid, 'sso_connect_intent')).to be(true)
+    expect(Onetime::Session::Sidecar.exists?(@sid, 'sso_connect_intent')).to be(true)
     query = Rack::Utils.parse_query(URI.parse(last_response.location).query)
     xml = Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(Base64.decode64(query.fetch('SAMLRequest')))
     @request_id = xml[/\sID=['"]([^'"]+)['"]/, 1]
@@ -101,7 +101,7 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
     expect_topology
     expect(last_response.headers['Set-Cookie']).to be_nil
     expect(identities.where(uid: uid).count).to eq(0)
-    expect(Onetime::SessionSidecar.exists?(@sid, 'sso_connect_intent')).to be(true)
+    expect(Onetime::Session::Sidecar.exists?(@sid, 'sso_connect_intent')).to be(true)
     location = URI.join(@acs, last_response.location).to_s
     @handle = Rack::Utils.parse_query(URI.parse(location).query).fetch('saml_handle')
     @staged_raw = Familia.dbclient.get(store.key(@handle))
@@ -128,7 +128,7 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
       expect(row[:account_id]).to eq(actor_id)
       expect(row[:issuer]).to eq(Onetime::SsoProvider::Saml.tenant_issuer(@tenant[:domain].identifier, idp.entity_id))
       expect(auth_db[:accounts].count).to eq(accounts_before)
-      expect(Onetime::SessionSidecar.exists?(@sid, 'sso_connect_intent')).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(@sid, 'sso_connect_intent')).to be(false)
       expect(Familia.dbclient.get(store.key(@handle))).to be_nil
     end
 
@@ -139,7 +139,7 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
       get location
       expect(last_response.location).to include('auth_error=sso_failed')
       expect(identities.where(uid: uid).count).to eq(0)
-      expect(Onetime::SessionSidecar.exists?(@sid, 'sso_connect_intent')).to be(true)
+      expect(Onetime::Session::Sidecar.exists?(@sid, 'sso_connect_intent')).to be(true)
       expect(Familia.dbclient.get(store.key(@handle))).to eq(@staged_raw)
       clear_cookies
       rack_mock_session.cookie_jar.merge("onetime.session=#{cookie}; path=/", URI.parse(location))
@@ -164,7 +164,7 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
       expect(last_request.env['omniauth.error.type']).to eq(:saml_callback_missing)
       expect(identities.where(uid: uid).all).to eq([row])
       expect(auth_db[:accounts].count).to eq(accounts_before)
-      expect(Onetime::SessionSidecar.exists?(@sid, 'sso_connect_intent')).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(@sid, 'sso_connect_intent')).to be(false)
     end
   end
 
@@ -185,7 +185,7 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
         account_id: actor_id, issuer: Onetime::SsoProvider::Saml.tenant_issuer(@tenant[:domain].identifier, idp.entity_id),
       )
       expect(auth_db[:accounts].count).to eq(accounts_before)
-      expect(Onetime::SessionSidecar.exists?(@sid, 'sso_connect_intent')).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(@sid, 'sso_connect_intent')).to be(false)
       expect(Familia.dbclient.get(store.key(@handle))).to be_nil
     end
 
@@ -214,7 +214,7 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
         expect(last_request.env['omniauth.error.type']).to eq(:saml_callback_missing)
         expect(identities.where(uid: uid).count).to eq(0)
         expect(auth_db[:accounts].count).to eq(accounts_before)
-        expect(Onetime::SessionSidecar.exists?(@sid, 'sso_connect_intent')).to be(true)
+        expect(Onetime::Session::Sidecar.exists?(@sid, 'sso_connect_intent')).to be(true)
         expect(Familia.dbclient.get(store.key(@handle))).to eq(@staged_raw)
         expect(last_request.env['rack.session'].to_h['saml_authn_request_id']).to eq(@request_id)
 

@@ -24,9 +24,9 @@ the rendering-shaped ones.
 `docs/specs/colonel-ui/initial-build-out/52-impersonation-audit-fix.md` §(c)
 already set the price of admission. Any impersonation design must first supply
 a bounded lifetime independent of the session store's configured
-`expire_after` (re-applied on every commit, `lib/onetime/session.rb:703-708`);
+`expire_after` (re-applied on every commit by `Onetime::Session::RackStore#write_session`);
 a marker that cannot go missing, because the session sidecar's admission rule
-(`lib/onetime/session/sidecar.rb:99`) admits only fields whose *absence is the
+(`Onetime::Session::Sidecar` module doc) admits only fields whose *absence is the
 safe state*; and capability restriction at the point of use, because some
 capabilities reachable with a session identity are irreversible and some emit
 artifacts that outlive the session.
@@ -68,11 +68,10 @@ session['impersonation'] = {
 }
 ```
 
-One shared resolver — `Onetime::SessionImpersonation`, in
-`lib/onetime/session/impersonation.rb` (a flat name, not nested: `Onetime::Session`
-is a class) — decides the effective customer from (principal, marker) and is the
-only place that decides it; the three sites that today read
-`session['external_id']` independently
+One shared resolver — `Onetime::Session::Impersonation`, in
+`lib/onetime/session/impersonation.rb` — decides the effective customer from
+(principal, marker) and is the only place that decides it. The three sites that
+read `session['external_id']` independently
 (`lib/onetime/application/auth_strategies/base_session_auth_strategy.rb`,
 `lib/onetime/helpers/session_helpers.rb`,
 `lib/onetime/application/auth_strategies/helpers.rb`) call it.
@@ -199,7 +198,7 @@ are also recorded.
 The start event is written fail-closed (`fail_closed: true`, the #4333
 family), and because the start operation's only mutation is a session key it
 can do what the destructive fail-closed ops cannot: on a failed write it
-removes the marker (`SessionImpersonation.clear!`, deliberately not `stop!`,
+removes the marker (`Onetime::Session::Impersonation.clear!`, deliberately not `stop!`,
 which would record an orphan stop) and re-raises, so the overlay ends before
 the operator sees success. A live impersonation with no start record therefore
 cannot exist; the failed write itself lands in the trail as

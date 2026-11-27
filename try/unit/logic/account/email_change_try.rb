@@ -112,10 +112,10 @@ end
 
 # Session blobs are planted with the middleware writer's own secret resolution
 # (Onetime.session_config['secret'], the chain middleware_stack mounts the
-# session with), which the revoke op's Onetime::SessionCodec.from_config must
+# session with), which the revoke op's Onetime::Session::Codec.from_config must
 # mirror — only a matching-keyed blob reaches its match -> del -> purge branch.
 @sweep_secret = Onetime.session_config['secret']
-@sweep_codec  = Onetime::SessionCodec.new(@sweep_secret)
+@sweep_codec  = Onetime::Session::Codec.new(@sweep_secret)
 @sweep_db     = Familia.dbclient
 
 # Setup common variables
@@ -575,7 +575,7 @@ confirm.process
 @sweep_db.set(@sweep_blob,
               @sweep_codec.encode({ 'external_id' => @sweep_cust.extid, 'authenticated' => true }),
               ex: 3600)
-Onetime::SessionSidecar.write(@sweep_sid, 'awaiting_mfa', true, codec: @sweep_codec)
+Onetime::Session::Sidecar.write(@sweep_sid, 'awaiting_mfa', true, codec: @sweep_codec)
 @sweep_db.set(@other_blob,
               @sweep_codec.encode({ 'external_id' => @other_cust.extid, 'authenticated' => true }),
               ex: 3600)
@@ -589,7 +589,7 @@ build_confirm(@sweep_cust, {}, generate_unique_test_email('sweep-new')).process
 @sweep_db.set(@sweep_blob,
               @sweep_codec.encode({ 'external_id' => @sweep_cust.extid, 'authenticated' => true }),
               ex: 3600)
-Onetime::SessionSidecar.write(@sweep_sid, 'domain_context', 'example.com', codec: @sweep_codec)
+Onetime::Session::Sidecar.write(@sweep_sid, 'domain_context', 'example.com', codec: @sweep_codec)
 @sweep_sess = { 'sid' => 'current', 'authenticated' => true }
 build_confirm(@sweep_cust, @sweep_sess, generate_unique_test_email('sweep-newer')).process
 [@sweep_db.exists(@sweep_blob), @sweep_db.exists("sidecar:#{@sweep_sid}:domain_context"), @sweep_sess.empty?]
@@ -747,7 +747,7 @@ noacct_result[:confirmed]
 # Cleanup
 if defined?(@sweep_db) && @sweep_db
   @sweep_db.del(@sweep_blob, @other_blob, @bystander_blob)
-  Onetime::SessionSidecar.purge(@sweep_sid)
+  Onetime::Session::Sidecar.purge(@sweep_sid)
 end
 @sweep_cust.delete! if defined?(@sweep_cust) && @sweep_cust
 @other_cust.delete! if defined?(@other_cust) && @other_cust

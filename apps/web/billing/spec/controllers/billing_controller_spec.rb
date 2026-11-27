@@ -56,7 +56,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     env 'rack.session', {
       'authenticated' => true,
       # #4409: hand-seeded sessions need the surface marker the login hooks record.
-      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+      Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
       'external_id' => customer.extid,
       :csrf => csrf_token,
     }
@@ -231,7 +231,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       # Switch session to other customer
       env 'rack.session', {
         'authenticated' => true,
-        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+        Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
         'external_id' => other_customer.extid,
       }
 
@@ -461,7 +461,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       # Switch session to member customer (preserve CSRF token)
       env 'rack.session', {
         'authenticated' => true,
-        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+        Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
         'external_id' => member_customer.extid,
         :csrf => csrf_token,
       }
@@ -687,7 +687,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       env 'rack.session', {
         'authenticated' => true,
-        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+        Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
         'external_id' => other_customer.extid,
       }
 
@@ -712,7 +712,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       env 'rack.session', {
         'authenticated' => true,
-        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+        Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
         'external_id' => member_customer.extid,
       }
 
@@ -800,7 +800,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       env 'rack.session', {
         'authenticated' => true,
-        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+        Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
         'external_id' => other_customer.extid,
       }
 
@@ -854,7 +854,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
         env 'rack.session', {
           'authenticated' => true,
-          Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+          Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
           'external_id' => other_customer.extid,
         }
 
@@ -1086,7 +1086,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       env 'rack.session', {
         'authenticated' => true,
-        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+        Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
         'external_id' => other_customer.extid,
         :csrf => csrf_token,
       }
@@ -1232,7 +1232,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
         env 'rack.session', {
           'authenticated' => true,
-          Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+          Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
           'external_id' => member_customer.extid,
           :csrf => csrf_token,
         }
@@ -1335,7 +1335,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       env 'rack.session', {
         'authenticated' => true,
-        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+        Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
         'external_id' => other_customer.extid,
         :csrf => csrf_token,
       }

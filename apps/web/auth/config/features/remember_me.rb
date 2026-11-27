@@ -7,9 +7,8 @@ require 'onetime/session/active_session_gate'
 
 module Auth::Config::Features
   # Remember me: the login form's checkbox makes THIS session last a fixed 30
-  # days from sign-in instead of the rolling 24 hours. The mechanism, and why
-  # it is not Rodauth's remember feature, is described in
-  # lib/onetime/session/remember_me.rb.
+  # days from sign-in instead of the rolling 24 hours. The mechanism is
+  # described in lib/onetime/session/remember_me.rb.
   #
   # ENV: AUTH_REMEMBER_ME_ENABLED (default: enabled, set to 'false' to disable).
   # Disabled, the `remember-me` parameter is ignored, and a session stamped
@@ -25,15 +24,19 @@ module Auth::Config::Features
   # choice held across the second factor from being stamped once the switch
   # is off.
   #
-  # Rodauth's :remember feature is NOT enabled. Before this, it was, and
-  # nothing ever called remember_login or load_memory, so the checkbox did
-  # nothing. account_remember_keys stays in the schema, and is still cleared
+  # Rodauth's :remember feature is NOT enabled. Its key is one per account,
+  # shared by every device that ticked the box, so revoking one device's
+  # session from the sessions page could not end that device's remembered
+  # login without ending the others', and every revocation path would have
+  # to learn to remove it. Before this, it was enabled, and nothing ever
+  # called remember_login or load_memory, so the checkbox did nothing.
+  # account_remember_keys stays in the schema, and is still cleared
   # on account deletion (operations/remove_authentication_data.rb).
   #
   # ## Which logins
   #
   # Any login that fires after_login and carries a truthy `remember-me`
-  # parameter (Onetime::RememberMe::TRUTHY): the SPA's password form sends
+  # parameter (Onetime::Session::RememberMe::TRUTHY): the SPA's password form sends
   # it; the email-auth, WebAuthn and OmniAuth routes would honour it the same
   # way, but no client sends it there today. The autologins
   # (create_account, verify_account, reset_password) do not fire after_login
@@ -53,7 +56,7 @@ module Auth::Config::Features
   # ## What is stamped
   #
   # The active-session row first, in the database's clock (the clock the gate
-  # decides in), then the Rack session (Onetime::RememberMe.stamp), which the
+  # decides in), then the Rack session (Onetime::Session::RememberMe.stamp), which the
   # session store turns into the blob TTL and the cookie lifetime. If the row
   # cannot be stamped, neither is, and the login proceeds as a default
   # session: a Rack session that outlived its row's inactivity deadline would
@@ -73,8 +76,8 @@ module Auth::Config::Features
       auth.auth_class_eval do
         # Called from after_login (config/hooks/login.rb).
         def remember_me_after_login(second_factor_pending:)
-          return unless Onetime::RememberMe.enabled?
-          return unless Onetime::RememberMe.requested?(raw_param(Onetime::RememberMe::PARAM))
+          return unless Onetime::Session::RememberMe.enabled?
+          return unless Onetime::Session::RememberMe.requested?(raw_param(Onetime::Session::RememberMe::PARAM))
 
           if second_factor_pending
             session[Auth::Config::Features::RememberMe::PENDING_KEY] = true
@@ -86,7 +89,7 @@ module Auth::Config::Features
         # Called from after_two_factor_authentication (config/hooks/two_factor.rb).
         def remember_me_after_two_factor
           pending = session.delete(Auth::Config::Features::RememberMe::PENDING_KEY)
-          return unless pending && Onetime::RememberMe.enabled?
+          return unless pending && Onetime::Session::RememberMe.enabled?
 
           remember_this_session
         end
@@ -94,9 +97,9 @@ module Auth::Config::Features
         def remember_this_session
           return unless stamp_active_session_remember_until
 
-          Onetime::RememberMe.stamp(session)
+          Onetime::Session::RememberMe.stamp(session)
         rescue StandardError => ex
-          session.delete(Onetime::RememberMe::SESSION_KEY)
+          session.delete(Onetime::Session::RememberMe::SESSION_KEY)
           OT.le "[remember_me] session not remembered (account_id=#{account_id}): #{ex.class}: #{ex.message}"
         end
 
@@ -107,9 +110,9 @@ module Auth::Config::Features
           return true unless Onetime.auth_config.active_sessions_enabled? && !join_key.to_s.empty?
 
           updated = db.transaction(savepoint: true) do
-            db[Onetime::ActiveSessionGate::TABLE]
+            db[Onetime::Session::ActiveSessionGate::TABLE]
               .where(account_id: account_id, session_id: join_key)
-              .update(remember_until: Sequel.date_add(Sequel::CURRENT_TIMESTAMP, seconds: Onetime::RememberMe::DURATION))
+              .update(remember_until: Sequel.date_add(Sequel::CURRENT_TIMESTAMP, seconds: Onetime::Session::RememberMe::DURATION))
           end
           return true if updated == 1
 

@@ -101,7 +101,7 @@ module WebauthnFlowHelper
   #            password}                       -> 200
   # after_webauthn_setup (config/hooks/webauthn.rb) then stamps rp_id and
   # surface_scope from THIS request's host, which is what makes the credential
-  # a tenant credential (or a platform one) for Onetime::ReauthPolicy.
+  # a tenant credential (or a platform one) for Onetime::Session::ReauthPolicy.
   #
   # Logs the account in with its password first (the account must not yet
   # require a second factor) and clears cookies on the way out, so the flow

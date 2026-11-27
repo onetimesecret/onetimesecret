@@ -254,7 +254,7 @@ class Onetime::CustomDomain::SigninConfig < Familia::Horreum
   # is a well-formed absolute http(s) origin with no path or query. This
   # is the ONLY field on this model that widens WebAuthn acceptance
   # across surfaces, and the empty default (nothing declared) is what
-  # {Onetime::ReauthPolicy} treats as "no related-origins deployment".
+  # {Onetime::Session::ReauthPolicy} treats as "no related-origins deployment".
   # The value must agree with what the deployment actually serves at
   # /.well-known/webauthn — we do not fetch it, and we do not publish
   # it either; that is an operator concern.
@@ -429,7 +429,7 @@ class Onetime::CustomDomain::SigninConfig < Familia::Horreum
     nil
   end
 
-  # Resolve one origin URL to a {Onetime::SessionSurface}-shaped
+  # Resolve one origin URL to a {Onetime::Session::Surface}-shaped
   # descriptor, or nil when the origin names a host we do not serve.
   #
   # A `:custom` member is accepted only when the resolved CustomDomain
@@ -452,7 +452,7 @@ class Onetime::CustomDomain::SigninConfig < Familia::Horreum
     uri  = URI.parse(candidate)
     host = uri.host.to_s.downcase
 
-    return Onetime::SessionSurface::CANONICAL if canonical_host?(host)
+    return Onetime::Session::Surface::CANONICAL if canonical_host?(host)
 
     if current_domain && current_domain.display_domain.to_s.downcase == host
       return { 'kind' => 'custom', 'id' => current_domain.identifier.to_s }.freeze

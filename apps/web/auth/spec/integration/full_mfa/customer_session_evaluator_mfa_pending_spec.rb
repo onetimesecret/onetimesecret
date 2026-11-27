@@ -24,13 +24,13 @@ RSpec.describe 'Auth router MFA-pending session gate', :full_auth_mode, type: :i
     get '/auth/account', {}, 'HTTP_ACCEPT' => 'application/json'
 
     expect_mfa_pending_refusal
-    expect(last_request.env.fetch(Onetime::CustomerSessionEvaluator::ENV_KEY).reason).to eq(:awaiting_mfa)
+    expect(last_request.env.fetch(Onetime::Session::CustomerSessionEvaluator::ENV_KEY).reason).to eq(:awaiting_mfa)
 
     expect_any_instance_of(Auth::Config).not_to receive(:remove_all_active_sessions_except_current)
     csrf_json_post('/auth/remove-all-active-sessions', {})
 
     expect_mfa_pending_refusal
-    expect(last_request.env.fetch(Onetime::CustomerSessionEvaluator::ENV_KEY).reason).to eq(:awaiting_mfa)
+    expect(last_request.env.fetch(Onetime::Session::CustomerSessionEvaluator::ENV_KEY).reason).to eq(:awaiting_mfa)
 
     csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(@secret).now)
     expect(last_response.status).to eq(200), last_response.body
@@ -156,7 +156,7 @@ RSpec.describe 'Auth router MFA-pending session gate', :full_auth_mode, type: :i
   it 'refuses to complete MFA on a session presented on another surface' do
     sid = current_sid
     rewrite_session_blob(sid) do |blob|
-      blob[Onetime::SessionSurface::KEY] = { 'kind' => 'custom', 'id' => 'other-domain' }
+      blob[Onetime::Session::Surface::KEY] = { 'kind' => 'custom', 'id' => 'other-domain' }
     end
 
     csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(@secret).now)
@@ -203,7 +203,7 @@ RSpec.describe 'Auth router MFA-pending session gate', :full_auth_mode, type: :i
 
   def rewrite_session_blob(sid)
     db    = Familia.dbclient
-    codec = Onetime::SessionCodec.from_config
+    codec = Onetime::Session::Codec.from_config
     key   = session_key_for(sid)
     data  = Onetime::Operations::Sessions::Store.load_data(db, key, codec: codec)
     yield data

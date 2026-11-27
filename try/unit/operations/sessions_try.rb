@@ -120,14 +120,14 @@ Onetime::Operations::Sessions::Store.load_data(DB, @set_key)
 Onetime::Operations::Sessions::Store.scan_keys(DB).include?(@sidecar_key)
 #=> false
 
-## [#3858] the planted key matches SessionSidecar's real derivation, and the
+## [#3858] the planted key matches Onetime::Session::Sidecar's real derivation, and the
 ## derived name must never match the `*session*` scan glob — i.e. the prefix
 ## must never contain the substring "session". This is the property the whole
 ## scan exclusion rests on; renaming the prefix back into the session
 ## namespace fails here first. (File.fnmatch mirrors the Redis MATCH glob.)
 [
-  Onetime::SessionSidecar.key_for(@sidecar_sid, 'awaiting_mfa') == @sidecar_key,
-  File.fnmatch?('*session*', Onetime::SessionSidecar.key_for(@sidecar_sid, 'awaiting_mfa')),
+  Onetime::Session::Sidecar.key_for(@sidecar_sid, 'awaiting_mfa') == @sidecar_key,
+  File.fnmatch?('*session*', Onetime::Session::Sidecar.key_for(@sidecar_sid, 'awaiting_mfa')),
 ]
 #=> [true, false]
 
@@ -201,7 +201,7 @@ Onetime::Operations::Sessions::List.new(search: "nobody_#{@nonce}").call.session
 ## Store.load_data decrypts an ENCRYPTED session blob when given a codec
 ## (the app stores blobs, not plaintext JSON — without the codec every value
 ## fell through to the opaque _raw fallback and showed as Anonymous)
-@codec   = Onetime::SessionCodec.from_config
+@codec   = Onetime::Session::Codec.from_config
 @enc_sid = "trysess_enc_#{@nonce}"
 @enc_key = "session:#{@enc_sid}"
 @enc_data = {

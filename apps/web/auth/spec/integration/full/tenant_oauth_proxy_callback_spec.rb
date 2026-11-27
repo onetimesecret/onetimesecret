@@ -283,7 +283,7 @@ RSpec.describe 'Tenant OAuth callbacks behind a Host-rewriting proxy', :shared_d
     key        = Onetime::Operations::Sessions::Store.find_key(Familia.dbclient, session_id)
     expect(key).not_to be_nil
     stored     = Onetime::Operations::Sessions::Store.load_data(
-      Familia.dbclient, key, codec: Onetime::SessionCodec.from_config
+      Familia.dbclient, key, codec: Onetime::Session::Codec.from_config
     )
     expect(stored).to include('authenticated' => true, 'account_id' => account[:id])
     expect(stored['external_id']).to eq(customer.extid)

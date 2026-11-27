@@ -4,7 +4,7 @@
 // the REAL client: createApi() with its real request interceptor.
 //
 // `{ passive: true }` on a GET or HEAD sends exactly `X-Session-Activity:
-// passive`, which the server (Onetime::SessionActivity) reads so that a timer
+// passive`, which the server (Onetime::Session::Activity) reads so that a timer
 // or tab-visibility refresh does not move the inactivity clock. Everything else
 // here guards the ways that goes wrong: a header that sticks to the instance
 // would sign active users out; a header on a write would suggest a write can
@@ -39,7 +39,7 @@ describe('createApi — passive request declaration', () => {
   });
 
   it('spells the header the server reads', () => {
-    // Onetime::SessionActivity::HEADER / PASSIVE
+    // Onetime::Session::Activity::HEADER / PASSIVE
     expect(SESSION_ACTIVITY_HEADER).toBe('X-Session-Activity');
     expect(SESSION_ACTIVITY_PASSIVE).toBe('passive');
   });

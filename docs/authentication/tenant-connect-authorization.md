@@ -38,7 +38,7 @@ The platform flow is safe because it requires:
 
 1. an already authenticated account session,
 2. recent full local re-authentication before the intent is minted
-   (`Onetime::RecentReauth.satisfied?`, #4411),
+   (`Onetime::Session::RecentReauth.satisfied?`, #4411),
 3. an explicit, account-bound, surface-bound, short-lived `connect=1` intent,
    and
 4. a callback on the platform surface.
@@ -105,13 +105,13 @@ login, `nil` for the canonical host. A request whose resolved display domain
 does not match that record is treated as unauthenticated. At the Connect
 callback, the request surface must resolve, must equal the surface recorded in
 the connect intent, and must equal the surface recorded at login
-(`Onetime::SessionSurface.matches_request?`). For a tenant callback that
+(`Onetime::Session::Surface.matches_request?`). For a tenant callback that
 surface is the validated domain ID. An unvalidated callback on a custom host
 is never platform Connect.
 
 **Recent re-authentication.** Before the Connect intent is created, the
 account holder must complete a full local re-authentication within
-`RecentReauth::CONNECT_MAX_AGE` (300 seconds). The proof is recorded for the
+`Onetime::Session::RecentReauth::CONNECT_MAX_AGE` (300 seconds). The proof is recorded for the
 session's account, on the surface the initiation arrives on, by a local
 primary (password or WebAuthn) with every MFA factor the account's policy
 requires already completed. It is single use: minting the intent consumes it.
@@ -173,7 +173,7 @@ identity cannot bypass the gates.
 
 1. **Request phase.** The user is authenticated and submits `connect=1` for
    the tenant's SSO provider. The request phase first requires
-   `RecentReauth.satisfied?` to consume a fresh proof for this account on this
+   `Onetime::Session::RecentReauth.satisfied?` to consume a fresh proof for this account on this
    surface. Only then does it write the short-lived, single-use
    `sso_connect_intent` containing the account ID, the surface, and the mint
    time. Any non-connect initiation deletes a dangling intent. A normal SSO

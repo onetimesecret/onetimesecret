@@ -65,7 +65,7 @@ Onetime::Operations::Sessions::TrackMetadata.new(
 ).call
 Familia.dbclient.set(
   "session:#{@purge_drift_sid}",
-  Onetime::SessionCodec.from_config.encode({ 'authenticated' => true, 'external_id' => @purge_drift_extid }),
+  Onetime::Session::Codec.from_config.encode({ 'authenticated' => true, 'external_id' => @purge_drift_extid }),
 )
 Onetime::Customer.extid_lookup.remove_field(@purge_drift_extid)
 

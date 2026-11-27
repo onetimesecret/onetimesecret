@@ -73,7 +73,7 @@ module Onetime
         # @return [Result]
         def call
           db    = @dbclient || Familia.dbclient
-          codec = Onetime::SessionCodec.from_config
+          codec = Onetime::Session::Codec.from_config
           keys  = Store.scan_keys(db)
           rows  = collect(db, keys, codec)
 

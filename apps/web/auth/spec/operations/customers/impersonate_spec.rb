@@ -50,7 +50,7 @@ RSpec.describe Auth::Operations::Customers::Impersonate do
     it 'returns :started with the non-secret correlation id and the expiry' do
       expect(result.status).to eq(:started)
       expect(result.impersonation_id).to match(/\Aimp_[0-9a-f]{16}\z/)
-      expect(result.expires_at).to eq(now + Onetime::SessionImpersonation::TTL)
+      expect(result.expires_at).to eq(now + Onetime::Session::Impersonation::TTL)
       expect(result.actor).to eq('ur_operator')
       expect(result.reason).to eq('ticket #123')
     end
@@ -65,7 +65,7 @@ RSpec.describe Auth::Operations::Customers::Impersonate do
     it 'writes the overlay marker onto the session' do
       result
 
-      marker = session[Onetime::SessionImpersonation::SESSION_KEY]
+      marker = session[Onetime::Session::Impersonation::SESSION_KEY]
       expect(marker['target_extid']).to eq('ur_target')
       expect(marker['target_email']).to eq('alice@example.com')
       expect(marker['reason']).to eq('ticket #123')
@@ -95,7 +95,7 @@ RSpec.describe Auth::Operations::Customers::Impersonate do
         detail: {
           reason: 'ticket #123',
           impersonation_id: result.impersonation_id,
-          expires_at: now + Onetime::SessionImpersonation::TTL,
+          expires_at: now + Onetime::Session::Impersonation::TTL,
         },
         # A live overlay with no start event is the unattributable privileged
         # action the audit pair exists to rule out, so the write is fail-closed.
@@ -133,9 +133,9 @@ RSpec.describe Auth::Operations::Customers::Impersonate do
     it 'rolls the marker back so the session is not impersonating' do
       expect { op.call }.to raise_error(Onetime::AuditWriteFailure)
 
-      expect(session[Onetime::SessionImpersonation::SESSION_KEY]).to be_nil
-      expect(Onetime::SessionImpersonation.active(session)).to be_nil
-      expect(Onetime::SessionImpersonation.context).to be_nil
+      expect(session[Onetime::Session::Impersonation::SESSION_KEY]).to be_nil
+      expect(Onetime::Session::Impersonation.active(session)).to be_nil
+      expect(Onetime::Session::Impersonation.context).to be_nil
     end
 
     # clear!, not stop!: a stop event for an impersonation that never took
@@ -182,7 +182,7 @@ RSpec.describe Auth::Operations::Customers::Impersonate do
     def expect_refusal(error, **overrides)
       expect { op(**overrides).call }.to raise_error(error)
 
-      expect(session).not_to have_key(Onetime::SessionImpersonation::SESSION_KEY)
+      expect(session).not_to have_key(Onetime::Session::Impersonation::SESSION_KEY)
       expect(Onetime::ColonelAuditEvent)
         .not_to have_received(:record).with(hash_including(result: :success))
     end

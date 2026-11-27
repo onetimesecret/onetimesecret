@@ -2,65 +2,19 @@
 #
 # frozen_string_literal: true
 
+require_relative '../session'
+
 module Onetime
-  # "Remember me": a session signed in with the box ticked lasts a fixed
-  # {DURATION} from sign-in instead of the default rolling 24 hours.
+  # Extends one session for a fixed {DURATION} from sign-in, with no extra
+  # cookie or account-wide token, so per-device revocation is unchanged.
   #
-  # ## The mechanism
-  #
-  # The choice extends THIS session. Nothing else is issued: no second
-  # cookie, no token table. The login stamps the deadline in two places:
-  #
-  # - the Rack session, as `remember_until` (integer epoch), which
-  #   {Onetime::Session} reads to give the blob and the cookie that fixed
-  #   lifetime. Both auth modes.
-  # - the active-session row, as `remember_until` (timestamp, written in the
-  #   database's clock), which {Onetime::ActiveSessionGate} and Rodauth's
-  #   sweep read to exempt the row from the inactivity deadline until then.
-  #   Full mode only (apps/web/auth/config/features/remember_me.rb).
-  #
-  # Revocation is unchanged because there is still exactly one Rack session
-  # and one active-session row: every path that ends a session today ends a
-  # remembered one the same way.
-  #
-  # Rodauth's own remember feature is deliberately not used. Its key is one
-  # per account, shared by every device that ticked the box, so revoking one
-  # device's session from the sessions page could not end that device's
-  # remembered login without ending the others', and every revocation path
-  # would have to learn to remove it.
-  #
-  # ## What is not extended
-  #
-  # The deadline is fixed at sign-in, as Rodauth's remember_deadline_interval
-  # is, and never moves with activity. The absolute lifetime deadline
-  # (`site.session.absolute_timeout`, 30 days by default, the same length as
-  # {DURATION}) still applies, on
-  # the row and (from `authenticated_at`) on the blob, and so
-  # does the colonel's absolute session bound (AdminSessionLifetime), which
-  # is shorter.
-  #
-  # ## Where the deadline is enforced
-  #
-  # On the read, in both modes. {Onetime::Session#find_session} ends a
-  # session whose stamp has passed (the blob TTL only sizes the key), and
-  # {Onetime::ActiveSessionGate} refuses a row whose `remember_until` has
-  # passed. Neither depends on the switch: a deadline that has passed has
-  # passed. The switch governs only whether a sign-in is stamped, whether a
-  # stamp still exempts the row from the inactivity deadline, and whether a
-  # stamp can give the blob and cookie a lifetime beyond the rolling
-  # default. A stamp always bounds them: with the switch off, a write gives
-  # the blob and cookie the rolling default or the time left to the stamp,
-  # whichever is nearer ({Onetime::Session#absolute_remaining}), so the key
-  # and the cookie never claim a life the next read would refuse.
-  #
-  # ## Two clocks
-  #
-  # The blob's stamp is a Ruby epoch and the row's is the database's
-  # CURRENT_TIMESTAMP, written in the same login. Skew between them is
-  # harmless: in full mode either one lapsing ends the session (the row via
-  # the gate, the blob via the read), so the earlier clock wins and the
-  # failure is closed.
-  module RememberMe
+  # The Rack blob stores an epoch deadline for reads and cookie/blob lifetime.
+  # In full mode the active-session row also stores a database-clock deadline
+  # that replaces inactivity while enabled. Either expired stamp ends the
+  # session even after the feature is disabled. When disabled, writes cap the
+  # rolling lifetime at any existing stamp. Activity never moves the deadline,
+  # and absolute session and admin bounds still apply.
+  module Session::RememberMe
     extend self
 
     # Rack session key. String, the app-session convention.
@@ -68,8 +22,8 @@ module Onetime
 
     # 30 days, the lifetime the sign-in form states
     # (web.COMMON.remember_me_description). It equals the default absolute
-    # lifetime (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE), so by
-    # default the two deadlines fall together; a shorter
+    # lifetime (Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE),
+    # so by default the two deadlines fall together; a shorter
     # `site.session.absolute_timeout` ends a remembered session first.
     DURATION = 30 * 86_400
 
@@ -116,7 +70,7 @@ module Onetime
     # can give a session a longer life than a fresh sign-in would.
     #
     # A stamp in the past is nil too, but never reaches this in practice:
-    # {Onetime::Session#find_session} ends a session whose integer stamp has
+    # {Onetime::Session::RackStore#find_session} ends a session whose integer stamp has
     # passed before anything reads it (see #absolute_remaining there), and a
     # write that straddled the deadline gets a blob TTL of one second, not
     # the rolling default. So a nil here means "not remembered", and the

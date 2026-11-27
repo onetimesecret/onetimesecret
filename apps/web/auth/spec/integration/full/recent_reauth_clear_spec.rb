@@ -6,7 +6,7 @@
 # TEST TYPE: Integration (full mode)
 # =============================================================================
 #
-# Issue #4420 — Onetime::RecentReauth.clear has four callers, one per event
+# Issue #4420 — Onetime::Session::RecentReauth.clear has four callers, one per event
 # that invalidates a recent full re-authentication proof (#4410):
 #
 #   1. logout                (config/hooks/logout.rb, before_logout)
@@ -21,13 +21,13 @@
 # Sites 1 and 2 are ALSO covered by session destruction (logout destroys the
 # session; change_password :renew-rotates the sid and delete_session purges
 # every sidecar key for the old sid). Those examples therefore additionally
-# spy on RecentReauth.clear so the explicit call — the guarantee that holds
+# spy on Onetime::Session::RecentReauth.clear so the explicit call — the guarantee that holds
 # when the best-effort purge does not — is what is proven, not the purge.
 #
 # Site 3 runs against an inline Rodauth app: spec/auth.test.yaml pins
 # full.features.webauthn false, so the booted app has no webauthn routes. The
 # inline app mounts the PRODUCTION hook module (Auth::Config::Hooks::WebAuthn)
-# behind the PRODUCTION session middleware (Onetime::Session), because the
+# behind the PRODUCTION session middleware (Onetime::Session::RackStore), because the
 # proof is keyed on the Rack session id and Roda's own sessions plugin has no
 # id at all.
 #
@@ -46,7 +46,7 @@ require_relative '../../spec_helper'
 require 'rack/test'
 require 'bcrypt'
 
-RSpec.describe 'RecentReauth.clear call sites (#4420)', :full_auth_mode, type: :integration do
+RSpec.describe 'Onetime::Session::RecentReauth.clear call sites (#4420)', :full_auth_mode, type: :integration do
   include Rack::Test::Methods
   include_context 'domains enabled'
 
@@ -59,27 +59,27 @@ RSpec.describe 'RecentReauth.clear call sites (#4420)', :full_auth_mode, type: :
   end
 
   def proof_live?(sid)
-    Onetime::SessionSidecar.exists?(sid, Onetime::RecentReauth::KEY)
+    Onetime::Session::Sidecar.exists?(sid, Onetime::Session::RecentReauth::KEY)
   end
 
   # A fresh canonical-surface password proof for `account_id`, written the
   # same way the login hooks write one.
-  def seed_reauth_proof(sid, account_id, surface: Onetime::SessionSurface::CANONICAL, methods: %w[password])
-    Onetime::SessionSidecar.write(
+  def seed_reauth_proof(sid, account_id, surface: Onetime::Session::Surface::CANONICAL, methods: %w[password])
+    Onetime::Session::Sidecar.write(
       sid,
-      Onetime::RecentReauth::KEY,
+      Onetime::Session::RecentReauth::KEY,
       { 'account_id' => Integer(account_id), 'at' => Time.now.utc.to_i, 'surface' => surface, 'methods' => methods },
     )
     expect(proof_live?(sid)).to be(true), 'Precondition failed: proof was not seeded'
   end
 
-  # Record the sid of every session RecentReauth.clear is handed, AT CALL TIME.
+  # Record the sid of every session Onetime::Session::RecentReauth.clear is handed, AT CALL TIME.
   # Both events re-key the session before the example can look, so the session
   # object's id is already the rotated one by the time a have_received matcher
   # would inspect it.
   def spy_on_clear
     cleared = []
-    allow(Onetime::RecentReauth).to receive(:clear).and_wrap_original do |original, session|
+    allow(Onetime::Session::RecentReauth).to receive(:clear).and_wrap_original do |original, session|
       cleared << session&.id&.public_id
       original.call(session)
     end
@@ -154,10 +154,10 @@ RSpec.describe 'RecentReauth.clear call sites (#4420)', :full_auth_mode, type: :
 
       Class.new(Roda) do
         # key/expire_after are passed explicitly, as middleware_stack.rb does:
-        # Onetime::Session's `unless defined?(DEFAULT_OPTIONS)` guard sees the
+        # Onetime::Session::RackStore's `unless defined?(DEFAULT_OPTIONS)` guard sees the
         # constant inherited from Rack::Session::Abstract::Persisted, so its
         # own defaults (key 'onetime.session', 24h) never install.
-        use Onetime::Session, secret: SecureRandom.hex(64), secure: false, key: 'onetime.session', expire_after: 86_400
+        use Onetime::Session::RackStore, secret: SecureRandom.hex(64), secure: false, key: 'onetime.session', expire_after: 86_400
         plugin :json
         plugin :json_parser, content_type_regexp: %r{\Aapplication/json\b}i
         plugin :halt
@@ -201,7 +201,7 @@ RSpec.describe 'RecentReauth.clear call sites (#4420)', :full_auth_mode, type: :
       post_json('/login', login: email, password: password)
       expect(last_response.status).to eq(200), "Login failed (#{last_response.status}): #{last_response.body}"
       sid = current_sid
-      expect(sid).to match(/\A\h{64}\z/), 'Precondition failed: no Onetime::Session cookie'
+      expect(sid).to match(/\A\h{64}\z/), 'Precondition failed: no Onetime::Session::RackStore cookie'
 
       # Seeded AFTER login so the session was established without a pending
       # second factor; the remove route only needs the row to exist now.
@@ -243,7 +243,7 @@ RSpec.describe 'RecentReauth.clear call sites (#4420)', :full_auth_mode, type: :
         skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if initiate_sso_connect == 404
 
         sid = current_sid
-        expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(true),
+        expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(true),
           'Connect initiation must set the intent sidecar key'
         # Initiation consumed the login's proof; a NEW one recorded during the
         # IdP round trip must not survive the bind.

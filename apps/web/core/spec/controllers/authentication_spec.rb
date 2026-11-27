@@ -92,7 +92,7 @@ RSpec.describe Core::Controllers::Authentication do
       before do
         logic = instance_double(Core::Logic::Authentication::AuthenticateSession, raise_concerns: nil)
         allow(logic).to receive(:process).and_raise(
-          Onetime::SessionRotation::Incomplete, 'session id rotation incomplete (marker_not_written); login refused'
+          Onetime::Session::Rotation::Incomplete, 'session id rotation incomplete (marker_not_written); login refused'
         )
         allow(Core::Logic::Authentication::AuthenticateSession).to receive(:new).and_return(logic)
         allow(req).to receive_messages(

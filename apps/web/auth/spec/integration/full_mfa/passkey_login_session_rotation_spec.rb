@@ -15,7 +15,7 @@
 # (apps/web/auth/config/base.rb). This example registers a passkey, then
 # signs in with it alone from an anonymous session already stored under the
 # browser's cookie, and checks the outcome: the signed-in session lives under
-# a new id, the old id is ended (blob gone, SessionEnded marker set), and the
+# a new id, the old id is ended (blob gone, Onetime::Session::Ended marker set), and the
 # old cookie is not signed in.
 #
 # The ceremony is the real one: support/webauthn_flow_helper.rb registers the
@@ -57,7 +57,7 @@ RSpec.describe 'Passkey sign-in starts a new session id (#4466)', :full_auth_mod
 
   def blob_for(sid)
     key = store.find_key(db, sid)
-    key && store.load_data(db, key, codec: Onetime::SessionCodec.from_config)
+    key && store.load_data(db, key, codec: Onetime::Session::Codec.from_config)
   end
 
   # GET /api/account/ (an Otto sessionauth route) for the given cookie on the
@@ -113,7 +113,7 @@ RSpec.describe 'Passkey sign-in starts a new session id (#4466)', :full_auth_mod
     expect(new_sid).not_to be_nil
     expect(new_sid).not_to eq(old_sid)
     expect(store.find_key(db, old_sid)).to be_nil
-    expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+    expect(Onetime::Session::Ended.ended?(old_sid)).to be(true)
 
     blob = blob_for(new_sid)
     expect(blob).to include('authenticated' => true, 'account_id' => account_id, 'external_id' => extid)

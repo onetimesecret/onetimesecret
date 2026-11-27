@@ -14,13 +14,9 @@ require 'rack'
 require_relative '../support/test_helpers'
 
 require 'onetime'
-require 'onetime/session'
+require 'onetime/session/rack_store'
 
 OT.boot! :test, false
-
-Session = Onetime::Session
-
-
 
 # Helper class for mocking Rack requests
 class MockRequest
@@ -60,20 +56,20 @@ end
   expire_after: 3600,
   namespace: 'testsession'
 }
-@session = Session.new(@app, @session_opts)
+@session = Onetime::Session::RackStore.new(@app, @session_opts)
 
 # Sidecar (#3858) fixtures: a middleware instance on the DEFAULT 'session'
 # namespace, because the sidecar TTL clamp probes the blob at 'session:<sid>'
 # (sidecar keys are ALWAYS sidecar:<sid>:<field>, whatever the blob
 # namespace — a blob on any other namespace is invisible to the clamp). The codec is built from the same secret so seeded envelopes
 # verify against the middleware's own codec.
-@sidecar_session = Session.new(@app, {
+@sidecar_session = Onetime::Session::RackStore.new(@app, {
   secret: @secret,
   key: 'test.session',
   expire_after: 3600,
   namespace: 'session',
 })
-@try_codec = Onetime::SessionCodec.new(@secret)
+@try_codec = Onetime::Session::Codec.new(@secret)
 DB = Familia.dbclient
 
 # Helper method to access private methods for testing
@@ -83,9 +79,9 @@ end
 
 ## Session initializes using site secret fallback when secret not provided
 begin
-  session = Session.new(@app, { key: 'test' })
+  session = Onetime::Session::RackStore.new(@app, { key: 'test' })
   # Falls back to site secret in test config, so this should succeed
-  session.is_a?(Session)
+  session.is_a?(Onetime::Session::RackStore)
 rescue ArgumentError => e
   # Only fails if site secret is also not available
   false
@@ -93,8 +89,8 @@ end
 #=> true
 
 ## Session initializes successfully with secret
-session = Session.new(@app, @session_opts)
-session.is_a?(Session)
+session = Onetime::Session::RackStore.new(@app, @session_opts)
+session.is_a?(Onetime::Session::RackStore)
 #=> true
 
 ## Generate secure session ID with correct format (wrapped in SessionId)
@@ -309,8 +305,8 @@ result == false
 #=> true
 
 ## Session without redis_uri still initializes
-session_no_redis = Session.new(@app, { secret: @secret })
-session_no_redis.is_a?(Session)
+session_no_redis = Onetime::Session::RackStore.new(@app, { secret: @secret })
+session_no_redis.is_a?(Onetime::Session::RackStore)
 #=> true
 
 # ---- Per-value sidecar integration (#3858) ----------------------------
@@ -356,7 +352,7 @@ found_sid, found_data = call_private_method(@sidecar_session, :find_session, @sc
 ## of all gated routes indefinitely
 @sw_sid = SecureRandom.hex(32)
 DB.set("session:#{@sw_sid}", @try_codec.encode({ 'account_id' => 1, 'awaiting_mfa' => false }))
-Onetime::SessionSidecar.write(@sw_sid, 'awaiting_mfa', true, codec: @try_codec)
+Onetime::Session::Sidecar.write(@sw_sid, 'awaiting_mfa', true, codec: @try_codec)
 @sw_req = MockRequestWithEnv.new
 _sw_sid, @sw_data = call_private_method(@sidecar_session, :find_session, @sw_req, @sw_sid)
 @sw_data['awaiting_mfa']
@@ -376,7 +372,7 @@ call_private_method(@sidecar_session, :write_session, @sw_req, @sw_sid, @sw_data
 ## presents as {} even while sidecar keys still exist — they are inert until
 ## purged or TTL-expired
 @bm_sid = SecureRandom.hex(32)
-Onetime::SessionSidecar.write(@bm_sid, 'awaiting_mfa', true, codec: @try_codec)
+Onetime::Session::Sidecar.write(@bm_sid, 'awaiting_mfa', true, codec: @try_codec)
 _bm_sid, bm_data = call_private_method(@sidecar_session, :find_session, MockRequestWithEnv.new, @bm_sid)
 [bm_data, DB.exists("sidecar:#{@bm_sid}:awaiting_mfa")]
 #=> [{}, 1]
@@ -416,8 +412,8 @@ unk_sid, unk_data = call_private_method(@sidecar_session, :find_session, MockReq
 ## gone — the purge is unconditional, not gated on the blob still existing (the
 ## pre-#4391 router-level behavior). Seed a sidecar for a fresh sid with NO
 ## blob, then delete_session must still DEL it.
-@orphan_sid = SecureRandom.hex(32) # 64 hex chars — satisfies SessionSidecar::SID_FORMAT
-Onetime::SessionSidecar.write(@orphan_sid, 'domain_context', { 'host' => 'x' }, codec: @try_codec)
+@orphan_sid = SecureRandom.hex(32) # 64 hex chars — satisfies Onetime::Session::Sidecar::SID_FORMAT
+Onetime::Session::Sidecar.write(@orphan_sid, 'domain_context', { 'host' => 'x' }, codec: @try_codec)
 before = DB.exists("sidecar:#{@orphan_sid}:domain_context")
 call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @orphan_sid, {})
 [before, DB.exists("session:#{@orphan_sid}"), DB.exists("sidecar:#{@orphan_sid}:domain_context")]
@@ -459,8 +455,8 @@ _psid, @polled_data = call_private_method(@sidecar_session, :find_session, MockR
 
 ## a request a session gate REFUSED keeps the remaining TTL too: a rejected
 ## request cannot revive or extend the session it was refused under
-@refused_verdict = Onetime::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
-@refused_req = MockRequestWithEnv.new({}, { Onetime::CustomerSessionEvaluator::ENV_KEY => @refused_verdict })
+@refused_verdict = Onetime::Session::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
+@refused_req = MockRequestWithEnv.new({}, { Onetime::Session::CustomerSessionEvaluator::ENV_KEY => @refused_verdict })
 DB.expire("session:#{@ttl_sid}", 300)
 call_private_method(@sidecar_session, :write_session, @refused_req, @ttl_sid, @ttl_data, {})
 DB.ttl("session:#{@ttl_sid}") <= 300
@@ -468,8 +464,8 @@ DB.ttl("session:#{@ttl_sid}") <= 300
 
 ## one refused because verification was UNAVAILABLE likewise: an outage cannot
 ## hand back a fresh deadline
-@outage_verdict = Onetime::CustomerSessionEvaluator::Verdict.new(status: :unavailable, reason: :active_session_unavailable)
-@outage_req = MockRequestWithEnv.new({}, { Onetime::CustomerSessionEvaluator::ENV_KEY => @outage_verdict })
+@outage_verdict = Onetime::Session::CustomerSessionEvaluator::Verdict.new(status: :unavailable, reason: :active_session_unavailable)
+@outage_req = MockRequestWithEnv.new({}, { Onetime::Session::CustomerSessionEvaluator::ENV_KEY => @outage_verdict })
 call_private_method(@sidecar_session, :write_session, @outage_req, @ttl_sid, @ttl_data, {})
 DB.ttl("session:#{@ttl_sid}") <= 300
 #=> true
@@ -514,7 +510,7 @@ class SessionLogCapture
   end
 end
 @capture     = SessionLogCapture.new
-@log_session = Session.new(@app, { secret: @secret, key: 'test.session', expire_after: 3600, namespace: 'session' })
+@log_session = Onetime::Session::RackStore.new(@app, { secret: @secret, key: 'test.session', expire_after: 3600, namespace: 'session' })
 capture      = @capture
 @log_session.define_singleton_method(:session_logger) { capture }
 @log_sid = SecureRandom.hex(32)
@@ -534,6 +530,6 @@ call_private_method(@log_session, :delete_session, MockRequestWithEnv.new, @log_
 # Cleanup: sidecar fixtures (the TTL clamp would reap them anyway)
 [@sc_sid, @sw_sid, @bm_sid, @orphan_sid, @ttl_sid, @new_sid, @log_sid].compact.each do |sid|
   DB.del("session:#{sid}")
-  Onetime::SessionSidecar.purge(sid)
+  Onetime::Session::Sidecar.purge(sid)
 end
 # Note: Redis TTL will automatically clean up test sessions

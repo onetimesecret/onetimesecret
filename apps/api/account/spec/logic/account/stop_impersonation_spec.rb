@@ -41,7 +41,7 @@ RSpec.describe AccountAPI::Logic::Account::StopImpersonation do
       'target_email' => 'alice@example.com',
       'reason' => 'ticket #123',
       'started_at' => now,
-      'expires_at' => now + Onetime::SessionImpersonation::TTL,
+      'expires_at' => now + Onetime::Session::Impersonation::TTL,
     }
   end
 
@@ -50,7 +50,7 @@ RSpec.describe AccountAPI::Logic::Account::StopImpersonation do
     allow(Onetime::ColonelAuditEvent).to receive(:record)
     allow(principal).to receive(:role?).with('colonel').and_return(true)
     allow(Onetime::Customer).to receive(:load_by_extid_or_email).with('ur_colonel').and_return(principal)
-    session[Onetime::SessionImpersonation::SESSION_KEY] = marker
+    session[Onetime::Session::Impersonation::SESSION_KEY] = marker
   end
 
   def logic
@@ -74,7 +74,7 @@ RSpec.describe AccountAPI::Logic::Account::StopImpersonation do
       subject.raise_concerns
       subject.process
 
-      expect(session).not_to have_key(Onetime::SessionImpersonation::SESSION_KEY)
+      expect(session).not_to have_key(Onetime::Session::Impersonation::SESSION_KEY)
     end
 
     # has_role? answers from this cache without loading a Customer.
@@ -101,7 +101,7 @@ RSpec.describe AccountAPI::Logic::Account::StopImpersonation do
 
   describe '404, not 403' do
     it 'hides the endpoint from a session with no marker' do
-      session.delete(Onetime::SessionImpersonation::SESSION_KEY)
+      session.delete(Onetime::Session::Impersonation::SESSION_KEY)
 
       expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
     end
@@ -132,7 +132,7 @@ RSpec.describe AccountAPI::Logic::Account::StopImpersonation do
 
     # An expired marker is ended (and audited) by the read itself, then 404s.
     it 'hides the endpoint once the marker has expired' do
-      allow(Familia).to receive(:now).and_return(now + Onetime::SessionImpersonation::TTL + 1)
+      allow(Familia).to receive(:now).and_return(now + Onetime::Session::Impersonation::TTL + 1)
 
       expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(

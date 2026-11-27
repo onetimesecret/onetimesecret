@@ -161,13 +161,13 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
 
   # The plain (64-hex) session id behind the current Rack::Test cookie jar —
   # the sid the sidecar keys are derived from. The cookie value IS the sid
-  # (Onetime::Session stores it unencrypted; only the blob is ciphered).
+  # (Onetime::Session::RackStore stores it unencrypted; only the blob is ciphered).
   def current_sid
     rack_mock_session.cookie_jar['onetime.session']
   end
 
   def intent_live?(sid)
-    Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')
+    Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')
   end
 
   # The recent-full-re-authentication proof (#4410) the request phase consumes
@@ -175,20 +175,20 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # happy-path scenarios above pass the gate on the login itself; the #4411
   # scenarios below remove or replace it to drive each refusal.
   def reauth_proof_live?(sid)
-    Onetime::SessionSidecar.exists?(sid, 'recent_reauth')
+    Onetime::Session::Sidecar.exists?(sid, 'recent_reauth')
   end
 
   def clear_reauth_proof(sid)
-    Onetime::SessionSidecar.delete(sid, 'recent_reauth')
+    Onetime::Session::Sidecar.delete(sid, 'recent_reauth')
   end
 
   # Overwrite the proof with a hand-built payload. Defaults are a fresh,
   # canonical-surface password ceremony for `account_id`; each scenario varies
   # exactly one binding.
-  def seed_reauth_proof(sid, account_id, at: Time.now.utc.to_i, surface: Onetime::SessionSurface::CANONICAL,
+  def seed_reauth_proof(sid, account_id, at: Time.now.utc.to_i, surface: Onetime::Session::Surface::CANONICAL,
                         methods: %w[password])
     clear_reauth_proof(sid)
-    Onetime::SessionSidecar.write(
+    Onetime::Session::Sidecar.write(
       sid,
       'recent_reauth',
       { 'account_id' => Integer(account_id), 'at' => at, 'surface' => surface, 'methods' => methods },
@@ -212,7 +212,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
     dbkey = Onetime::Operations::Sessions::Store.find_key(db, sid)
     raise "No session blob stored for sid #{sid.inspect}" unless dbkey
 
-    Onetime::Operations::Sessions::Store.load_data(db, dbkey, codec: Onetime::SessionCodec.from_config)
+    Onetime::Operations::Sessions::Store.load_data(db, dbkey, codec: Onetime::Session::Codec.from_config)
   end
 
   def stash_in_session_blob(sid, key, value)
@@ -220,7 +220,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
     dbkey     = Onetime::Operations::Sessions::Store.find_key(db, sid)
     raise "No session blob stored for sid #{sid.inspect}" unless dbkey
 
-    codec     = Onetime::SessionCodec.from_config
+    codec     = Onetime::Session::Codec.from_config
     data      = Onetime::Operations::Sessions::Store.load_data(db, dbkey, codec: codec)
     data[key] = value
     db.set(dbkey, codec.encode(data), keepttl: true)
@@ -654,7 +654,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       setup_mock_auth(email: other_email, uid: uid)
       begin
         # Initiate a connect — the intent goes live as a sidecar key whose TTL
-        # is bounded to one IdP round-trip (SessionSidecar::FIELDS, 300s).
+        # is bounded to one IdP round-trip (Onetime::Session::Sidecar::FIELDS, 300s).
         skip 'OmniAuth route not registered' if initiate_sso_connect == 404
 
         sid = current_sid
@@ -666,7 +666,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
 
         # ABANDON: the connect's callback never runs. Model the TTL firing by
         # removing the key directly (same observable state as expiry).
-        Onetime::SessionSidecar.delete(sid, 'sso_connect_intent')
+        Onetime::Session::Sidecar.delete(sid, 'sso_connect_intent')
 
         # A later plain sign-in callback on the SAME authenticated session must
         # find nothing to consume and fall through to the H-3 refusal.
@@ -974,7 +974,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       expect(initiate_sso_connect(host: host)).to eq(302)
 
       sid    = current_sid
-      intent = Onetime::SessionSidecar.read(sid, 'sso_connect_intent')
+      intent = Onetime::Session::Sidecar.read(sid, 'sso_connect_intent')
       expect(intent).to include(
         'account_id' => actor_id,
         'surface' => { 'kind' => 'custom', 'id' => @fallback_tenant[:domain].identifier },
@@ -1018,7 +1018,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   #
   # An authenticated session plus connect=1 is intent, not proof. Attaching a
   # login identity changes the account's authenticators, so the request phase
-  # mints an intent ONLY after Onetime::RecentReauth.satisfied? consumes a
+  # mints an intent ONLY after Onetime::Session::RecentReauth.satisfied? consumes a
   # fresh proof for this account on this surface. Each example below removes
   # or replaces the proof the password login recorded, and asserts the same
   # fail-closed outcome: no intent, a warn event, a redirect to /reauth that
@@ -1096,14 +1096,14 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
 
       # Abandon it (model the IdP round-trip never completing), then try again
       # without re-authenticating: the spent proof admits nothing.
-      Onetime::SessionSidecar.delete(sid, 'sso_connect_intent')
+      Onetime::Session::Sidecar.delete(sid, 'sso_connect_intent')
 
       expect_initiation_refused(sid)
     end
 
     it 'refuses a proof older than CONNECT_MAX_AGE (stale)' do
       sid = current_sid
-      seed_reauth_proof(sid, actor_id, at: Time.now.utc.to_i - Onetime::RecentReauth::CONNECT_MAX_AGE - 1)
+      seed_reauth_proof(sid, actor_id, at: Time.now.utc.to_i - Onetime::Session::RecentReauth::CONNECT_MAX_AGE - 1)
 
       expect_initiation_refused(sid)
     end
@@ -1191,7 +1191,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       # The proof is recorded under a new session id (#4466).
       expect(current_sid).not_to eq(sid)
       sid = current_sid
-      expect(Onetime::SessionSidecar.read(sid, Onetime::RecentReauth::KEY)).to include(
+      expect(Onetime::Session::Sidecar.read(sid, Onetime::Session::RecentReauth::KEY)).to include(
         'account_id' => account_id,
         'surface' => { 'kind' => 'custom', 'id' => tenant[:domain].identifier },
         'methods' => %w[password],
@@ -1220,7 +1220,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         # The callback ends in Rodauth's sign-in (login("omniauth")), which
         # starts a new session id and ends this one (#4466).
         expect(current_sid).not_to eq(sid)
-        expect(Onetime::SessionEnded.ended?(sid)).to be(true)
+        expect(Onetime::Session::Ended.ended?(sid)).to be(true)
       ensure
         teardown_mock_auth
       end
@@ -1251,7 +1251,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # authenticated_by reader is stubbed, on the one Rodauth instance serving
   # the login POST, so login_session, the surface stamp, the active-session
   # join and after_login (hooks/login.rb) all run unchanged. after_login's
-  # LOCAL_PRIMARIES guard then skips the proof, and RecentReauth.record
+  # LOCAL_PRIMARIES guard then skips the proof, and Onetime::Session::RecentReauth.record
   # itself refuses the same primary — both guards are pinned.
 
   describe 'tenant-host sessions that cannot mint an intent (#3849)', :oauth_flow do
@@ -1326,16 +1326,16 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       # The recorder refuses the same primary on its own, against this
       # request's real session and surface.
       session = last_request.env['rack.session']
-      expect(Onetime::SessionSurface.for_env(last_request.env))
+      expect(Onetime::Session::Surface.for_env(last_request.env))
         .to eq('kind' => 'custom', 'id' => @tenant[:domain].identifier)
-      expect(Onetime::RecentReauth.record(session, last_request.env, account_id: account_id, methods: %w[email_auth]))
+      expect(Onetime::Session::RecentReauth.record(session, last_request.env, account_id: account_id, methods: %w[email_auth]))
         .to be_nil
-      expect(Onetime::SessionSidecar.read(sid, Onetime::RecentReauth::KEY)).to be_nil
+      expect(Onetime::Session::Sidecar.read(sid, Onetime::Session::RecentReauth::KEY)).to be_nil
 
       expect(initiate_sso_connect(host: host)).to eq(302)
       expect_reauth_required_redirect
       expect(intent_live?(sid)).to be(false)
-      expect(Onetime::SessionSidecar.read(sid, Onetime::RecentReauth::KEY)).to be_nil
+      expect(Onetime::Session::Sidecar.read(sid, Onetime::Session::RecentReauth::KEY)).to be_nil
       expect(last_request.env['rack.session']['account_id']).to eq(account_id)
       expect(Auth::Logging).to have_received(:log_auth_event)
         .with(:omniauth_connect_reauth_required, hash_including(provider: 'oidc', account_id: account_id))
@@ -1622,7 +1622,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       )
       sibling.save
       identities.insert(tuple.merge(account_id: other_id))
-      Onetime::SessionSidecar.write(@connect_sid, 'sso_connect_intent', {
+      Onetime::Session::Sidecar.write(@connect_sid, 'sso_connect_intent', {
         'account_id' => actor_id, 'at' => Time.now.utc.to_i,
         'surface' => { 'kind' => 'custom', 'id' => sibling.identifier },
       })
@@ -1672,7 +1672,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
           'at' => Time.now.utc.to_i,
           'surface' => { 'kind' => 'custom', 'id' => sibling.identifier },
         }
-        Onetime::SessionSidecar.write(@connect_sid, 'sso_connect_intent', forged_intent)
+        Onetime::Session::Sidecar.write(@connect_sid, 'sso_connect_intent', forged_intent)
       when 'tenant_connect_prerequisites_incomplete'
         # The kill switch is open in production; close it for this row only.
         allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(false)
@@ -1905,9 +1905,9 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
 
     %w[absent mismatched].each do |state|
       it "takes the ordinary tenant sign-in path for #{state} intent" do
-        Onetime::SessionSidecar.delete(@connect_sid, 'sso_connect_intent')
+        Onetime::Session::Sidecar.delete(@connect_sid, 'sso_connect_intent')
         if state == 'mismatched'
-          Onetime::SessionSidecar.write(@connect_sid, 'sso_connect_intent', {
+          Onetime::Session::Sidecar.write(@connect_sid, 'sso_connect_intent', {
             'account_id' => other_id, 'at' => Time.now.utc.to_i,
             'surface' => { 'kind' => 'custom', 'id' => @tenant[:domain].identifier },
           })
@@ -2030,7 +2030,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
 
     it 'refuses an intent whose recorded surface differs from the callback surface' do
       sid = current_sid
-      Onetime::SessionSidecar.write(
+      Onetime::Session::Sidecar.write(
         sid,
         'sso_connect_intent',
         {
@@ -2059,7 +2059,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
 
     it 'treats a pre-#4411 bare account-id intent as absent (never binds)' do
       sid = current_sid
-      Onetime::SessionSidecar.write(sid, 'sso_connect_intent', actor_id)
+      Onetime::Session::Sidecar.write(sid, 'sso_connect_intent', actor_id)
 
       clear_body_headers
       post '/auth/sso/oidc/callback'

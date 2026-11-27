@@ -2,53 +2,21 @@
 #
 # frozen_string_literal: true
 
+require_relative '../session'
 require_relative 'customer_session_evaluator'
 
 module Onetime
-  # Stable, machine-readable codes for authentication refusals (#4462, #4469).
+  # Stable API refusal `code` (the reason verbatim) and `code_scope` (how to
+  # handle unknown codes). Customer-session failures trigger reconciliation;
+  # verification outages are not sign-outs. Admin expiry leaves the customer
+  # session intact. The caller that submitted a credential owns its refusal.
   #
-  # The wire `code` is the refusal reason verbatim: there is one vocabulary and
-  # no translation table that can drift from it. `code_scope` names the class
-  # of failure so a client can act on a code it has never seen:
-  #
-  #   customer_session          The customer session was examined and is not
-  #                             (or is no longer) an authenticated one. The
-  #                             client reconciles against the server.
-  #   verification_unavailable  The session could not be verified (datastore
-  #                             outage). Not a verdict about the session; the
-  #                             client must not treat it as a sign-out.
-  #   admin_session             The admin-only idle/absolute timeout. The
-  #                             customer session itself is untouched.
-  #   credential                A credential the request presented was
-  #                             examined and rejected: a login (password,
-  #                             passkey, second factor), a re-authentication,
-  #                             or an API key. Not a statement about the
-  #                             customer session, which may be perfectly
-  #                             valid; the form or client that sent the
-  #                             credential owns the message (#4469).
-  #
-  # The session reasons are owned by Onetime::CustomerSessionEvaluator::REASONS
-  # and are what the session strategies and the /auth router stash. The
-  # credential reasons are listed in CREDENTIAL_REASON_SCOPES below and are
-  # stashed by whatever code rejects the credential: the Basic auth strategies
-  # (an API key), the Rodauth seam (Auth::CredentialFailureCode), the /auth
-  # re-authentication and SSO-linking routes, and the simple-mode sign-in
-  # controller. They are deliberately no more granular than the message each
-  # of those paths already returns, so a code never distinguishes an unknown
-  # account from a wrong password or an unverified account.
-  #
-  # A 401 without a `code` still makes no statement about the customer
-  # session. A 403 carries the pair only when it is a credential refusal
-  # (Rodauth answers a locked-out or unverified account with 403); a session
-  # reason is never rendered onto a 403.
-  #
-  # Both fields are additive: redirects and the existing `error`, `message`,
-  # `error_type`, `timestamp`, `success` fields are unchanged. So is every
-  # status but one: a JSON refusal in the `verification_unavailable` scope
-  # leaves the middleware as a 503 with `Retry-After`, because it is an
-  # outage and not a verdict (Onetime::Middleware::SessionFailureCode, "The
-  # 503"). Every annotated 401 also carries a `WWW-Authenticate` challenge.
-  module SessionFailureCode
+  # Credential codes must not distinguish unknown accounts, wrong passwords,
+  # or unverified accounts. A bare 401 makes no session claim. Annotated 401s
+  # carry a challenge; only credential refusals annotate 403s. The middleware
+  # maps JSON verification outages to 503 with `Retry-After`. The fields are
+  # additive and do not change redirects.
+  module Session::FailureCode
     # Rack env key written by the code that refuses a request, read by
     # Onetime::Middleware::SessionFailureCode. Holds the reason Symbol.
     ENV_KEY = 'onetime.session_failure_reason'

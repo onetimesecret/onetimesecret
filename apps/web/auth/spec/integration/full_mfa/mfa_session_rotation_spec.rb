@@ -4,12 +4,12 @@
 
 # Session-id rotation on second-factor completion (#4466,
 # RISK-2026-09-19-02). apps/web/auth/config/hooks/two_factor.rb calls
-# Onetime::SessionRotation from after_two_factor_authentication: the
-# MFA-pending id is ended the way a logout ends it (SessionEnded marker, blob,
+# Onetime::Session::Rotation from after_two_factor_authentication: the
+# MFA-pending id is ended the way a logout ends it (Onetime::Session::Ended marker, blob,
 # sidecar keys, metadata record) and the session data is written back under
 # a fresh id in the same request.
 #
-# Asserted here, against the real /auth routes and the real Onetime::Session
+# Asserted here, against the real /auth routes and the real Onetime::Session::RackStore
 # store:
 #   - the id before and after the second factor differ;
 #   - the pending id's blob is gone, its marker is set, its sidecar keys are
@@ -52,7 +52,7 @@ RSpec.describe 'Session-id rotation on second-factor completion (#4466)', :full_
     key = blob_key(sid)
     return nil if key.nil?
 
-    Onetime::Operations::Sessions::Store.load_data(Familia.dbclient, key, codec: Onetime::SessionCodec.from_config)
+    Onetime::Operations::Sessions::Store.load_data(Familia.dbclient, key, codec: Onetime::Session::Codec.from_config)
   end
 
   def active_session_rows
@@ -83,10 +83,10 @@ RSpec.describe 'Session-id rotation on second-factor completion (#4466)', :full_
 
     pending_sid  = current_sid
     pending_blob = blob_for(pending_sid)
-    expect(pending_sid).to match(Onetime::SessionSidecar::SID_FORMAT)
+    expect(pending_sid).to match(Onetime::Session::Sidecar::SID_FORMAT)
     expect(pending_blob).to include('account_id' => account_id)
     expect(pending_blob['authenticated']).not_to be(true)
-    expect(Onetime::SessionSidecar.exists?(pending_sid, 'awaiting_mfa')).to be(true)
+    expect(Onetime::Session::Sidecar.exists?(pending_sid, 'awaiting_mfa')).to be(true)
 
     join_key = pending_blob.fetch('active_session_id_hmac')
     expect(active_session_rows.where(session_id: join_key).count).to eq(1)
@@ -98,20 +98,20 @@ RSpec.describe 'Session-id rotation on second-factor completion (#4466)', :full_
     # A merged, externalized sidecar value on the pending id. It is overlaid
     # into the session hash on the read, so it must cross with the hash and
     # be re-externalized under the new id by the commit.
-    expect(Onetime::SessionSidecar.write(pending_sid, 'domain_context', { 'domain' => 'rotation.example' })).to be_truthy
+    expect(Onetime::Session::Sidecar.write(pending_sid, 'domain_context', { 'domain' => 'rotation.example' })).to be_truthy
 
     otp_step
     authenticated_sid = current_sid
 
     # A different id.
-    expect(authenticated_sid).to match(Onetime::SessionSidecar::SID_FORMAT)
+    expect(authenticated_sid).to match(Onetime::Session::Sidecar::SID_FORMAT)
     expect(authenticated_sid).not_to eq(pending_sid)
 
     # The pending id is ended: blob gone, marker set, sidecar keys purged.
     expect(blob_key(pending_sid)).to be_nil
-    expect(Onetime::SessionEnded.ended?(pending_sid)).to be(true)
-    expect(Onetime::SessionSidecar.exists?(pending_sid, 'awaiting_mfa')).to be(false)
-    expect(Onetime::SessionSidecar.exists?(pending_sid, 'domain_context')).to be(false)
+    expect(Onetime::Session::Ended.ended?(pending_sid)).to be(true)
+    expect(Onetime::Session::Sidecar.exists?(pending_sid, 'awaiting_mfa')).to be(false)
+    expect(Onetime::Session::Sidecar.exists?(pending_sid, 'domain_context')).to be(false)
     expect(Onetime::SessionMetadata.load(pending_sid)).to be_nil
 
     # The account data survived, under the new id.
@@ -122,7 +122,7 @@ RSpec.describe 'Session-id rotation on second-factor completion (#4466)', :full_
       'email' => email,
       'active_session_id_hmac' => join_key,
       'csrf' => pending_blob.fetch('csrf'),
-      Onetime::SessionSurface::KEY => pending_blob.fetch(Onetime::SessionSurface::KEY),
+      Onetime::Session::Surface::KEY => pending_blob.fetch(Onetime::Session::Surface::KEY),
     )
     expect(blob['external_id']).not_to be_nil
     expect(blob['authenticated_at']).to be_a(Integer)
@@ -139,14 +139,14 @@ RSpec.describe 'Session-id rotation on second-factor completion (#4466)', :full_
 
     # Sidecar values under the new id: the carried externalized field, the
     # proof the hook recorded after rotating, and no pending flag.
-    expect(Onetime::SessionSidecar.read(authenticated_sid, 'domain_context')).to eq('domain' => 'rotation.example')
-    expect(Onetime::SessionSidecar.exists?(authenticated_sid, 'awaiting_mfa')).to be(false)
-    proof = Onetime::SessionSidecar.read(authenticated_sid, Onetime::RecentReauth::KEY)
+    expect(Onetime::Session::Sidecar.read(authenticated_sid, 'domain_context')).to eq('domain' => 'rotation.example')
+    expect(Onetime::Session::Sidecar.exists?(authenticated_sid, 'awaiting_mfa')).to be(false)
+    proof = Onetime::Session::Sidecar.read(authenticated_sid, Onetime::Session::RecentReauth::KEY)
     expect(proof).to include('account_id' => account_id)
     expect(Array(proof['methods']).first).to eq('password')
 
     # ADR-046: the epoch is derived from the id, so the stream restarts.
-    expect(Onetime::SnapshotOrdering.epoch_for(authenticated_sid)).not_to eq(Onetime::SnapshotOrdering.epoch_for(pending_sid))
+    expect(Onetime::Session::SnapshotOrdering.epoch_for(authenticated_sid)).not_to eq(Onetime::Session::SnapshotOrdering.epoch_for(pending_sid))
 
     # The new id is a working authenticated session.
     expect(account_read.status).to eq(200), last_response.body
@@ -169,13 +169,13 @@ RSpec.describe 'Session-id rotation on second-factor completion (#4466)', :full_
   it 'refuses the login and leaves nothing signed in when the old id cannot be ended', :aggregate_failures do
     password_step
     pending_sid = current_sid
-    expect(Onetime::SessionSidecar.exists?(pending_sid, 'awaiting_mfa')).to be(true)
+    expect(Onetime::Session::Sidecar.exists?(pending_sid, 'awaiting_mfa')).to be(true)
 
-    allow(Onetime::SessionEnded).to receive(:mark).and_return(false)
+    allow(Onetime::Session::Ended).to receive(:mark).and_return(false)
     csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(@secret).now)
     expect(last_response.status).not_to eq(200)
     expect(last_response.body).not_to include(email)
-    allow(Onetime::SessionEnded).to receive(:mark).and_call_original
+    allow(Onetime::Session::Ended).to receive(:mark).and_call_original
 
     # The pending id cannot reach a login-required route, whatever survived
     # under it, and the browser's current cookie is not authenticated either.
@@ -185,7 +185,7 @@ RSpec.describe 'Session-id rotation on second-factor completion (#4466)', :full_
 
     surviving = blob_for(pending_sid)
     expect(surviving.nil? || surviving['authenticated'] != true).to be(true)
-    expect(surviving.nil? || surviving['account_id'].nil? || Onetime::SessionSidecar.exists?(pending_sid, 'awaiting_mfa')).to be(true)
+    expect(surviving.nil? || surviving['account_id'].nil? || Onetime::Session::Sidecar.exists?(pending_sid, 'awaiting_mfa')).to be(true)
 
     clear_cookies
     fetch_csrf_token

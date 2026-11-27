@@ -124,7 +124,7 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
           'rack.session' => {
             'authenticated' => true,
             # #4409: hand-seeded sessions need the surface marker the login hooks record.
-            Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+            Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
             'awaiting_mfa' => true,
             'external_id' => test_customer.extid,
             'email' => test_customer.email,
@@ -171,7 +171,7 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
         {
           'rack.session' => {
             'authenticated' => true,
-            Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+            Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
           },
           'REMOTE_ADDR' => '127.0.0.1',
           'onetime.domain_strategy' => :canonical,
@@ -194,7 +194,7 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
         {
           'rack.session' => {
             'authenticated' => true,
-            Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+            Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
             'external_id' => "nonexistent_#{SecureRandom.uuid}",
             'email' => 'nobody@example.com',
           },
@@ -226,7 +226,7 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
       def env_with_authenticated_at(value)
         session = {
           'authenticated' => true,
-          Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+          Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
           'external_id' => test_customer.extid,
           'email' => test_customer.email,
         }

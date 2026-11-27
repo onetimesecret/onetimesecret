@@ -83,7 +83,7 @@ module Auth::Config::Hooks
         # the (provider, issuer, uid) identity while a second factor is pending
         # (SSO logins are MFA-exempt — a pre-2FA bind would be an MFA-bypassing
         # login path), so it stashes the authorized bind in a short-TTL
-        # SessionSidecar key bound to the partial MFA session's sid (#3858).
+        # Onetime::Session::Sidecar key bound to the partial MFA session's sid (#3858).
         # The second factor has now succeeded — finish it. Single-use (atomic
         # GETDEL at the store), account-bound, and audit-and-skip on
         # conflict/mismatch: MFA already succeeded, so nothing here may fail
@@ -112,14 +112,14 @@ module Auth::Config::Hooks
         # id at the password step (login_session -> clear_session ->
         # session.destroy, config/base.rb) and not here; the second factor is
         # the privilege transition that turns an MFA-pending session into an
-        # authenticated one, so it gets a fresh id too. Onetime::SessionRotation
-        # destroys the old id through the store (SessionEnded marker, blob,
+        # authenticated one, so it gets a fresh id too. Onetime::Session::Rotation
+        # destroys the old id through the store (Onetime::Session::Ended marker, blob,
         # sidecar keys, metadata record) and writes the session data back under
         # the new id in this request; the response sets the new cookie.
         #
         # ORDER. After the deferred SSO bind above: its stash is a sidecar key
         # bound to the OLD id and is consumed there (GETDEL). After SyncSession:
-        # the data it wrote is what crosses. Before RecentReauth.record and
+        # the data it wrote is what crosses. Before Onetime::Session::RecentReauth.record and
         # remember_me_after_two_factor below: the proof is a sidecar key and the
         # remember stamp sizes the blob, and both must belong to the NEW id.
         #
@@ -130,7 +130,7 @@ module Auth::Config::Hooks
         #     (config/features/active_sessions.rb): the row in
         #     account_active_session_keys is keyed by that digest, not by the
         #     Rack id, so the row survives and the remember stamp below finds it;
-        #   - the surface marker (Onetime::SessionSurface::KEY): login_session
+        #   - the surface marker (Onetime::Session::Surface::KEY): login_session
         #     stamped the surface the password step was served on
         #     (config/overrides/surface_binding.rb) and Auth::SessionRecheck
         #     refused a challenge replayed on another surface before this hook
@@ -161,7 +161,7 @@ module Auth::Config::Hooks
         # blob but purges the sidecars when the ended marker cannot be
         # written), and a Rodauth-logged-in blob without that key is what the
         # /auth router serves as an autologin session (Auth::SessionRecheck).
-        # Onetime::SessionRotation writes the marker before touching anything
+        # Onetime::Session::Rotation writes the marker before touching anything
         # and puts the key back if the blob survives, but the login must not
         # continue on a session it could not end either: the hash is cleared
         # (the commit then writes an anonymous session under whichever id the
@@ -172,7 +172,7 @@ module Auth::Config::Hooks
         # server-side id (a bare Hash, internal requests and some specs):
         # nothing to rotate and nothing left behind, so the login continues.
         begin
-          rotation = Onetime::SessionRotation.rotate!(session, completed: ['awaiting_mfa'])
+          rotation = Onetime::Session::Rotation.rotate!(session, completed: ['awaiting_mfa'])
           if rotation.nil?
             Auth::Logging.log_auth_event(
               :session_rotation_skipped,
@@ -188,11 +188,11 @@ module Auth::Config::Hooks
               account_id: account_id,
               reason: 'mfa_completed',
               session_id: rotation.new_sid,
-              previous_session_handle: Onetime::SessionEnded.handle_for(rotation.old_sid),
+              previous_session_handle: Onetime::Session::Ended.handle_for(rotation.old_sid),
               correlation_id: correlation_id,
             )
           else
-            raise Onetime::SessionRotation::Incomplete,
+            raise Onetime::Session::Rotation::Incomplete,
               "session id rotation incomplete (#{rotation.reason}); login refused"
           end
         rescue StandardError => ex
@@ -257,10 +257,10 @@ module Auth::Config::Hooks
         # denylist would turn an unknown primary + OTP into a false full
         # proof. (Rodauth's remember feature is not enabled, so there is no
         # remember restoration to consider here; remember-me extends the
-        # session itself, Onetime::RememberMe, lib/onetime/session/remember_me.rb.)
+        # session itself, Onetime::Session::RememberMe, lib/onetime/session/remember_me.rb.)
         primary_auth = session['auth_method']
-        if Onetime::RecentReauth::LOCAL_PRIMARIES.include?(primary_auth)
-          Onetime::RecentReauth.record(
+        if Onetime::Session::RecentReauth::LOCAL_PRIMARIES.include?(primary_auth)
+          Onetime::Session::RecentReauth.record(
             session,
             request.env,
             account_id: account_id,
@@ -333,7 +333,7 @@ module Auth::Config::Hooks
     # the session and does not renew the id.
     #
     # FAILURE: the setup is refused. The marks Rodauth just added are taken
-    # off the session, and Onetime::SessionRotation::Incomplete propagates
+    # off the session, and Onetime::Session::Rotation::Incomplete propagates
     # out of the setup transaction, which rolls back the new factor (and
     # the recovery codes added with it). Nothing else in the session is
     # removed: the user stays signed in as before the setup, unless the old
@@ -354,12 +354,12 @@ module Auth::Config::Hooks
         # Called first in after_*_setup.
         #
         # @param type [String] the factor Rodauth added: 'totp' or 'webauthn'
-        # @raise [Onetime::SessionRotation::Incomplete] when the old id could
+        # @raise [Onetime::Session::Rotation::Incomplete] when the old id could
         #   not be ended; the setup transaction rolls back
         def renew_session_id_after_factor_setup(type)
           return unless @two_factor_setup_marks_session
 
-          rotation = Onetime::SessionRotation.rotate!(session)
+          rotation = Onetime::Session::Rotation.rotate!(session)
           if rotation.nil?
             Auth::Logging.log_auth_event(
               :session_rotation_skipped,
@@ -373,11 +373,11 @@ module Auth::Config::Hooks
               level: :info,
               account_id: account_id,
               reason: "#{type}_setup",
-              session_handle: Onetime::SessionEnded.handle_for(rotation.new_sid),
-              previous_session_handle: Onetime::SessionEnded.handle_for(rotation.old_sid),
+              session_handle: Onetime::Session::Ended.handle_for(rotation.new_sid),
+              previous_session_handle: Onetime::Session::Ended.handle_for(rotation.old_sid),
             )
           else
-            raise Onetime::SessionRotation::Incomplete,
+            raise Onetime::Session::Rotation::Incomplete,
               "session id rotation incomplete (#{rotation.reason}); #{type} setup refused"
           end
         rescue StandardError => ex

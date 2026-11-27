@@ -9,7 +9,7 @@ module Onetime
       # (#4331).
       #
       # SCOPE IS THE SURFACE, NOT THE SESSION. One onetime.session cookie serves
-      # the colonel API, the tenant app and the Rodauth app (Onetime::Session is
+      # the colonel API, the tenant app and the Rodauth app (Onetime::Session::RackStore is
       # mounted once, in the universal middleware stack), so expiring the session
       # object would log a colonel out of the customer app too — and on a
       # self-hosted install the colonel often IS the only customer. Bounding the
@@ -106,7 +106,7 @@ module Onetime
         # session: set by the auth strategy when it refuses an admin request on
         # either bound, and by #admin_session_expiry_reason when it admits the
         # REAUTH_EXEMPT request past a tripped bound. Either way the request is
-        # not activity. Read by Onetime::SessionActivity.refused?
+        # not activity. Read by Onetime::Session::Activity.refused?
         # (TrackMetadata and the session blob TTL).
         EXPIRED_ENV_KEY = 'onetime.admin_session_expired'
 

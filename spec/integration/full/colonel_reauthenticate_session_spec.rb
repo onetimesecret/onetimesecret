@@ -10,7 +10,7 @@
 # proves: the password is checked through the Rodauth internal request
 # (Auth::Config.valid_login_and_password?), and the renewed session id still
 # satisfies the full-mode checks the exemption leaves in place, the
-# active-session row among them (Onetime::ActiveSessionGate).
+# active-session row among them (Onetime::Session::ActiveSessionGate).
 #
 # Shape of the scenario: the idle bound has lapsed, so a colonel GET answers
 # 401; a wrong password answers 403, leaves last_activity_at and the session
@@ -146,12 +146,12 @@ RSpec.describe 'Full-mode colonel password re-authentication (#4331)', type: :in
     new_sid = current_session_id
     expect(new_sid).not_to eq(old_sid)
     expect(session_store.find_key(db, old_sid)).to be_nil
-    expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+    expect(Onetime::Session::Ended.ended?(old_sid)).to be(true)
 
     blob = blob_for(new_sid)
     expect(blob).to include('authenticated' => true, 'external_id' => colonel.extid)
     expect(blob['authenticated_at'].to_i).to be_within(5).of(Familia.now.to_i)
-    expect(Onetime::ActiveSessionGate.verdict(blob)).to eq(:active)
+    expect(Onetime::Session::ActiveSessionGate.verdict(blob)).to eq(:active)
     expect(last_activity_at(new_sid)).to be_within(5).of(Familia.now.to_i)
 
     expect(colonel_info_status).to eq(200)

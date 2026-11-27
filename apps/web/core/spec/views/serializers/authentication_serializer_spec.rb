@@ -220,17 +220,17 @@ RSpec.describe Core::Views::AuthenticationSerializer do
       allow(described_class).to receive(:account_has_password?).and_return(true)
       allow(described_class).to receive(:password_auth_permitted?).and_return(true)
       allow(cust).to receive(:role?).with(:colonel).and_return(false)
-      Onetime::SessionImpersonation.clear_context
+      Onetime::Session::Impersonation.clear_context
     end
 
-    after { Onetime::SessionImpersonation.clear_context }
+    after { Onetime::Session::Impersonation.clear_context }
 
     it 'is nil when nothing is impersonated' do
       expect(described_class.serialize(view_vars)['impersonation']).to be_nil
     end
 
     it 'emits exactly the six contract fields when active' do
-      Fiber[Onetime::SessionImpersonation::FIBER_KEY] = context
+      Fiber[Onetime::Session::Impersonation::FIBER_KEY] = context
 
       expect(described_class.serialize(view_vars)['impersonation']).to eq(context)
     end
@@ -238,7 +238,7 @@ RSpec.describe Core::Views::AuthenticationSerializer do
     # `cust` is the TARGET during an impersonation, so gating on the role of
     # the serialized customer would suppress the banner in its only use case.
     it 'emits the block even though the serialized customer is not a colonel' do
-      Fiber[Onetime::SessionImpersonation::FIBER_KEY] = context
+      Fiber[Onetime::Session::Impersonation::FIBER_KEY] = context
 
       expect(described_class.serialize(view_vars)['authenticated']).to be(true)
       expect(described_class.serialize(view_vars)['impersonation']).not_to be_nil
@@ -320,18 +320,18 @@ RSpec.describe Core::Views::AuthenticationSerializer do
 
     before do
       allow(described_class).to receive_messages(account_has_password?: true, password_auth_permitted?: true)
-      Onetime::SessionImpersonation.clear_context
+      Onetime::Session::Impersonation.clear_context
     end
 
     def verdict(status, reason)
       identity = status == :authenticated ? { principal: cust, customer: cust } : {}
-      Onetime::CustomerSessionEvaluator::Verdict.new(status: status, reason: reason, **identity)
+      Onetime::Session::CustomerSessionEvaluator::Verdict.new(status: status, reason: reason, **identity)
     end
 
     # The view vars InitializeViewVars builds from a verdict.
     def vars_for(verdict)
       {
-        'auth_status' => Onetime::SessionAuthStatus.for_verdict(verdict),
+        'auth_status' => Onetime::Session::AuthStatus.for_verdict(verdict),
         'authenticated' => verdict.authenticated?,
         'awaiting_mfa' => verdict.mfa_pending?,
         'cust' => verdict.customer,
@@ -363,10 +363,10 @@ RSpec.describe Core::Views::AuthenticationSerializer do
     end
 
     it 'covers every evaluator status' do
-      expect(Onetime::SessionAuthStatus::BY_VERDICT_STATUS.keys)
-        .to match_array(Onetime::CustomerSessionEvaluator::STATUSES)
-      expect(Onetime::SessionAuthStatus::BY_VERDICT_STATUS.values.uniq)
-        .to match_array(Onetime::SessionAuthStatus::VALUES)
+      expect(Onetime::Session::AuthStatus::BY_VERDICT_STATUS.keys)
+        .to match_array(Onetime::Session::CustomerSessionEvaluator::STATUSES)
+      expect(Onetime::Session::AuthStatus::BY_VERDICT_STATUS.values.uniq)
+        .to match_array(Onetime::Session::AuthStatus::VALUES)
     end
 
     it 'never puts a rejection reason on the public payload' do
@@ -380,7 +380,7 @@ RSpec.describe Core::Views::AuthenticationSerializer do
       it 'reports unavailable when the raw session names a customer' do
         sess   = { 'external_id' => 'ur_alice' }
         output = described_class.serialize(
-          'auth_status' => Onetime::SessionAuthStatus.without_verdict(sess),
+          'auth_status' => Onetime::Session::AuthStatus.without_verdict(sess),
           'authenticated' => false, 'awaiting_mfa' => false, 'cust' => nil, 'sess' => sess
         )
 
@@ -391,7 +391,7 @@ RSpec.describe Core::Views::AuthenticationSerializer do
       it 'reports anonymous when it does not' do
         [nil, {}, { 'external_id' => '' }].each do |sess|
           output = described_class.serialize(
-            'auth_status' => Onetime::SessionAuthStatus.without_verdict(sess),
+            'auth_status' => Onetime::Session::AuthStatus.without_verdict(sess),
             'authenticated' => false, 'awaiting_mfa' => false, 'cust' => nil, 'sess' => sess
           )
 
@@ -401,7 +401,7 @@ RSpec.describe Core::Views::AuthenticationSerializer do
     end
 
     describe 'the projections can never disagree with the status' do
-      statuses = Onetime::SessionAuthStatus::VALUES + [nil, 'checking', 'bogus']
+      statuses = Onetime::Session::AuthStatus::VALUES + [nil, 'checking', 'bogus']
 
       statuses.product([true, false, nil], [true, false, nil], [true, false]).each do |status, authed, mfa, has_cust|
         it "auth_status=#{status.inspect} authenticated=#{authed.inspect} awaiting_mfa=#{mfa.inspect} cust=#{has_cust}" do
@@ -410,7 +410,7 @@ RSpec.describe Core::Views::AuthenticationSerializer do
             'cust' => (has_cust ? cust : nil), 'sess' => {}
           )
 
-          expect(Onetime::SessionAuthStatus::VALUES).to include(output['auth_status'])
+          expect(Onetime::Session::AuthStatus::VALUES).to include(output['auth_status'])
           expect(output['authenticated']).to be(output['auth_status'] == 'authenticated')
           expect(output['awaiting_mfa']).to be(output['auth_status'] == 'mfa_pending')
           expect(output['cust'].nil?).to be(output['auth_status'] != 'authenticated')
@@ -419,7 +419,7 @@ RSpec.describe Core::Views::AuthenticationSerializer do
           # that sent none, the legacy flag), the flag, AND the customer.
           granted = output['auth_status'] == 'authenticated'
           expect(granted).to be(false) unless authed == true && has_cust
-          expect(granted).to be(false) if Onetime::SessionAuthStatus::VALUES.include?(status) && status != 'authenticated'
+          expect(granted).to be(false) if Onetime::Session::AuthStatus::VALUES.include?(status) && status != 'authenticated'
         end
       end
     end

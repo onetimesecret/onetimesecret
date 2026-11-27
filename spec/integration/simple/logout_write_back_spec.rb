@@ -15,7 +15,7 @@
 # Unlike the full-mode spec, which puts the blob back by hand, this one runs
 # the real thing: one request is held open between its session read and its
 # session write while a second one ends the session, so the late write goes
-# through Onetime::Session#write_session. The second request runs on its own
+# through Onetime::Session::RackStore#write_session. The second request runs on its own
 # thread and is joined before the first continues, which makes the
 # interleaving exact rather than timed.
 
@@ -107,11 +107,11 @@ RSpec.describe 'A request in flight cannot undo the end of its session (RISK-202
     sid = current_session_id
     logout_from_another_tab(sid)
 
-    key = Onetime::SessionEnded.key_for(sid)
+    key = Onetime::Session::Ended.key_for(sid)
     expect(Familia.dbclient.exists?(key)).to be(true)
     expect(key).not_to include(sid)
     expect(key).not_to include('session')
-    expect(Familia.dbclient.ttl(key)).to be_between(1, Onetime::SessionEnded::TTL)
+    expect(Familia.dbclient.ttl(key)).to be_between(1, Onetime::Session::Ended::TTL)
     expect(Familia.dbclient.get(key)).to eq('1')
   end
 

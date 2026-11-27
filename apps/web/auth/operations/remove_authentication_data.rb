@@ -279,7 +279,7 @@ module Auth
       #
       # Session values are AES-256-GCM encrypted + HMAC-signed
       # ("base64(iv+tag+ciphertext)--hmac"), so they MUST be decoded through
-      # the same SessionCodec the middleware writes with. The previous
+      # the same Onetime::Session::Codec the middleware writes with. The previous
       # `JSON.parse(Base64.decode64(...))` treated the value as base64(json):
       # for authenticated sessions the base64 decodes to binary ciphertext, the
       # parse raised, and every authenticated session was silently skipped —
@@ -298,7 +298,7 @@ module Auth
         # chain — e.g. ENV['SESSION_SECRET'], which the middleware never
         # reads — can build a codec with the wrong key, and every encrypted
         # session silently fails to decode and survives the sweep.
-        codec         = Onetime::SessionCodec.from_config
+        codec         = Onetime::Session::Codec.from_config
 
         # Scan for all session keys. STRING-typed like Store.scan_keys: the
         # loose match also catches non-string keys (the entitlement-preview
@@ -314,7 +314,7 @@ module Auth
             next unless session_extid == extid
 
             dbclient.del(key)
-            Onetime::SessionSidecar.purge(
+            Onetime::Session::Sidecar.purge(
               Onetime::Operations::Sessions::Store.extract_id(key), dbclient: dbclient
             )
             deleted_count += 1

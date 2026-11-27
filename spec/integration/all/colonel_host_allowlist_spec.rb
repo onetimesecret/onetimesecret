@@ -14,7 +14,7 @@
 #
 # These are FULL-STACK request specs: the app under test is the real
 # Rack::URLMap the server boots, so AdminNetworkIsolation is exercised in its
-# real position (below Rack::DetectHost, above Onetime::Session and
+# real position (below Rack::DetectHost, above Onetime::Session::RackStore and
 # DomainStrategy) with a real detected host derived from the Host header.
 #
 # Mode-agnostic on purpose. The gate reads config and the detected host only —
@@ -164,11 +164,11 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
   # and it must match the surface the request resolves to. Every host in this
   # file classifies :canonical (domains are off, or the host is the anchor)
   # except the verified-tenant control below, which passes its own descriptor.
-  def signed_in_as(user, surface: Onetime::SessionSurface::CANONICAL)
+  def signed_in_as(user, surface: Onetime::Session::Surface::CANONICAL)
     env 'rack.session', {
       'external_id' => user.extid,
       'authenticated' => true,
-      Onetime::SessionSurface::KEY => surface,
+      Onetime::Session::Surface::KEY => surface,
       'session_id' => SecureRandom.hex(16),
     }
   end
@@ -598,7 +598,7 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
       expect(last_response.headers['O-Domain-Strategy']).to eq('canonical')
     end
 
-    it 'sets no session cookie on a denial — the gate runs above Onetime::Session' do
+    it 'sets no session cookie on a denial — the gate runs above Onetime::Session::RackStore' do
       anonymous!
       get_api('tenant.example.com')
 

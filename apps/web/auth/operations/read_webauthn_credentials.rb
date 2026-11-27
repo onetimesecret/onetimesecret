@@ -9,11 +9,11 @@ require 'onetime/session/surface'
 module Auth
   module Operations
     # Read an account's registered WebAuthn credentials with the
-    # per-surface scope metadata {Onetime::ReauthPolicy} consumes (#4414).
+    # per-surface scope metadata {Onetime::Session::ReauthPolicy} consumes (#4414).
     #
     # The `account_webauthn_keys` table gained a nullable `surface_scope`
     # column (migration 009) holding a JSON-encoded
-    # {Onetime::SessionSurface} descriptor. Rows registered before that
+    # {Onetime::Session::Surface} descriptor. Rows registered before that
     # ships carry NULL and read as :platform — canonical-only legacy behavior.
     # New subdomain and custom registrations retain their exact establishing
     # surface so their request-host RP ID remains usable only there.

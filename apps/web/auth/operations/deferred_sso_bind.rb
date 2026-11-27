@@ -37,7 +37,7 @@ require_relative 'bind_sso_identity'
 #
 # ## Storage contract (#3858)
 #
-# The stash is a SessionSidecar explicit-use field — the sso_connect_intent
+# The stash is a Onetime::Session::Sidecar explicit-use field — the sso_connect_intent
 # pattern — NOT a field in the session blob:
 #
 #   sidecar:<sid>:link_sso_pending_bind   (encrypted, sid/field-bound, TTL 900s)
@@ -52,10 +52,10 @@ require_relative 'bind_sso_identity'
 # to coordinate across the route and two hooks):
 #
 #   - BOUNDED IN TIME: the key's 900s TTL matches awaiting_mfa's MFA
-#     completion window (SessionSidecar::FIELDS), so an ABANDONED half-done
+#     completion window (Onetime::Session::Sidecar::FIELDS), so an ABANDONED half-done
 #     MFA login expires the pending bind with the window instead of leaving
 #     it live for the session blob's full 24h.
-#   - ATOMIC SINGLE-USE: `.complete` consumes the key via SessionSidecar's
+#   - ATOMIC SINGLE-USE: `.complete` consumes the key via Onetime::Session::Sidecar's
 #     GETDEL, so exactly one caller can ever observe the stash — single-use
 #     is enforced at the store, not by a Ruby delete-then-act sequence.
 #
@@ -74,7 +74,7 @@ require_relative 'bind_sso_identity'
 # refactor that re-keys sessions MID-flow would strand the hand-off silently
 # — except that the field is registered destroy_warn: true, and the session
 # middleware's delete_session warns whenever it destroys a session still
-# holding a live pending bind (Onetime::SessionSidecar#inflight_fields).
+# holding a live pending bind (Onetime::Session::Sidecar#inflight_fields).
 #
 # ## Security model
 #
@@ -109,7 +109,7 @@ require_relative 'bind_sso_identity'
 module Auth
   module Operations
     class DeferredSsoBind
-      # The SessionSidecar registry field for the pending-bind payload.
+      # The Onetime::Session::Sidecar registry field for the pending-bind payload.
       # Written only by `.defer` (from the interstitial's login block) and
       # consumed only by `.complete` (from the MFA-success hook / the
       # after_login self-heal).
@@ -143,7 +143,7 @@ module Auth
 
           # write returns the effective TTL, or nil when no key was written
           # (a sid that fails the sidecar's format guard).
-          written = !Onetime::SessionSidecar.write(
+          written = !Onetime::Session::Sidecar.write(
             sid, FIELD, payload, dbclient: dbclient, codec: codec
           ).nil?
           stash_failed(:sid_unavailable, account_id, provider) unless written
@@ -222,7 +222,7 @@ module Auth
         # an exception from the insert below — leaves a retryable pending bind
         # behind, and two concurrent completions can never both see the stash.
         # nil covers absent, expired, tampered, and sid-binding-mismatch alike.
-        pending = Onetime::SessionSidecar.consume(@sid, FIELD, dbclient: @dbclient, codec: @codec)
+        pending = Onetime::Session::Sidecar.consume(@sid, FIELD, dbclient: @dbclient, codec: @codec)
         return :none unless well_formed?(pending)
 
         # ACCOUNT-BOUND: bind only onto the account the password proved. The

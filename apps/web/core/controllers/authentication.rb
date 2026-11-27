@@ -70,15 +70,15 @@ module Core
         # than silently discarded with the session. GET /logout is a safe
         # method and therefore reachable while impersonating; without this the
         # trail would hold a start with no end.
-        Onetime::SessionImpersonation.stop!(
+        Onetime::Session::Impersonation.stop!(
           session,
-          ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT,
+          ended_by: Onetime::Session::Impersonation::ENDED_BY_LOGOUT,
         )
 
         # The active-session row before the blob: an in-flight request can
         # write the blob back after this one clears it, and only the missing
-        # row makes that copy refusable (Onetime::ActiveSessionGate.end_session).
-        Onetime::ActiveSessionGate.end_session(session, env: req.env)
+        # row makes that copy refusable (Onetime::Session::ActiveSessionGate.end_session).
+        Onetime::Session::ActiveSessionGate.end_session(session, env: req.env)
 
         # Clear all session data
         session.clear
@@ -149,7 +149,7 @@ module Core
           # session contract for Core's simple-auth login flow.
           session['authenticated']    = true
           session['authenticated_at'] = Familia.now.to_i
-          Onetime::SessionSurface.record(session, req.env)
+          Onetime::Session::Surface.record(session, req.env)
           forget_customer_session_verdict
 
           # #4327: an identity change must always land UNELEVATED. The logic
@@ -161,15 +161,15 @@ module Core
           # read (ColonelAPI::Logic::Colonel::Elevation#elevation_record).
           session.delete('elevated_until')
 
-          # "Remember me" (Onetime::RememberMe): a fixed 30-day session
+          # "Remember me" (Onetime::Session::RememberMe): a fixed 30-day session
           # instead of the rolling default, carried by the session store
           # alone; simple mode has no active-session row. Only this login's
           # choice counts. The cleared session no longer holds the previous
           # occupant's deadline; the delete is kept for the same reason as
           # the elevated_until one above.
-          session.delete(Onetime::RememberMe::SESSION_KEY)
-          if Onetime::RememberMe.enabled? && Onetime::RememberMe.requested?(req.params[Onetime::RememberMe::PARAM])
-            Onetime::RememberMe.stamp(session)
+          session.delete(Onetime::Session::RememberMe::SESSION_KEY)
+          if Onetime::Session::RememberMe.enabled? && Onetime::Session::RememberMe.requested?(req.params[Onetime::Session::RememberMe::PARAM])
+            Onetime::Session::RememberMe.stamp(session)
           end
 
           auth_logger.info 'Session synchronized after authentication',
@@ -193,7 +193,7 @@ module Core
             res.redirect req.app_path('/colonel/')
           end
         end
-      rescue Onetime::SessionRotation::Incomplete
+      rescue Onetime::Session::Rotation::Incomplete
         # The credentials were accepted, but the session id this request
         # arrived with could not be ended, so the logic refused to sign in on
         # it and left the session empty (it has logged the details). Answered

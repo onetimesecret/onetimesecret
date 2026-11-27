@@ -24,7 +24,7 @@ module Auth
     #     and returning it to an anonymous caller would leak whether an
     #     account has WebAuthn credentials and how many.
     #   - The offer's credentials projection carries ONLY the shape
-    #     ReauthPolicy consumes (`{scope:}` / `{scope:, id:}`) — never
+    #     Onetime::Session::ReauthPolicy consumes (`{scope:}` / `{scope:, id:}`) — never
     #     public keys, sign counters, or credential ids. Even so, we
     #     scope it strictly to `rodauth.session_value` so a
     #     misconfigured caller cannot ask for another account's offer.
@@ -59,7 +59,7 @@ module Auth
           .transform_keys(&:to_s)
       end
 
-      # The credentials projection is already the shape ReauthPolicy
+      # The credentials projection is already the shape Onetime::Session::ReauthPolicy
       # consumes. Serialize scope as a string for consistency with the
       # wire convention.
       def self.serialize_credentials(credentials)
@@ -134,7 +134,7 @@ module Auth
             # the client does not reconcile a session that is perfectly valid.
             # `error_code` keeps naming the factor, as it did.
             if REJECTED_CREDENTIAL_CODES.include?(result.body['error_code'])
-              Onetime::SessionFailureCode.stash(request.env, :invalid_credentials)
+              Onetime::Session::FailureCode.stash(request.env, :invalid_credentials)
             end
 
             response.status = result.status

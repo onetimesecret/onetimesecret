@@ -198,8 +198,8 @@ module TryoutsCanonicalSessionSurface
   def custom_request(verb, uri, params = {}, env = {}, &)
     session = env['rack.session']
     if session.is_a?(Hash) && session['authenticated'] == true &&
-        !session.key?(Onetime::SessionSurface::KEY)
-      session[Onetime::SessionSurface::KEY] = Onetime::SessionSurface::CANONICAL
+        !session.key?(Onetime::Session::Surface::KEY)
+      session[Onetime::Session::Surface::KEY] = Onetime::Session::Surface::CANONICAL
     end
 
     super

@@ -9,7 +9,7 @@ module Onetime
     # Opens the request store for Onetime::MembershipSnapshot and clears it
     # when the request is done, so the organization loader, the bootstrap
     # serializer and the session commit share one read of the customer's
-    # memberships. Mounted above Onetime::Session: the session commit on the
+    # memberships. Mounted above Onetime::Session::RackStore: the session commit on the
     # way out (Sessions::TrackMetadata) resolves the active organization too
     # and must still find the store open.
     #

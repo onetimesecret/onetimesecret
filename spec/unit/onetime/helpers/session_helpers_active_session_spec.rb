@@ -5,8 +5,8 @@
 # The controller-side half of full-mode active-session enforcement: once the
 # Rack session's active-session row is revoked (or cannot be checked),
 # SessionHelpers#authenticated? answers false the same way
-# BaseSessionAuthStrategy refuses the request. Terms are defined in the
-# gate's module doc. The gate's own
+# BaseSessionAuthStrategy refuses the request. Terms are defined in
+# docs/architecture/terminology.md ("Session Terminology"). The gate's own
 # decision table is spec/unit/onetime/session/active_session_gate_spec.rb;
 # what is pinned here is the wiring — the memo, and that login/logout forget
 # a verdict reached for the previous identity.
@@ -53,11 +53,11 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     {
       'authenticated'                     => true,
       'external_id'                       => 'ur_abc',
-      Onetime::SessionSurface::KEY        => { 'kind' => 'canonical' },
+      Onetime::Session::Surface::KEY        => { 'kind' => 'canonical' },
     }
   end
   let(:canonical_env) { { 'onetime.domain_strategy' => :canonical } }
-  let(:gate) { Onetime::ActiveSessionGate }
+  let(:gate) { Onetime::Session::ActiveSessionGate }
   let(:customer) do
     instance_double(
       Onetime::Customer,
@@ -71,7 +71,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true } } }))
     allow(OT).to receive(:info)
     allow(Onetime::Customer).to receive(:find_by_extid).and_return(customer)
-    allow(Onetime::SessionImpersonation).to receive(:resolve).and_return([customer, nil])
+    allow(Onetime::Session::Impersonation).to receive(:resolve).and_return([customer, nil])
   end
 
   def helper_with_env(env)
@@ -123,7 +123,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
 
   it 'forgets the verdict on logout! so the next identity is judged afresh' do
     allow(gate).to receive(:verdict).and_return(:revoked, :active)
-    allow(Onetime::SessionImpersonation).to receive(:stop!)
+    allow(Onetime::Session::Impersonation).to receive(:stop!)
 
     inst = helper_with_env(canonical_env)
     expect(inst.authenticated?).to be(false)
@@ -131,7 +131,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     session.merge!(
       'authenticated' => true,
       'external_id' => 'ur_next',
-      Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+      Onetime::Session::Surface::KEY => { 'kind' => 'canonical' },
     )
 
     expect(inst.authenticated?).to be(true)
@@ -141,7 +141,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   it 'drops the shared env memo on logout!' do
     env     = canonical_env.merge(gate::ENV_KEY => :revoked)
     request = instance_double(Rack::Request, env: env)
-    allow(Onetime::SessionImpersonation).to receive(:stop!)
+    allow(Onetime::Session::Impersonation).to receive(:stop!)
 
     helper_class.new(session, request).logout!
 
@@ -153,7 +153,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   it 'renews the session id on logout!' do
     options = {}
     request = instance_double(Rack::Request, env: canonical_env.merge('rack.session.options' => options))
-    allow(Onetime::SessionImpersonation).to receive(:stop!)
+    allow(Onetime::Session::Impersonation).to receive(:stop!)
 
     helper_class.new(session, request).logout!
 
@@ -168,7 +168,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     rack_session.define_singleton_method(:id) { sid }
     logged         = []
     allow(OT).to receive(:info) { |message| logged << message }
-    allow(Onetime::SessionImpersonation).to receive(:stop!)
+    allow(Onetime::Session::Impersonation).to receive(:stop!)
 
     helper_class.new(rack_session, instance_double(Rack::Request, env: canonical_env)).logout!
 

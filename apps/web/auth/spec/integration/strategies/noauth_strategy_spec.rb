@@ -119,7 +119,7 @@ RSpec.describe Onetime::Application::AuthStrategies::NoAuthStrategy, type: :inte
             'external_id' => test_customer.extid,
             'email' => test_customer.email,
             'authenticated_at' => value,
-            Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+            Onetime::Session::Surface::KEY => { 'kind' => 'canonical' },
           },
           'onetime.domain_strategy' => :canonical,
           'REMOTE_ADDR' => '127.0.0.1',

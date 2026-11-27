@@ -12,7 +12,7 @@
 #   the blob's TTL    the Rack session in Redis
 #
 # "Controlled clock" means the stored timestamps are moved, never Time.now.
-# ActiveSessionGate decides against the database's CURRENT_TIMESTAMP, so
+# Onetime::Session::ActiveSessionGate decides against the database's CURRENT_TIMESTAMP, so
 # stubbing Ruby's clock would prove nothing; back-dating `last_use` by an hour
 # is what an hour of inactivity looks like to the code under test.
 #
@@ -30,7 +30,7 @@ RSpec.describe 'Passive verification does not count as session activity (#4455)'
   include CustomerSessionFailureMatrix
 
   let(:matrix_password) { 'Passive-Test1234!' }
-  let(:gate) { Onetime::ActiveSessionGate }
+  let(:gate) { Onetime::Session::ActiveSessionGate }
 
   before do
     @matrix_customer = anonymous_probe_customer

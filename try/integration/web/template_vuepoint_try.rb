@@ -42,10 +42,10 @@ end
 
 # Helper to create a properly configured mock request.
 #
-# BaseView derives identity from CustomerSessionEvaluator, not from
+# BaseView derives identity from Onetime::Session::CustomerSessionEvaluator, not from
 # strategy_result.user, so the session hash must carry the fields the
 # evaluator checks: authenticated, external_id (extid), authenticated_at,
-# and a canonical SessionSurface marker. The request env must supply the
+# and a canonical Onetime::Session::Surface marker. The request env must supply the
 # matching :canonical domain_strategy so surface_matches_request? holds.
 def create_mock_request(locale: 'en', user: nil, authenticated: true)
   session = { 'test_key' => 'test_value' }
@@ -53,7 +53,7 @@ def create_mock_request(locale: 'en', user: nil, authenticated: true)
     session['authenticated']      = true
     session['authenticated_at']   = Familia.now.to_i
     session['external_id']        = user.extid
-    session[Onetime::SessionSurface::KEY] = Onetime::SessionSurface::CANONICAL
+    session[Onetime::Session::Surface::KEY] = Onetime::Session::Surface::CANONICAL
   end
 
   strategy_result = MockStrategyResult.new(

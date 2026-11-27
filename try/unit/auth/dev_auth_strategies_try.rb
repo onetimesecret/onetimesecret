@@ -373,7 +373,7 @@ dummy = Onetime::Customer.dummy
   'rack.session' => {
     'authenticated' => true,
     'external_id' => @session_dev_cust.extid,
-    Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL
+    Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL
   },
   'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
@@ -394,7 +394,7 @@ dummy = Onetime::Customer.dummy
   'rack.session' => {
     'authenticated' => true,
     'external_id' => @session_regular_cust.extid,
-    Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL
+    Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL
   },
   'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
@@ -452,7 +452,7 @@ ENV['RACK_ENV'] = original_rack_env
 @env_no_extid = {
   'rack.session' => {
     'authenticated' => true,
-    Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL
+    Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL
   },
   'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
@@ -470,7 +470,7 @@ ENV['RACK_ENV'] = original_rack_env
   'rack.session' => {
     'authenticated' => true,
     'external_id' => "nonexistent_#{SecureRandom.hex(8)}",
-    Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL
+    Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL
   },
   'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
@@ -490,7 +490,7 @@ ENV['RACK_ENV'] = original_rack_env
   'rack.session' => {
     'authenticated' => true,
     'external_id' => @meta_dev_cust.extid,
-    Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL
+    Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL
   },
   'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',

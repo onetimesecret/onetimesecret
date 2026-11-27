@@ -15,7 +15,7 @@ require 'colonel/logic'
 # route is reachable past an expired window is AdminSessionLifetime's job and is
 # pinned in spec/unit/onetime/application/auth_strategies/admin_session_lifetime_spec.rb.
 #
-# The session here is a bare Hash, which Onetime::SessionRotation.rotate!
+# The session here is a bare Hash, which Onetime::Session::Rotation.rotate!
 # answers with nil (no server-side id); the rotation examples stub it.
 RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
   let(:colonel) do
@@ -60,7 +60,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
   end
 
   def rotation_result(complete: true, reason: nil, renewed: complete)
-    Onetime::SessionRotation::Result.new(
+    Onetime::Session::Rotation::Result.new(
       old_sid: 'a' * 64, new_sid: renewed ? 'b' * 64 : 'a' * 64, complete: complete, reason: reason,
     )
   end
@@ -151,13 +151,13 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
     end
 
     it 're-stamps nothing, keeps the step-up record and does not rotate', :aggregate_failures do
-      allow(Onetime::SessionRotation).to receive(:rotate!)
+      allow(Onetime::Session::Rotation).to receive(:rotate!)
 
       expect { reauthenticate('nope') }.to raise_error(Onetime::ReauthenticationFailed)
 
       expect(session['authenticated_at']).to eq(signed_in_at)
       expect(session['elevated_until']).to include('extid' => 'ur_colonel')
-      expect(Onetime::SessionRotation).not_to have_received(:rotate!)
+      expect(Onetime::Session::Rotation).not_to have_received(:rotate!)
     end
 
     it 'treats a blank password as a failure without calling the verifier' do
@@ -188,7 +188,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
 
   describe 'a correct password' do
     before do
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(rotation_result)
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(rotation_result)
       allow(Onetime::Operations::Sessions::TrackMetadata).to receive(:new)
         .and_return(instance_double(Onetime::Operations::Sessions::TrackMetadata, call: nil))
     end
@@ -225,14 +225,14 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
 
     it 'rotates before it re-stamps' do
       stamp_at_rotation = :not_called
-      allow(Onetime::SessionRotation).to receive(:rotate!) do |sess|
+      allow(Onetime::Session::Rotation).to receive(:rotate!) do |sess|
         stamp_at_rotation = sess['authenticated_at']
         rotation_result
       end
 
       reauthenticate('hunter2')
 
-      expect(Onetime::SessionRotation).to have_received(:rotate!).with(session).once
+      expect(Onetime::Session::Rotation).to have_received(:rotate!).with(session).once
       expect(stamp_at_rotation).to eq(signed_in_at)
     end
 
@@ -249,7 +249,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
     end
 
     it 'continues on a session with no server-side id (rotate! answers nil)' do
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(nil)
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(nil)
 
       data = reauthenticate('hunter2')
 
@@ -263,7 +263,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
   # check and before the re-stamp must still retire the session.
   describe 'a password change during the request' do
     before do
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(nil)
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(nil)
       stub_watermark(signed_in_at + 10)
     end
 
@@ -305,7 +305,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
       stub_const('Auth::Config', class_double(auth_config_class))
       stub_const('Rodauth::InternalRequestError', Class.new(StandardError))
       stub_second_factor(enabled: false)
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(nil)
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(nil)
     end
 
     it 'verifies through the Rodauth internal request, not the Redis passphrase' do
@@ -345,7 +345,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
       stub_const('Auth::Config', class_double(auth_config_class))
       stub_const('Rodauth::InternalRequestError', Class.new(StandardError))
       allow(Auth::Config).to receive(:valid_login_and_password?).and_return(true)
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(rotation_result)
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(rotation_result)
       allow(Onetime::Operations::Sessions::TrackMetadata).to receive(:new)
         .and_return(instance_double(Onetime::Operations::Sessions::TrackMetadata, call: nil))
     end
@@ -364,7 +364,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
         expect(outcome).to be_a(Onetime::ReauthenticationUnavailable)
         expect(session['authenticated_at']).to eq(signed_in_at)
         expect(session['elevated_until']).to include('extid' => 'ur_colonel')
-        expect(Onetime::SessionRotation).not_to have_received(:rotate!)
+        expect(Onetime::Session::Rotation).not_to have_received(:rotate!)
         expect(Onetime::Operations::Sessions::TrackMetadata).not_to have_received(:new)
       end
 
@@ -427,7 +427,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
 
   describe 'the second-factor check in SIMPLE mode' do
     before do
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(nil)
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(nil)
     end
 
     it 'is never consulted: simple mode has no second factor' do
@@ -469,7 +469,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
 
     context 'when the rotation reports itself incomplete' do
       before do
-        allow(Onetime::SessionRotation).to receive(:rotate!)
+        allow(Onetime::Session::Rotation).to receive(:rotate!)
           .and_return(rotation_result(complete: false, reason: :marker_not_written))
       end
 
@@ -478,7 +478,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
 
     context 'when the rotation raises' do
       before do
-        allow(Onetime::SessionRotation).to receive(:rotate!).and_raise(Redis::CannotConnectError, 'down')
+        allow(Onetime::Session::Rotation).to receive(:rotate!).and_raise(Redis::CannotConnectError, 'down')
       end
 
       include_examples 'a re-authentication refused for an unrotated session'
@@ -515,7 +515,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
     end
 
     def renew_then(reason: nil, error: nil)
-      allow(Onetime::SessionRotation).to receive(:rotate!) do |sess|
+      allow(Onetime::Session::Rotation).to receive(:rotate!) do |sess|
         sess.id = new_sid
         raise error if error
 
@@ -580,7 +580,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReauthenticateSession do
     end
 
     it 'writes nothing when the id did not change' do
-      allow(Onetime::SessionRotation).to receive(:rotate!)
+      allow(Onetime::Session::Rotation).to receive(:rotate!)
         .and_return(rotation_result(complete: false, reason: :marker_not_written))
 
       expect { reauthenticate_rack('hunter2') }.to raise_error(Onetime::ReauthenticationFailed)

@@ -377,7 +377,7 @@ positive = [
     'src/apps/workspace/domains/DomainSignin.vue',
     'src/tests/stores/authStore.spec.ts',
     # Directories named for an auth concept.
-    'lib/onetime/session/store.rb', 'lib/onetime/sso_provider/base.rb',
+    'lib/onetime/session/rack_store.rb', 'lib/onetime/sso_provider/base.rb',
     'lib/onetime/application/auth_strategies/basic.rb',
     'lib/onetime/operations/sessions/revoke.rb', 'lib/onetime/cli/sso/backfill_issuer_command.rb',
     'apps/api/domains/logic/sso_config/update.rb',

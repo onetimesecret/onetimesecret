@@ -15,7 +15,7 @@
 #      POST /auth/email-login with the emailed key completes a login whose
 #      session is bound to the tenant surface and whose primary is
 #      'email_auth' — with NO recent-reauth proof (hooks/login.rb records
-#      proof only for RecentReauth::LOCAL_PRIMARIES; mailbox possession is
+#      proof only for Onetime::Session::RecentReauth::LOCAL_PRIMARIES; mailbox possession is
 #      a recovery-class ceremony, NIST SP 800-63B-4 3.1.3.1).
 #   2. connect=1 on that session is refused at the request phase: 302 to the
 #      re-authentication view, no intent, :omniauth_connect_reauth_required.
@@ -87,7 +87,7 @@ RSpec.describe 'Tenant Connect after a magic-link login (#3849)',
     dbkey = Onetime::Operations::Sessions::Store.find_key(db, sid)
     raise "No session blob stored for sid #{sid.inspect}" unless dbkey
 
-    Onetime::Operations::Sessions::Store.load_data(db, dbkey, codec: Onetime::SessionCodec.from_config)
+    Onetime::Operations::Sessions::Store.load_data(db, dbkey, codec: Onetime::Session::Codec.from_config)
   end
 
   def initiate_sso_connect(host)
@@ -152,9 +152,9 @@ RSpec.describe 'Tenant Connect after a magic-link login (#3849)',
 
     sid  = current_sid
     blob = session_blob(sid)
-    expect(blob[Onetime::SessionSurface::KEY]).to eq(surface)
+    expect(blob[Onetime::Session::Surface::KEY]).to eq(surface)
     expect(blob['auth_method']).to eq('email_auth')
-    expect(Onetime::SessionSidecar.exists?(sid, Onetime::RecentReauth::KEY)).to be(false),
+    expect(Onetime::Session::Sidecar.exists?(sid, Onetime::Session::RecentReauth::KEY)).to be(false),
       'A magic-link login must not record a recent-reauth proof'
 
     setup_mock_auth(email: unique_test_email('asserted-victim'), uid: uid)
@@ -165,8 +165,8 @@ RSpec.describe 'Tenant Connect after a magic-link login (#3849)',
       expect(last_response.status).to eq(302)
       expect(last_response.location.to_s).to include(Auth::Config::Hooks::OmniAuth.connect_reauth_redirect),
         "Expected a redirect to re-authentication, got: #{last_response.location.inspect}"
-      expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(false)
-      expect(Onetime::SessionSidecar.exists?(sid, Onetime::RecentReauth::KEY)).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(sid, Onetime::Session::RecentReauth::KEY)).to be(false)
       expect(Auth::Logging).to have_received(:log_auth_event)
         .with(:omniauth_connect_reauth_required, hash_including(provider: 'oidc', account_id: account_id))
 
@@ -176,15 +176,15 @@ RSpec.describe 'Tenant Connect after a magic-link login (#3849)',
       # The same session, under a new id: the proof is recorded there (#4466).
       expect(current_sid).not_to eq(sid)
       sid = current_sid
-      expect(Onetime::SessionSidecar.read(sid, Onetime::RecentReauth::KEY)).to include(
+      expect(Onetime::Session::Sidecar.read(sid, Onetime::Session::RecentReauth::KEY)).to include(
         'account_id' => account_id, 'surface' => surface, 'methods' => %w[password],
       )
 
       initiate_sso_connect(host)
       expect(last_response.status).to eq(302)
       expect(last_response.location.to_s).not_to include(Auth::Config::Hooks::OmniAuth::REAUTH_PATH)
-      expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(true)
-      expect(Onetime::SessionSidecar.exists?(sid, Onetime::RecentReauth::KEY)).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(true)
+      expect(Onetime::Session::Sidecar.exists?(sid, Onetime::Session::RecentReauth::KEY)).to be(false)
 
       clear_body_headers
       header 'Host', host
@@ -192,7 +192,7 @@ RSpec.describe 'Tenant Connect after a magic-link login (#3849)',
       expect(last_response.status).to eq(302)
       expect(identities.where(provider: 'oidc', uid: uid).all)
         .to contain_exactly(hash_including(account_id: account_id))
-      expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(false)
     ensure
       teardown_mock_auth
     end

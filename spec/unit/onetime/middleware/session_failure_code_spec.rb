@@ -49,7 +49,7 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
   # (Helpers#credentialed_failure): the reason and the scheme it examined.
   def basic_refused_env(reason, extra = {})
     env = refused_env(reason, extra)
-    Onetime::SessionFailureCode.stash_scheme(env, Onetime::SessionFailureCode::SCHEME_BASIC)
+    Onetime::Session::FailureCode.stash_scheme(env, Onetime::Session::FailureCode::SCHEME_BASIC)
     env
   end
 
@@ -149,8 +149,8 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
     end
 
     it 'is Session for every session-scope and admin-scope refusal' do
-      Onetime::SessionFailureCode::SESSION_REASON_SCOPES.each do |reason, scope|
-        next if scope == Onetime::SessionFailureCode::SCOPE_VERIFICATION_UNAVAILABLE
+      Onetime::Session::FailureCode::SESSION_REASON_SCOPES.each do |reason, scope|
+        next if scope == Onetime::Session::FailureCode::SCOPE_VERIFICATION_UNAVAILABLE
 
         expect(challenge_for(reason)).to eq('Session realm="onetimesecret"'), reason.to_s
       end
@@ -191,7 +191,7 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
     # the reason and the Bearer scheme it examined.
     def bearer_challenge_for(reason, env_extra = {})
       env = refused_env(reason, env_extra)
-      Onetime::SessionFailureCode.stash_scheme(env, Onetime::SessionFailureCode::SCHEME_BEARER)
+      Onetime::Session::FailureCode.stash_scheme(env, Onetime::Session::FailureCode::SCHEME_BEARER)
       _s, headers, _b = call(otto_response, env)
       headers['www-authenticate']
     end
@@ -253,7 +253,7 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
 
     it 'is Session once a later stash replaced the Basic strategy\'s reason' do
       env = basic_refused_env(:api_key_invalid)
-      Onetime::SessionFailureCode.stash(env, :session_missing)
+      Onetime::Session::FailureCode.stash(env, :session_missing)
 
       _s, headers, _b = call(otto_response, env)
 
@@ -418,7 +418,7 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
 
     it 'leaves a 401 uncoded once the stash has been withdrawn' do
       env = { env_key => :session_missing }
-      Onetime::SessionFailureCode.forget(env)
+      Onetime::Session::FailureCode.forget(env)
 
       response = otto_response(body: { error: 'This linking request has expired.', error_code: 'link_expired' }.to_json)
       expect(call(response, env)).to eq(response)
@@ -478,7 +478,7 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
     it 'stashes no scheme when no Authorization header was presented' do
       env = env_after_parse(nil)
 
-      expect(Onetime::SessionFailureCode.scheme(env)).to be_nil
+      expect(Onetime::Session::FailureCode.scheme(env)).to be_nil
     end
 
     # 'Zm9v' decodes to 'foo' with no colon: a present-but-malformed Basic
@@ -488,7 +488,7 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
     it 'stashes Basic only once an Authorization header was examined' do
       env = env_after_parse(malformed_basic)
 
-      expect(Onetime::SessionFailureCode.scheme(env)).to eq(Onetime::SessionFailureCode::SCHEME_BASIC)
+      expect(Onetime::Session::FailureCode.scheme(env)).to eq(Onetime::Session::FailureCode::SCHEME_BASIC)
     end
 
     # The regression anchor: a Basic challenge is reachable, but ONLY from the

@@ -3,10 +3,10 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'onetime/session'
+require 'onetime/session/rack_store'
 require 'onetime/middleware/identity_resolution'
 
-# The middleware resolves whatever session Onetime::Session handed it as
+# The middleware resolves whatever session Onetime::Session::RackStore handed it as
 # live: the store has already ended sessions past their absolute deadline
 # and holds the rest to the rolling lifetime through the blob TTL. It must
 # not re-derive expiry from the age of `authenticated_at` (it once did,
@@ -23,7 +23,7 @@ RSpec.describe Onetime::Middleware::IdentityResolution do
   end
 
   def lifetime
-    Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE
+    Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE
   end
 
   def long_ago

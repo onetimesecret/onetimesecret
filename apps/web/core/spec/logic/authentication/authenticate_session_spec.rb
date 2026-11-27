@@ -108,11 +108,11 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     # real-route spec/integration/simple/login_session_rotation_spec.rb). Here
     # a complete rotation by default; the '#4466 session id rotation' group
     # below asserts the calls and overrides the result.
-    allow(Onetime::SessionRotation).to receive(:rotate!).and_return(complete_rotation)
+    allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(complete_rotation)
   end
 
   let(:complete_rotation) do
-    Onetime::SessionRotation::Result.new(old_sid: 'sess_def456', new_sid: 'sess_new789', complete: true)
+    Onetime::Session::Rotation::Result.new(old_sid: 'sess_def456', new_sid: 'sess_new789', complete: true)
   end
 
   describe '#process_params' do
@@ -340,7 +340,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
   end
 
   # #4466: both success paths start the signed-in session under a new id.
-  # The previous occupant's data is cleared, Onetime::SessionRotation.rotate!
+  # The previous occupant's data is cleared, Onetime::Session::Rotation.rotate!
   # re-keys the LIVE Rack session (the strategy result's session, which is
   # env['rack.session']), and only then is any identity key written. The
   # paths that refuse the login never rotate. The end-to-end check against
@@ -354,7 +354,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     end
 
     def expect_rotation_of_the_emptied_session
-      expect(Onetime::SessionRotation).to receive(:rotate!).with(rack_session).once do
+      expect(Onetime::Session::Rotation).to receive(:rotate!).with(rack_session).once do
         expect(session_data).to be_empty
         complete_rotation
       end
@@ -383,8 +383,8 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       expect(mock_logger).to receive(:info).with(
         'Login session id rotated',
         hash_including(
-          previous_session_handle: Onetime::SessionEnded.handle_for('sess_def456'),
-          session_handle: Onetime::SessionEnded.handle_for('sess_new789'),
+          previous_session_handle: Onetime::Session::Ended.handle_for('sess_def456'),
+          session_handle: Onetime::Session::Ended.handle_for('sess_new789'),
         ),
       )
 
@@ -396,7 +396,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       logic.process_params
 
       expect { logic.process }.to raise_error(Onetime::FormError)
-      expect(Onetime::SessionRotation).not_to have_received(:rotate!)
+      expect(Onetime::Session::Rotation).not_to have_received(:rotate!)
       expect(session_data).to include('seeded_by_previous_occupant' => 'yes')
     end
 
@@ -404,7 +404,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       allow(customer).to receive(:suspended?).and_return(true)
 
       expect { logic.process }.to raise_error(Onetime::FormError)
-      expect(Onetime::SessionRotation).not_to have_received(:rotate!)
+      expect(Onetime::Session::Rotation).not_to have_received(:rotate!)
       expect(session_data).to include('seeded_by_previous_occupant' => 'yes')
     end
 
@@ -424,21 +424,21 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         }
       end
       let(:session_data) do
-        { 'external_id' => 'ur_colonel_principal', Onetime::SessionImpersonation::SESSION_KEY => marker }
+        { 'external_id' => 'ur_colonel_principal', Onetime::Session::Impersonation::SESSION_KEY => marker }
       end
 
       before { allow(Onetime::ColonelAuditEvent).to receive(:record) }
 
       it 'records the stop, attributed to the principal, before the session is cleared', :aggregate_failures do
-        expect(Onetime::SessionRotation).to receive(:rotate!).with(rack_session).once do
+        expect(Onetime::Session::Rotation).to receive(:rotate!).with(rack_session).once do
           expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
             hash_including(
               actor: 'ur_colonel_principal',
-              verb: Onetime::SessionImpersonation::AUDIT_VERB_STOP,
+              verb: Onetime::Session::Impersonation::AUDIT_VERB_STOP,
               target: 'ur_target',
               detail: hash_including(
                 impersonation_id: 'imp_0123456789abcdef',
-                ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT,
+                ended_by: Onetime::Session::Impersonation::ENDED_BY_LOGOUT,
               ),
             ),
           ).once
@@ -448,7 +448,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
         logic.process
 
-        expect(session_data).not_to have_key(Onetime::SessionImpersonation::SESSION_KEY)
+        expect(session_data).not_to have_key(Onetime::Session::Impersonation::SESSION_KEY)
         expect(session_data).to include('external_id' => 'ur_test123')
       end
     end
@@ -459,11 +459,11 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       logic.process
 
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
-        .with(hash_including(verb: Onetime::SessionImpersonation::AUDIT_VERB_STOP))
+        .with(hash_including(verb: Onetime::Session::Impersonation::AUDIT_VERB_STOP))
     end
 
     it 'continues for a session with no server-side id (nil result)', :aggregate_failures do
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(nil)
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(nil)
       expect(mock_logger).to receive(:warn).with('Login session not rotated: no server-side session id', anything)
 
       logic.process
@@ -473,15 +473,15 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
     context 'when the old id cannot be ended' do
       let(:incomplete_rotation) do
-        Onetime::SessionRotation::Result.new(
+        Onetime::Session::Rotation::Result.new(
           old_sid: 'sess_def456', new_sid: 'sess_def456', complete: false, reason: :marker_not_written,
         )
       end
 
-      before { allow(Onetime::SessionRotation).to receive(:rotate!).and_return(incomplete_rotation) }
+      before { allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(incomplete_rotation) }
 
       it 'refuses the login with nothing signed in left in the session', :aggregate_failures do
-        expect { logic.process }.to raise_error(Onetime::SessionRotation::Incomplete, /marker_not_written/)
+        expect { logic.process }.to raise_error(Onetime::Session::Rotation::Incomplete, /marker_not_written/)
         expect(session_data).to be_empty
         expect(logic.greenlighted).to be_nil
         expect(customer).not_to have_received(:save)
@@ -490,25 +490,25 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       it 'refuses a pending account before resending its verification email' do
         allow(customer).to receive(:pending?).and_return(true)
 
-        expect { logic.process }.to raise_error(Onetime::SessionRotation::Incomplete)
+        expect { logic.process }.to raise_error(Onetime::Session::Rotation::Incomplete)
         expect(logic).not_to have_received(:send_verification_email)
       end
 
       it 'logs the refusal at error level by handle, never by session id' do
         expect(mock_logger).to receive(:error).with(
           'Login refused: the previous session id could not be ended',
-          hash_including(reason: :marker_not_written, previous_session_handle: Onetime::SessionEnded.handle_for('sess_def456')),
+          hash_including(reason: :marker_not_written, previous_session_handle: Onetime::Session::Ended.handle_for('sess_def456')),
         ) do |_message, payload|
           expect(payload.values.map(&:to_s)).not_to include('sess_def456')
         end
 
-        expect { logic.process }.to raise_error(Onetime::SessionRotation::Incomplete)
+        expect { logic.process }.to raise_error(Onetime::Session::Rotation::Incomplete)
       end
 
       it 'refuses the login when the rotation raises', :aggregate_failures do
-        allow(Onetime::SessionRotation).to receive(:rotate!).and_raise(Redis::ConnectionError, 'connection refused')
+        allow(Onetime::Session::Rotation).to receive(:rotate!).and_raise(Redis::ConnectionError, 'connection refused')
 
-        expect { logic.process }.to raise_error(Onetime::SessionRotation::Incomplete, /error/)
+        expect { logic.process }.to raise_error(Onetime::Session::Rotation::Incomplete, /error/)
         expect(session_data).to be_empty
       end
     end

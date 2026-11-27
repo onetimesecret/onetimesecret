@@ -14,7 +14,7 @@ require 'onetime/application/auth_strategies'
 
 RSpec.describe Onetime::Application::AuthStrategies::PasetoAuthStrategy do
   # The organization lookup and the session carve-out both read the datastore
-  # (OrganizationLoader, CustomerSessionEvaluator). The subclass pins them so
+  # (OrganizationLoader, Onetime::Session::CustomerSessionEvaluator). The subclass pins them so
   # the strategy's own decisions are what is under test; `session_identity`
   # is the carve-out's answer for the example.
   subject(:strategy) { strategy_class.new }
@@ -92,7 +92,7 @@ RSpec.describe Onetime::Application::AuthStrategies::PasetoAuthStrategy do
       expect(result.metadata).to include(auth_type: 'paseto', token_kid: keyring.signing_key.kid)
       expect(result.metadata[:token_jti]).to be_a(String)
       expect(result.metadata[:token_expires_at]).to be > Time.now.to_i
-      expect(env).not_to have_key(Onetime::SessionFailureCode::ENV_KEY)
+      expect(env).not_to have_key(Onetime::Session::FailureCode::ENV_KEY)
     end
 
     it 'accepts the scheme name case-insensitively and stray whitespace (RFC 9110 §11.1)' do
@@ -114,7 +114,7 @@ RSpec.describe Onetime::Application::AuthStrategies::PasetoAuthStrategy do
       expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
       expect(result).not_to be_terminal
       expect(result.failure_reason).to include('AUTH_HEADER_MISSING')
-      expect(env).not_to have_key(Onetime::SessionFailureCode::ENV_KEY)
+      expect(env).not_to have_key(Onetime::Session::FailureCode::ENV_KEY)
     end
 
     it 'fails non-terminally for another scheme, leaving the header to its own strategy' do
@@ -122,7 +122,7 @@ RSpec.describe Onetime::Application::AuthStrategies::PasetoAuthStrategy do
 
       expect(result).not_to be_terminal
       expect(result.failure_reason).to include('AUTH_TYPE_MISMATCH')
-      expect(env).not_to have_key(Onetime::SessionFailureCode::ENV_KEY)
+      expect(env).not_to have_key(Onetime::Session::FailureCode::ENV_KEY)
     end
 
     it 'fails non-terminally for every Bearer header while auth.paseto.enabled is off' do
@@ -133,7 +133,7 @@ RSpec.describe Onetime::Application::AuthStrategies::PasetoAuthStrategy do
         expect(result).to be_a(Otto::Security::Authentication::AuthFailure), token
         expect(result).not_to be_terminal
         expect(result.failure_reason).to include('PASETO_DISABLED')
-        expect(env).not_to have_key(Onetime::SessionFailureCode::ENV_KEY)
+        expect(env).not_to have_key(Onetime::Session::FailureCode::ENV_KEY)
       end
       expect(Onetime::Customer).not_to have_received(:find_by_extid)
     end
@@ -144,8 +144,8 @@ RSpec.describe Onetime::Application::AuthStrategies::PasetoAuthStrategy do
       expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
       expect(result).to be_terminal
       expect(result.failure_reason).to include(reason)
-      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(code)
-      expect(Onetime::SessionFailureCode.scheme(env)).to eq(Onetime::SessionFailureCode::SCHEME_BEARER)
+      expect(env[Onetime::Session::FailureCode::ENV_KEY]).to eq(code)
+      expect(Onetime::Session::FailureCode.scheme(env)).to eq(Onetime::Session::FailureCode::SCHEME_BEARER)
     end
 
     it 'rejects a token that is not PASETO' do
@@ -223,7 +223,7 @@ RSpec.describe Onetime::Application::AuthStrategies::PasetoAuthStrategy do
 
       expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
       expect(result).not_to be_terminal
-      expect(env).not_to have_key(Onetime::SessionFailureCode::ENV_KEY)
+      expect(env).not_to have_key(Onetime::Session::FailureCode::ENV_KEY)
     end
   end
 end

@@ -83,7 +83,7 @@ module Onetime
     end
 
     # Convenience: derive a session-internal subkey via HKDF.
-    # Used by Onetime::Session to get hmac / encryption keys from
+    # Used by Onetime::Session::RackStore to get hmac / encryption keys from
     # the session secret.
     #
     # @param session_secret [String] the session master secret

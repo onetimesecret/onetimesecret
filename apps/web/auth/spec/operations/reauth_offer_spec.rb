@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Unit tests for Auth::Operations::ReauthOffer (#4414). The operation
-# assembles the four inputs Onetime::ReauthPolicy.eligible_methods
+# assembles the four inputs Onetime::Session::ReauthPolicy.eligible_methods
 # needs — surface, password_enabled, webauthn_credentials,
 # related_origins — and returns the offer callers act on. Every
 # fail-closed branch is covered here: unresolved surface, missing
@@ -96,7 +96,7 @@ RSpec.describe Auth::Operations::ReauthOffer do
           related_origin_members: [
             {
               'origin' => 'https://example.com',
-              'surface' => Onetime::SessionSurface::CANONICAL,
+              'surface' => Onetime::Session::Surface::CANONICAL,
             },
             {
               'origin' => 'https://tenant.example',

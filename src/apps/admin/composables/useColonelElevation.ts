@@ -33,7 +33,7 @@ const REAUTHENTICATE_URL = '/api/colonel/reauthenticate';
  * ## It does not poll, and nothing here may start a timer that makes a request
  *
  * `Onetime::Operations::Sessions::TrackMetadata` runs from
- * `Onetime::Session#write_session` on essentially every authenticated request
+ * `Onetime::Session::RackStore#write_session` on essentially every authenticated request
  * and unconditionally advances `last_activity_at` — which is exactly the value
  * the admin idle timeout (#4331) reads. A banner polling GET /api/colonel/elevation
  * would re-stamp it forever, so the idle timeout could never fire while an admin

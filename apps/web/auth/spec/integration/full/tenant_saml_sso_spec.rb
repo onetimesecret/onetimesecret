@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # =============================================================================
-# TEST TYPE: Integration (full Rack stack, real Rodauth, real Onetime::Session)
+# TEST TYPE: Integration (full Rack stack, real Rodauth, real Onetime::Session::RackStore)
 # =============================================================================
 #
 # Tenant SAML SSO end to end (#4450).

@@ -13,7 +13,7 @@
 #
 # Before this change logout only cleared the blob, so the written-back copy
 # was a complete, valid session: its active-session row was never removed.
-# Logout now removes the row first (Onetime::ActiveSessionGate.end_session),
+# Logout now removes the row first (Onetime::Session::ActiveSessionGate.end_session),
 # which makes the copy refusable like any other revoked session.
 #
 # The in-flight request is reproduced by its effect: the blob and the cookie
@@ -95,8 +95,8 @@ RSpec.describe 'Logout ends the active session (#4451)', type: :integration do
   # row (Operations::Sessions::RevokeForCustomer), so in full mode the row
   # does not cover it: a request in flight would write back a copy the row
   # still vouches for. The ended-marker refuses that write
-  # (Onetime::SessionEnded). Driven through a real held request, so the late
-  # write is Onetime::Session#write_session's own.
+  # (Onetime::Session::Ended). Driven through a real held request, so the late
+  # write is Onetime::Session::RackStore#write_session's own.
   it 'a revoked session is not written back by a request that was in flight', :aggregate_failures do
     sid = current_session_id
 

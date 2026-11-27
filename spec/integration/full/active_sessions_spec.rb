@@ -69,7 +69,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
     def session_blob(sid)
       db    = Familia.dbclient
       dbkey = Onetime::Operations::Sessions::Store.find_key(db, sid)
-      codec = Onetime::SessionCodec.from_config
+      codec = Onetime::Session::Codec.from_config
       Onetime::Operations::Sessions::Store.load_data(db, dbkey, codec: codec)
     end
 
@@ -103,7 +103,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
       login!(email: test_email)
     end
 
-    # Onetime::ActiveSessionGate (terms defined there): the active-session
+    # Onetime::Session::ActiveSessionGate (terms defined there): the active-session
     # row in account_active_session_keys is now load-bearing for EVERY
     # authenticated request, not just the sessions page. Revoking it — a user
     # from another device, or an operator in Rodauth Admin — refuses the Rack
@@ -145,7 +145,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
       end
 
       it 'keeps refreshing the active-session row last_use so the inactivity sweep sees activity' do
-        stale = Time.now - (Onetime::ActiveSessionGate::TOUCH_INTERVAL + 60)
+        stale = Time.now - (Onetime::Session::ActiveSessionGate::TOUCH_INTERVAL + 60)
         account_rows.update(last_use: stale)
 
         get '/api/account/'
@@ -158,7 +158,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
       # module doc): the same request that would have refreshed last_use
       # refuses the Rack session and removes the row instead.
       it 'refuses the Rack session once its row is past the inactivity deadline, and removes the row' do
-        account_rows.update(last_use: Time.now - (Onetime::ActiveSessionGate::INACTIVITY_DEADLINE + 60))
+        account_rows.update(last_use: Time.now - (Onetime::Session::ActiveSessionGate::INACTIVITY_DEADLINE + 60))
 
         get '/api/account/'
         expect(last_response.status).to eq(401)
@@ -166,7 +166,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
       end
 
       it 'refuses the Rack session once its row is past the lifetime deadline, however active' do
-        account_rows.update(created_at: Time.now - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 60), last_use: Time.now)
+        account_rows.update(created_at: Time.now - (Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 60), last_use: Time.now)
 
         get '/api/account/'
         expect(last_response.status).to eq(401)
@@ -175,8 +175,8 @@ RSpec.describe 'Active Sessions Management', type: :integration do
 
       it 'applies the same two deadlines Rodauth itself is configured with' do
         deadlines = Auth::Config.internal_request_eval { [session_inactivity_deadline, session_lifetime_deadline] }
-        expect(deadlines).to eq([Onetime::ActiveSessionGate::INACTIVITY_DEADLINE, Onetime::ActiveSessionGate.lifetime_deadline])
-        expect(deadlines.last).to eq(Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE)
+        expect(deadlines).to eq([Onetime::Session::ActiveSessionGate::INACTIVITY_DEADLINE, Onetime::Session::ActiveSessionGate.lifetime_deadline])
+        expect(deadlines.last).to eq(Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE)
       end
     end
 
@@ -336,7 +336,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         def stash_in_session_blob(key, value)
           db        = Familia.dbclient
           dbkey     = Onetime::Operations::Sessions::Store.find_key(db, current_cookie_sid)
-          codec     = Onetime::SessionCodec.from_config
+          codec     = Onetime::Session::Codec.from_config
           data      = Onetime::Operations::Sessions::Store.load_data(db, dbkey, codec: codec)
           data[key] = value
           db.set(dbkey, codec.encode(data), keepttl: true)
@@ -372,15 +372,15 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         # user then sees can be tied to the revocation, and the stranded
         # stash is purged with the clear: this codebase overrides
         # clear_session to session.destroy, which routes through the store's
-        # delete path (Onetime::Session#delete_session) and purges the sid's
+        # delete path (Onetime::Session::RackStore#delete_session) and purges the sid's
         # sidecar registry keys — including the explicit-use stash — so it
         # does not outlive the sign-out.
         it 'warns, naming the dropped OmniAuth keys and stranded sidecar fields, and purges them, when revoked mid-SSO',
           lane_env: { 'ORGS_SSO_ENABLED' => 'true' } do
           sid = current_cookie_sid
           stash_in_session_blob('omniauth.state', 'abc123')
-          Onetime::SessionSidecar.write(sid, 'sso_connect_intent', @account[:id])
-          expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(true)
+          Onetime::Session::Sidecar.write(sid, 'sso_connect_intent', @account[:id])
+          expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(true)
           account_rows.delete
 
           get '/auth/sso/oidc/callback'
@@ -396,18 +396,18 @@ RSpec.describe 'Active Sessions Management', type: :integration do
               consequence: /authorization code is spent/,
             ),
           )
-          expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(false)
+          expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(false)
         end
 
         it 'purges the sidecar hand-off stash when a refused route signs the session out' do
           sid = current_cookie_sid
-          Onetime::SessionSidecar.write(sid, 'link_sso_pending_bind', { 'account_id' => @account[:id].to_s })
+          Onetime::Session::Sidecar.write(sid, 'link_sso_pending_bind', { 'account_id' => @account[:id].to_s })
           account_rows.delete
 
           get_json '/auth/account'
           expect(last_response.status).to eq(401)
 
-          expect(Onetime::SessionSidecar.exists?(sid, 'link_sso_pending_bind')).to be(false)
+          expect(Onetime::Session::Sidecar.exists?(sid, 'link_sso_pending_bind')).to be(false)
         end
 
         it 'logs each request an authdb outage refuses, and the logout it answers' do
@@ -633,7 +633,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
 
         store = Onetime::Operations::Sessions::Store
         db = Familia.dbclient
-        codec = Onetime::SessionCodec.from_config
+        codec = Onetime::Session::Codec.from_config
         old_key = store.find_key(db, old_sid)
         expect(old_key).not_to be_nil
         expect(store.load_data(db, old_key, codec: codec)['authenticated']).not_to be(true)
@@ -660,7 +660,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         expect(session['authenticated']).to be(true)
         expect(session['account_id']).to eq(account[:id])
         expect(session['active_session_id_hmac']).not_to be_nil
-        expect(Onetime::ActiveSessionGate.verdict(session)).to eq(:active)
+        expect(Onetime::Session::ActiveSessionGate.verdict(session)).to eq(:active)
 
         get_json '/auth/active-sessions'
         expect(last_response.status).to eq(200)
@@ -706,11 +706,11 @@ RSpec.describe 'Active Sessions Management', type: :integration do
       account = create_verified_account(db: test_db, email: invite_email)
       session = gate_session(establish(account[:id]))
 
-      expect(Onetime::ActiveSessionGate.verdict(session)).to eq(:active)
+      expect(Onetime::Session::ActiveSessionGate.verdict(session)).to eq(:active)
 
       test_db[:account_active_session_keys].where(account_id: account[:id]).delete
 
-      expect(Onetime::ActiveSessionGate.verdict(session)).to eq(:revoked)
+      expect(Onetime::Session::ActiveSessionGate.verdict(session)).to eq(:revoked)
     end
 
     # The bug: an invite session without a join key is exempt forever. Prove the
@@ -721,7 +721,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
       session = gate_session(establish(account[:id]))
 
       expect(session['active_session_id_hmac']).not_to be_nil
-      expect(Onetime::ActiveSessionGate.verdict(session)).not_to eq(:skipped)
+      expect(Onetime::Session::ActiveSessionGate.verdict(session)).not_to eq(:skipped)
     end
   end
 end

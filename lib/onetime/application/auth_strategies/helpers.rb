@@ -68,19 +68,19 @@ module Onetime
         #   evaluated. Passing nil (bare unit-level strategy calls) keeps the
         #   strict terminal behavior.
         # @param code [Symbol, nil] the credential reason
-        #   (Onetime::SessionFailureCode::CREDENTIAL_REASON_SCOPES) the 401
+        #   (Onetime::Session::FailureCode::CREDENTIAL_REASON_SCOPES) the 401
         #   carries as its `code`, or nil to leave it uncoded
         # @param scheme [String] the HTTP authentication scheme the rejected
-        #   credential used (Onetime::SessionFailureCode::SCHEME_BASIC or
+        #   credential used (Onetime::Session::FailureCode::SCHEME_BASIC or
         #   SCHEME_BEARER); stashed with the code so the 401's challenge
         #   names it
         # @return [Otto::Security::Authentication::AuthFailure]
-        def credentialed_failure(reason, env = nil, code: nil, scheme: Onetime::SessionFailureCode::SCHEME_BASIC)
+        def credentialed_failure(reason, env = nil, code: nil, scheme: Onetime::Session::FailureCode::SCHEME_BASIC)
           return failure(reason) if valid_session_identity?(env)
 
           if code
-            Onetime::SessionFailureCode.stash(env, code)
-            Onetime::SessionFailureCode.stash_scheme(env, scheme)
+            Onetime::Session::FailureCode.stash(env, code)
+            Onetime::Session::FailureCode.stash_scheme(env, scheme)
           end
           failure(reason, terminal: true)
         end
@@ -89,7 +89,7 @@ module Onetime
         # callers may project it to nil/boolean, but may never promote a refused
         # or unavailable verdict to an identity.
         def customer_session_verdict(session, env = nil)
-          Onetime::CustomerSessionEvaluator.evaluate(session, env: env)
+          Onetime::Session::CustomerSessionEvaluator.evaluate(session, env: env)
         end
 
         # Compatibility projection retained for credentialed strategies and

@@ -55,7 +55,7 @@ RSpec.describe Auth::Operations::Customers::StopImpersonation do
     it 'removes the marker' do
       described_class.new(session: session, actor: 'ur_operator').call
 
-      expect(session).not_to have_key(Onetime::SessionImpersonation::SESSION_KEY)
+      expect(session).not_to have_key(Onetime::Session::Impersonation::SESSION_KEY)
     end
 
     it 'records exactly one stop event, with the duration' do
@@ -89,7 +89,7 @@ RSpec.describe Auth::Operations::Customers::StopImpersonation do
     it 'carries a non-operator ended_by through to the trail' do
       described_class.new(
         session: session, actor: 'ur_operator',
-        ended_by: Onetime::SessionImpersonation::ENDED_BY_TARGET_SUSPENDED,
+        ended_by: Onetime::Session::Impersonation::ENDED_BY_TARGET_SUSPENDED,
       ).call
 
       expect(Onetime::ColonelAuditEvent)

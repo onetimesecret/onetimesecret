@@ -119,14 +119,14 @@ RSpec.describe 'V3 current authentication boundaries in full mode', type: :integ
         source_host = boundary == :canonical_to_tenant ? canonical_host : domains.first.display_domain
         target_host = boundary == :tenant_to_canonical ? canonical_host : domains.last.display_domain
         source_surface = if boundary == :canonical_to_tenant
-                           Onetime::SessionSurface::CANONICAL
+                           Onetime::Session::Surface::CANONICAL
                          else
                            { 'kind' => 'custom', 'id' => domains.first.identifier }
                          end
         if boundary == :canonical_to_tenant
-          expect(session_blob.fetch(Onetime::SessionSurface::KEY)).to eq(source_surface)
+          expect(session_blob.fetch(Onetime::Session::Surface::KEY)).to eq(source_surface)
         else
-          rewrite_session_blob { |blob| blob[Onetime::SessionSurface::KEY] = source_surface }
+          rewrite_session_blob { |blob| blob[Onetime::Session::Surface::KEY] = source_surface }
         end
         cookie = current_session_id
         @matrix_customer.regenerate_apitoken
@@ -136,7 +136,7 @@ RSpec.describe 'V3 current authentication boundaries in full mode', type: :integ
         header 'Content-Type', nil
         get '/api/v3/receipt/recent', {}, env
         expect(last_response.status).to eq(200)
-        expect(Onetime::SessionSurface.for_env(last_request.env)).to eq(source_surface)
+        expect(Onetime::Session::Surface.for_env(last_request.env)).to eq(source_surface)
         expect(last_request.env.fetch('otto.strategy_result').user.objid).to eq(@matrix_customer.objid)
         token = last_response.headers['X-CSRF-Token']
         expect(token).to be_a(String)
@@ -152,9 +152,9 @@ RSpec.describe 'V3 current authentication boundaries in full mode', type: :integ
         get '/api/v3/receipt/recent', {}, env
         expect(last_response.status).to eq(401)
         expect(json_response).to include('code' => 'surface_mismatch', 'code_scope' => 'customer_session')
-        expected_surface = boundary == :tenant_to_canonical ? Onetime::SessionSurface::CANONICAL :
+        expected_surface = boundary == :tenant_to_canonical ? Onetime::Session::Surface::CANONICAL :
           { 'kind' => 'custom', 'id' => domains.last.identifier }
-        expect(Onetime::SessionSurface.for_env(last_request.env)).to eq(expected_surface)
+        expect(Onetime::Session::Surface.for_env(last_request.env)).to eq(expected_surface)
         expect(secret_storage).to eq(before_storage)
 
         %w[conceal generate].each do |operation|

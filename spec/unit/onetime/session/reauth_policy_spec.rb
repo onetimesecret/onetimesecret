@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for Onetime::ReauthPolicy — the surface-aware policy that
+# Unit tests for Onetime::Session::ReauthPolicy — the surface-aware policy that
 # answers which credential paths may be OFFERED for re-authentication on
 # THIS request's surface (#4414, epic #4408). Every acceptance criterion
 # from the issue lands here: password fallback, platform-only credential
@@ -13,7 +13,7 @@ require 'spec_helper'
 require 'onetime/session/reauth_policy'
 require 'onetime/session/surface'
 
-RSpec.describe Onetime::ReauthPolicy do
+RSpec.describe Onetime::Session::ReauthPolicy do
   let(:canonical) { { kind: :canonical } }
   let(:subdomain) { { kind: :subdomain, host: 'eu.example.com' } }
   let(:tenant_a)  { { kind: :custom, id: 'tenant-a' } }

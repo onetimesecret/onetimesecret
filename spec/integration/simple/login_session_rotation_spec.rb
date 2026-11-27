@@ -105,12 +105,12 @@ RSpec.describe 'Simple-mode password sign-in starts a new session id (#4466)', t
   def seed_previous_occupant!(sid)
     rewrite_session_blob do |data|
       data['seeded_by_previous_occupant'] = 'yes'
-      data[Onetime::RememberMe::SESSION_KEY] = Familia.now.to_i + 3600
+      data[Onetime::Session::RememberMe::SESSION_KEY] = Familia.now.to_i + 3600
     end
-    Onetime::SessionSidecar.write(
+    Onetime::Session::Sidecar.write(
       sid, 'elevated_until', { 'extid' => 'ur_previous_occupant', 'exp' => Familia.now.to_i + 600 }
     )
-    expect(Onetime::SessionSidecar.read(sid, 'elevated_until')).not_to be_nil
+    expect(Onetime::Session::Sidecar.read(sid, 'elevated_until')).not_to be_nil
   end
 
   shared_examples 'a sign-in that starts a new session id' do
@@ -123,7 +123,7 @@ RSpec.describe 'Simple-mode password sign-in starts a new session id (#4466)', t
       expect(new_sid).not_to be_nil
       expect(new_sid).not_to eq(old_sid)
       expect(session_store.find_key(db, old_sid)).to be_nil
-      expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+      expect(Onetime::Session::Ended.ended?(old_sid)).to be(true)
 
       blob = blob_for(new_sid)
       expect(blob).to include('authenticated' => true, 'external_id' => customer.extid)
@@ -139,10 +139,10 @@ RSpec.describe 'Simple-mode password sign-in starts a new session id (#4466)', t
       blob    = blob_for(new_sid)
       expect(blob).to include('external_id' => customer.extid)
       expect(blob).not_to have_key('seeded_by_previous_occupant')
-      expect(blob).not_to have_key(Onetime::RememberMe::SESSION_KEY)
+      expect(blob).not_to have_key(Onetime::Session::RememberMe::SESSION_KEY)
       expect(blob).not_to have_key('elevated_until')
-      expect(Onetime::SessionSidecar.read(new_sid, 'elevated_until')).to be_nil
-      expect(Onetime::SessionSidecar.read(old_sid, 'elevated_until')).to be_nil
+      expect(Onetime::Session::Sidecar.read(new_sid, 'elevated_until')).to be_nil
+      expect(Onetime::Session::Sidecar.read(old_sid, 'elevated_until')).to be_nil
     end
   end
 
@@ -164,8 +164,8 @@ RSpec.describe 'Simple-mode password sign-in starts a new session id (#4466)', t
       _old_sid, token = anonymous_session!
       expect(login!(customer, token, 'remember-me' => true).status).to eq(200), last_response.body
 
-      expect(blob_for(current_session_id)[Onetime::RememberMe::SESSION_KEY])
-        .to be_within(5).of(Familia.now.to_i + Onetime::RememberMe::DURATION)
+      expect(blob_for(current_session_id)[Onetime::Session::RememberMe::SESSION_KEY])
+        .to be_within(5).of(Familia.now.to_i + Onetime::Session::RememberMe::DURATION)
     end
 
     it 'returns a CSRF token for the new session, and the pre-sign-in one stops working', :aggregate_failures do
@@ -210,7 +210,7 @@ RSpec.describe 'Simple-mode password sign-in starts a new session id (#4466)', t
 
     it 'refuses the login when the ended marker cannot be written', :aggregate_failures do
       old_sid, token = anonymous_session!
-      allow(Onetime::SessionEnded).to receive(:mark).and_return(false)
+      allow(Onetime::Session::Ended).to receive(:mark).and_return(false)
 
       login!(customer, token)
 
@@ -220,7 +220,7 @@ RSpec.describe 'Simple-mode password sign-in starts a new session id (#4466)', t
 
     it 'refuses the login when the rotation reports itself incomplete after re-keying', :aggregate_failures do
       old_sid, token = anonymous_session!
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_wrap_original do |original, *args, **kwargs|
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_wrap_original do |original, *args, **kwargs|
         result          = original.call(*args, **kwargs)
         result.complete = false
         result.reason   = :blob_survived

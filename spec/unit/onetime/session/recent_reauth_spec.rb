@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'onetime/session/recent_reauth'
 
-RSpec.describe Onetime::RecentReauth do
+RSpec.describe Onetime::Session::RecentReauth do
   def env_for(strategy:, custom_domain_id: nil)
     {
       'onetime.domain_strategy' => strategy,
@@ -26,19 +26,19 @@ RSpec.describe Onetime::RecentReauth do
   let(:now) { Time.utc(2026, 9, 12, 23, 30, 0) }
 
   before do
-    allow(Onetime::SessionSidecar).to receive(:write) do |received_sid, field, value|
+    allow(Onetime::Session::Sidecar).to receive(:write) do |received_sid, field, value|
       next nil unless received_sid == sid
 
       sidecar[field] = value
       900
     end
-    allow(Onetime::SessionSidecar).to receive(:read) do |received_sid, field|
+    allow(Onetime::Session::Sidecar).to receive(:read) do |received_sid, field|
       received_sid == sid ? sidecar[field] : nil
     end
-    allow(Onetime::SessionSidecar).to receive(:consume) do |received_sid, field|
+    allow(Onetime::Session::Sidecar).to receive(:consume) do |received_sid, field|
       received_sid == sid ? sidecar.delete(field) : nil
     end
-    allow(Onetime::SessionSidecar).to receive(:delete) do |received_sid, field|
+    allow(Onetime::Session::Sidecar).to receive(:delete) do |received_sid, field|
       received_sid == sid && sidecar.delete(field) ? 1 : 0
     end
   end
@@ -59,7 +59,7 @@ RSpec.describe Onetime::RecentReauth do
         'surface' => { 'kind' => 'canonical' },
         'methods' => %w[password otp],
       )
-      expect(Onetime::SessionSidecar).to have_received(:write)
+      expect(Onetime::Session::Sidecar).to have_received(:write)
         .with(sid, described_class::KEY, payload)
       expect(session_data).not_to have_key(described_class::KEY)
     end
@@ -69,18 +69,18 @@ RSpec.describe Onetime::RecentReauth do
       expect(described_class.record(session, canonical_env, account_id: nil, methods: ['password'])).to be_nil
       expect(described_class.record(session, canonical_env, account_id: 42, methods: ['email_auth'])).to be_nil
 
-      expect(Onetime::SessionSidecar).not_to have_received(:write)
+      expect(Onetime::Session::Sidecar).not_to have_received(:write)
     end
 
     it 'fails closed when the session has no usable public id' do
       allow(session).to receive(:id).and_return(nil)
-      allow(Onetime::SessionSidecar).to receive(:write).and_return(nil)
+      allow(Onetime::Session::Sidecar).to receive(:write).and_return(nil)
 
       expect(described_class.record(session, canonical_env, account_id: 42, methods: ['password'])).to be_nil
     end
 
     it 'fails closed when sidecar persistence raises' do
-      allow(Onetime::SessionSidecar).to receive(:write).and_raise(StandardError, 'redis unavailable')
+      allow(Onetime::Session::Sidecar).to receive(:write).and_raise(StandardError, 'redis unavailable')
 
       expect(described_class.record(session, canonical_env, account_id: 42, methods: ['password'])).to be_nil
     end
@@ -145,7 +145,7 @@ RSpec.describe Onetime::RecentReauth do
       sidecar[described_class::KEY] = 'garbage'
       expect(described_class.satisfied?(session, canonical_env, account_id: 42, max_age: 600, now: now)).to be false
 
-      allow(Onetime::SessionSidecar).to receive(:consume).and_raise(StandardError, 'redis unavailable')
+      allow(Onetime::Session::Sidecar).to receive(:consume).and_raise(StandardError, 'redis unavailable')
       expect(described_class.satisfied?(session, canonical_env, account_id: 42, max_age: 600, now: now)).to be false
     end
   end

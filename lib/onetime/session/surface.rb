@@ -2,72 +2,19 @@
 #
 # frozen_string_literal: true
 
+require_relative '../session'
+
 module Onetime
-  # Surface-bound sessions (#4409, epic #4408).
+  # Classifies request surfaces, stamps the login surface, and checks it on
+  # later requests. Canonical and platform subdomains are distinct; custom
+  # domains use the stable identifier, not the display hostname. Descriptors
+  # use string keys for session JSON.
   #
-  # `Onetime::Session` is the Rack session store CLASS, so this cannot nest
-  # inside it; it takes the same sibling shape as {Onetime::SessionSidecar},
-  # {Onetime::SessionImpersonation}, and {Onetime::SessionCodec}.
-  #
-  # A session's *surface* is the host classification under which its login
-  # was completed. This module is the single source of truth for computing
-  # a request's surface descriptor, stamping it on the session at login,
-  # and answering "does this session belong on this request?".
-  #
-  # ## Surface descriptors
-  #
-  # The classifier returns one of four values; every consumer pattern-matches
-  # on the `'kind'` key. Descriptors use strings because they are persisted
-  # through the session JSON codec:
-  #
-  #     { 'kind' => 'canonical' }
-  #     { 'kind' => 'subdomain', 'host' => 'eu.example.com' }
-  #     { 'kind' => 'custom', 'id' => '<CustomDomain#identifier>' }
-  #     nil     # unresolved, unverified, or a :custom whose id could not be read
-  #
-  # `:canonical` and `:subdomain` are distinct surface classes, not aliases.
-  # A session established on the canonical host is not valid on a canonical
-  # subdomain, and vice versa. Custom domains are keyed by
-  # `CustomDomain#identifier` (the stable `objid`), not by display host, so
-  # renaming a custom domain's display host does not invalidate the marker.
-  #
-  # ## Fail-closed handling
-  #
-  # `for_env` returns `nil` when the request's host is not one we serve, or
-  # when a `:custom` strategy resolved to no identifier.
-  #
-  # `:invalid` is not only an unplaceable host. DomainStrategy also answers
-  # it when its custom-domain lookup RAISES, so during a datastore blip a
-  # real custom domain or platform subdomain arrives here as `:invalid` (see
-  # the class doc of {Onetime::Middleware::DomainStrategy}). The two are
-  # told apart by the Onetime::CustomDomain::Lookup the middleware
-  # published for the host (#4220): read_failed is the outage, absent is a
-  # host we do not serve. When nothing was published for the host (an env
-  # the middleware did not build), the request is classified again with the
-  # same {Onetime::Middleware::DomainStrategy::Chooserator.classify!} the
-  # middleware uses, minus its rescue:
-  #
-  # - The lookup succeeds: the answer is exactly what a healthy request on
-  #   that host would have carried. `nil` for a host we do not serve.
-  # - The lookup failed (as published, or again here): the surface is
-  #   UNKNOWN, which is not the same
-  #   as wrong. `for_env` still answers `nil`, so every descriptor consumer
-  #   (RecentReauth, ReauthPolicy via ReauthOffer, the WebAuthn surface_scope
-  #   stamp, the OmniAuth Connect intent and callback) refuses as before.
-  #   {match_status} answers `:unavailable`, which the session evaluators
-  #   turn into a refusal that keeps the Rack session, the same treatment a
-  #   customer-store outage gets. Destroying the session there would sign
-  #   out every custom-domain and subdomain user for the length of the
-  #   outage.
-  #
-  # The result is memoized on the env, so every consumer in one request
-  # sees the same answer and the lookup runs once.
-  #
-  # A session with no stored marker (a session established before this
-  # feature shipped, or one whose marker was cleared) is treated as
-  # mismatched on every authenticated request. There is no "unknown ==
-  # matches" branch: the epic's invariant requires an authoritative marker.
-  module SessionSurface
+  # An unresolved surface yields nil. A lookup outage is not a mismatch:
+  # {match_status} returns `:unavailable` so callers refuse without destroying
+  # the Rack session. Reclassification is memoized per request. A missing
+  # stored marker is a mismatch, never a match.
+  module Session::Surface
     # Session data must remain stable across JSON persistence.
     KEY = 'authenticated_surface'
 

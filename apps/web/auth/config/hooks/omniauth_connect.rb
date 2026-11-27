@@ -47,7 +47,7 @@ module Auth::Config::Hooks
         return if defined?(@omniauth_connect_intent_consumed)
 
         session.delete(:sso_connect_intent)
-        @omniauth_connect_raw_intent      = Onetime::SessionSidecar.consume(
+        @omniauth_connect_raw_intent      = Onetime::Session::Sidecar.consume(
           session.id&.public_id, 'sso_connect_intent'
         )
         @omniauth_connect_intent_consumed = true
@@ -70,7 +70,7 @@ module Auth::Config::Hooks
         now = Time.now.utc.to_i
         intent.is_a?(Hash) && intent['surface'].is_a?(Hash) &&
           intent['at'].is_a?(Integer) && intent['at'] <= now &&
-          now - intent['at'] <= Onetime::RecentReauth::CONNECT_MAX_AGE &&
+          now - intent['at'] <= Onetime::Session::RecentReauth::CONNECT_MAX_AGE &&
           logged_in? && !intent['account_id'].nil? &&
           intent['account_id'].to_s == session_value.to_s
       end
@@ -122,9 +122,9 @@ module Auth::Config::Hooks
         refuse_omniauth_connect!('session_customer_suspended') if customer.suspended?
 
         domain_id       = session[:validated_omniauth_domain_id]
-        surface         = Onetime::SessionSurface.for_env(request.env)
+        surface         = Onetime::Session::Surface.for_env(request.env)
         surface_bound   = !surface.nil? && intent['surface'] == surface &&
-                          Onetime::SessionSurface.matches_request?(session, request.env)
+                          Onetime::Session::Surface.matches_request?(session, request.env)
         surface_bound &&= if domain_id
           surface == { 'kind' => 'custom', 'id' => domain_id }
         else
@@ -133,7 +133,7 @@ module Auth::Config::Hooks
                           end
         refuse_omniauth_connect!('surface_mismatch', wrong_domain: true) unless surface_bound
 
-        # RecentReauth.satisfied? already consumed the full local proof at
+        # Onetime::Session::RecentReauth.satisfied? already consumed the full local proof at
         # initiation. This single-use, age-bounded intent carries that admission
         # across the IdP round trip; consuming a second proof here would deny all
         # legitimate callbacks. SSO itself never records a local proof.
@@ -188,7 +188,7 @@ module Auth::Config::Hooks
         refuse_omniauth_connect!('identity_owned_elsewhere') unless outcome == :ok
         # Cheap guarantee (#4420): the proof was already consumed at initiation;
         # a second bind within max_age needs a fresh ceremony.
-        Onetime::RecentReauth.clear(session)
+        Onetime::Session::RecentReauth.clear(session)
         identity = db[omniauth_identities_table].first(tuple)
         unless identity && identity[omniauth_identities_account_id_column].to_s == session_account[account_id_column].to_s
           refuse_omniauth_connect!('identity_ownership_unconfirmed')

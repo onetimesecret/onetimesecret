@@ -39,7 +39,7 @@ module Onetime
           # Decrypt with the shared codec so the read-out shows real identity;
           # without it the value is the opaque `base64(...)--hmac` blob and every
           # field reads as nil (the console's "Anonymous / None" bug).
-          codec = Onetime::SessionCodec.from_config
+          codec = Onetime::Session::Codec.from_config
           data  = Store.load_data(db, key, codec: codec)
           return miss unless data
 

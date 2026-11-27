@@ -329,21 +329,21 @@ RSpec.describe Onetime::CustomDomain::Lookup do
       expect(Auth::PublicHost.resolve(env)).to be_nil
     end
 
-    it 'SessionSurface answers :unavailable for a published read_failed without reading' do
+    it 'Onetime::Session::Surface answers :unavailable for a published read_failed without reading' do
       env[described_class::ENV_KEY]  = described_class.read_failed('secrets.acme.com', failure)
       env['onetime.domain_strategy'] = :invalid
       allow(Onetime).to receive(:http_logger).and_return(instance_double(SemanticLogger::Logger, error: nil))
-      session                        = { Onetime::SessionSurface::KEY => { 'kind' => 'custom', 'id' => 'domain-abc' } }
+      session                        = { Onetime::Session::Surface::KEY => { 'kind' => 'custom', 'id' => 'domain-abc' } }
 
-      expect(Onetime::SessionSurface.match_status(session, env)).to eq(:unavailable)
+      expect(Onetime::Session::Surface.match_status(session, env)).to eq(:unavailable)
       expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
     end
 
-    it 'SessionSurface answers nil for a published absent without reading' do
+    it 'Onetime::Session::Surface answers nil for a published absent without reading' do
       env[described_class::ENV_KEY]  = described_class.absent('secrets.acme.com')
       env['onetime.domain_strategy'] = :invalid
 
-      expect(Onetime::SessionSurface.for_env(env)).to be_nil
+      expect(Onetime::Session::Surface.for_env(env)).to be_nil
       expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
     end
   end

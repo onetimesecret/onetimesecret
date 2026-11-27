@@ -22,7 +22,7 @@ module ColonelAPI
       #
       # The op writes the overlay onto `sess`, and from the NEXT request on
       # BaseSessionAuthStrategy resolves the TARGET as the authenticated user
-      # (Onetime::SessionImpersonation.resolve). So the role check that lets
+      # (Onetime::Session::Impersonation.resolve). So the role check that lets
       # this endpoint run will fail on every subsequent colonel call, and
       # Middleware::ImpersonationContext blocks `/api/colonel/*` outright. The
       # response therefore carries the `redirect` the console must follow — a

@@ -9,7 +9,7 @@
 #      #ssl_enabled?), and (b) be applied per-request whenever the request
 #      itself is HTTPS — Rack::Request#ssl? honors X-Forwarded-Proto, and the
 #      AssumeHttps middleware (#3837/#3843) covers tunnels that don't forward
-#      it — via the upgrade-only Onetime::Session#set_cookie override.
+#      it — via the upgrade-only Onetime::Session::RackStore#set_cookie override.
 #
 # L-3: no log line carries the session id; the full id is the bearer
 #      credential. Log lines carry session_handle, the keyed digest of the id
@@ -19,9 +19,9 @@
 #      account_id/external_id/MFA state/key names.
 
 require 'spec_helper'
-require 'onetime/session'
+require 'onetime/session/rack_store'
 
-RSpec.describe Onetime::Session do
+RSpec.describe Onetime::Session::RackStore do
   let(:secret)   { 'a' * 64 }
   let(:app)      { ->(_env) { [200, {}, []] } }
   let(:dbclient) { double('dbclient') }
@@ -135,8 +135,8 @@ RSpec.describe Onetime::Session do
         # the Familia StringKey. Everything else in write_session is pure.
         stringkey = double('stringkey', set: true, update_expiration: true, ttl: 3600)
         allow(middleware).to receive(:get_stringkey).and_return(stringkey)
-        allow(Onetime::SessionSidecar).to receive(:commit).and_return(session_data)
-        allow(Onetime::SessionEnded).to receive(:ended?).and_return(false)
+        allow(Onetime::Session::Sidecar).to receive(:commit).and_return(session_data)
+        allow(Onetime::Session::Ended).to receive(:ended?).and_return(false)
         allow(Onetime::Operations::Sessions::TrackMetadata)
           .to receive(:new).and_return(double(call: true))
 
@@ -184,7 +184,7 @@ RSpec.describe Onetime::Session do
       # branch (v0.26.12) and must still keep the sid out of the log.
       def destroy_session
         allow(middleware).to receive(:get_stringkey).and_return(double('stringkey', del: 1))
-        allow(Onetime::SessionEnded).to receive(:mark).and_return(true)
+        allow(Onetime::Session::Ended).to receive(:mark).and_return(true)
         allow(Onetime::SessionMetadata).to receive(:load).and_return(nil)
         middleware.send(:delete_session, request_for('/'), sid, {})
       end
@@ -194,8 +194,8 @@ RSpec.describe Onetime::Session do
       end
 
       it 'logs the session handle on the in-flight sidecar warning' do
-        allow(Onetime::SessionSidecar).to receive(:inflight_fields).and_return(['awaiting_mfa'])
-        allow(Onetime::SessionSidecar).to receive(:purge)
+        allow(Onetime::Session::Sidecar).to receive(:inflight_fields).and_return(['awaiting_mfa'])
+        allow(Onetime::Session::Sidecar).to receive(:purge)
         destroy_session
 
         _, _, fields = entry_for('Session destroyed with in-flight sidecar state')
@@ -203,8 +203,8 @@ RSpec.describe Onetime::Session do
       end
 
       it 'logs the session handle on the sidecar purge failure' do
-        allow(Onetime::SessionSidecar).to receive(:inflight_fields).and_return([])
-        allow(Onetime::SessionSidecar).to receive(:purge).and_raise(StandardError, 'boom')
+        allow(Onetime::Session::Sidecar).to receive(:inflight_fields).and_return([])
+        allow(Onetime::Session::Sidecar).to receive(:purge).and_raise(StandardError, 'boom')
         destroy_session
 
         _, _, fields = entry_for('Sidecar purge failed (orphans are TTL-bounded)')
@@ -213,8 +213,8 @@ RSpec.describe Onetime::Session do
 
       { 'purge succeeds' => false, 'purge raises' => true }.each do |label, purge_raises|
         it "never emits the raw sid or the redis key in any delete-path entry (#{label})" do
-          allow(Onetime::SessionSidecar).to receive(:inflight_fields).and_return(['awaiting_mfa'])
-          purge = allow(Onetime::SessionSidecar).to receive(:purge)
+          allow(Onetime::Session::Sidecar).to receive(:inflight_fields).and_return(['awaiting_mfa'])
+          purge = allow(Onetime::Session::Sidecar).to receive(:purge)
           purge.and_raise(StandardError, 'boom') if purge_raises
           destroy_session
 

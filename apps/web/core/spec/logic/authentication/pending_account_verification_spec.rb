@@ -76,8 +76,8 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       # A pending login starts its session under a new id too (#4466); that
       # is covered in authenticate_session_spec.rb and the real-route
       # spec/integration/simple/login_session_rotation_spec.rb.
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(
-        Onetime::SessionRotation::Result.new(old_sid: 'sess_test123', new_sid: 'sess_new456', complete: true),
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(
+        Onetime::Session::Rotation::Result.new(old_sid: 'sess_test123', new_sid: 'sess_new456', complete: true),
       )
     end
 

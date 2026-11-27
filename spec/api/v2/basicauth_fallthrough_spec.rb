@@ -160,8 +160,8 @@ RSpec.describe 'API v2 Basic auth anonymous fallthrough (fail closed)', type: :i
       # Inject a valid authenticated session the same way the colonel session
       # integration tryout does (pre-set env['rack.session']). The surface
       # marker matches what DomainStrategy classifies rack-test's default host
-      # (example.org) as — canonical — so CustomerSessionEvaluator's
-      # SessionSurface.matches_request? gate resolves the identity instead of
+      # (example.org) as — canonical — so Onetime::Session::CustomerSessionEvaluator's
+      # Onetime::Session::Surface.matches_request? gate resolves the identity instead of
       # refusing on :surface_mismatch (rejected verdict = header stays terminal
       # = the very 401 this test guards against).
       session = {

@@ -106,7 +106,7 @@ module Auth
           # An anonymous surface whose 401s are about the link token
           # (`link_expired`), not about a session or a credential: withdraw
           # the router's anonymous stash so they stay uncoded (#4469).
-          Onetime::SessionFailureCode.forget(r.env)
+          Onetime::Session::FailureCode.forget(r.env)
 
           # GET /auth/sso-link-confirm/:token — consent display context.
           # Returns ONLY the provider name and claimed email; never the account id,

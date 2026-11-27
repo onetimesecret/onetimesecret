@@ -8,7 +8,7 @@
 # window (ColonelAPI::Logic::Colonel::ElevateSession, #4327). The window
 # gives the session id tier-1 (destructive) capability, so the id that
 # existed before the step-up is ended and the window is written under a new
-# one (Onetime::SessionRotation). These examples drive the route end to end
+# one (Onetime::Session::Rotation). These examples drive the route end to end
 # in full auth mode, after a real Rodauth password login: the operator is
 # still signed in and elevated under the new id, the active-session row
 # still matches it, and the old cookie is not signed in.
@@ -79,14 +79,14 @@ RSpec.describe 'Colonel step-up starts a new session id (#4466)', type: :integra
     expect(new_sid).not_to be_nil
     expect(new_sid).not_to eq(old_sid)
     expect(session_store.find_key(db, old_sid)).to be_nil
-    expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+    expect(Onetime::Session::Ended.ended?(old_sid)).to be(true)
 
     blob = blob_for(new_sid)
     expect(blob).to include('authenticated' => true, 'external_id' => colonel.extid)
     expect(blob['active_session_id_hmac']).not_to be_nil
-    expect(Onetime::ActiveSessionGate.verdict(blob)).to eq(:active)
-    expect(Onetime::SessionSidecar.read(new_sid, 'elevated_until')).to include('extid' => colonel.extid)
-    expect(Onetime::SessionSidecar.read(old_sid, 'elevated_until')).to be_nil
+    expect(Onetime::Session::ActiveSessionGate.verdict(blob)).to eq(:active)
+    expect(Onetime::Session::Sidecar.read(new_sid, 'elevated_until')).to include('extid' => colonel.extid)
+    expect(Onetime::Session::Sidecar.read(old_sid, 'elevated_until')).to be_nil
   end
 
   it 'keeps the operator signed in and elevated under the new id, and the old cookie signed out', :aggregate_failures do
@@ -125,14 +125,14 @@ RSpec.describe 'Colonel step-up starts a new session id (#4466)', type: :integra
     it 'refuses the window and records no success event', :aggregate_failures do
       colonel = sign_in_colonel!
       old_sid = current_session_id
-      allow(Onetime::SessionEnded).to receive(:mark).and_return(false)
+      allow(Onetime::Session::Ended).to receive(:mark).and_return(false)
 
       response = elevate!
       expect(response.status).to eq(403)
       expect(json_response).to include('error_code' => 'elevation_failed')
 
       expect(current_session_id).to eq(old_sid)
-      expect(Onetime::SessionSidecar.read(old_sid, 'elevated_until')).to be_nil
+      expect(Onetime::Session::Sidecar.read(old_sid, 'elevated_until')).to be_nil
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
         .with(hash_including(verb: 'colonel.elevate', result: :success))
       expect(Onetime::ColonelAuditEvent).to have_received(:record_security)

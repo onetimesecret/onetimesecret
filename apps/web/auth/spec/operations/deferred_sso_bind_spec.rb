@@ -3,11 +3,11 @@
 # frozen_string_literal: true
 
 # Unit tests for Auth::Operations::DeferredSsoBind (#3877 / #3840 Phase 4.A,
-# storage moved to SessionSidecar in #3858).
+# storage moved to Onetime::Session::Sidecar in #3858).
 #
 # The MFA hand-off for the interstitial's identity bind: `.defer` stashes an
 # ALREADY-AUTHORIZED (password-proven) bind as a short-TTL, sid-bound
-# SessionSidecar key, and `.complete` — called from
+# Onetime::Session::Sidecar key, and `.complete` — called from
 # after_two_factor_authentication — consumes it (atomic GETDEL at the store)
 # and performs the bind via the shared BindSsoIdentity primitive.
 #
@@ -16,8 +16,8 @@
 # index (RodauthTestHelper.create_test_database), because the decisions under
 # test — did a row land, on WHOSE account, exactly once — are DB facts. The
 # Redis side is a minimal in-memory stand-in implementing exactly the commands
-# SessionSidecar issues (SET+EX / GET / GETDEL / DEL / TTL), paired with a
-# REAL SessionCodec so the encrypted, sid/field-bound envelope is genuine —
+# Onetime::Session::Sidecar issues (SET+EX / GET / GETDEL / DEL / TTL), paired with a
+# REAL Onetime::Session::Codec so the encrypted, sid/field-bound envelope is genuine —
 # the GETDEL-vs-concurrency guarantee itself is locked in by the sidecar's
 # own tryouts against real Valkey (try/unit/session/sidecar_try.rb).
 #
@@ -62,7 +62,7 @@ require 'auth/operations/deferred_sso_bind'
 
 RSpec.describe Auth::Operations::DeferredSsoBind do
   # Minimal in-memory stand-in for the sidecar's Redis surface. Implements
-  # only what SessionSidecar issues: SET+EX, GET, GETDEL (the atomic consume),
+  # only what Onetime::Session::Sidecar issues: SET+EX, GET, GETDEL (the atomic consume),
   # DEL, TTL. TTLs are recorded, not enforced — expiry semantics live in the
   # sidecar tryouts against real Valkey.
   class FakeSidecarRedis
@@ -106,9 +106,9 @@ RSpec.describe Auth::Operations::DeferredSsoBind do
   let(:identities) { db[:account_identities] }
 
   let(:redis) { FakeSidecarRedis.new }
-  let(:codec) { Onetime::SessionCodec.new('deferred-sso-bind-spec-secret') }
+  let(:codec) { Onetime::Session::Codec.new('deferred-sso-bind-spec-secret') }
   let(:sid)   { SecureRandom.hex(32) } # 64 hex chars, matches the sidecar SID_FORMAT
-  let(:key)   { Onetime::SessionSidecar.key_for(sid, described_class::FIELD) }
+  let(:key)   { Onetime::Session::Sidecar.key_for(sid, described_class::FIELD) }
 
   let(:provider) { 'oidc' }
   let(:issuer)   { 'https://issuer.example.com' }
@@ -313,7 +313,7 @@ RSpec.describe Auth::Operations::DeferredSsoBind do
 
       # A Redis-writing attacker copies one session's pending bind under
       # another sid. The envelope's sid binding makes it decode as absent.
-      planted = Onetime::SessionSidecar.key_for(other_sid, described_class::FIELD)
+      planted = Onetime::Session::Sidecar.key_for(other_sid, described_class::FIELD)
       redis.set(planted, redis.get(key), ex: 900)
 
       expect(complete(for_sid: other_sid)).to eq(:none)
@@ -324,7 +324,7 @@ RSpec.describe Auth::Operations::DeferredSsoBind do
 
   describe '.complete with a malformed stash' do
     it 'discards a non-hash payload (:none) and still consumes the key' do
-      Onetime::SessionSidecar.write(
+      Onetime::Session::Sidecar.write(
         sid, described_class::FIELD, 'not-a-hash', dbclient: redis, codec: codec,
       )
 
@@ -334,7 +334,7 @@ RSpec.describe Auth::Operations::DeferredSsoBind do
     end
 
     it 'discards a payload missing part of the bind tuple (:none)' do
-      Onetime::SessionSidecar.write(
+      Onetime::Session::Sidecar.write(
         sid, described_class::FIELD,
         { 'account_id' => account_id.to_s, 'provider' => provider, 'issuer' => issuer },
         dbclient: redis, codec: codec,

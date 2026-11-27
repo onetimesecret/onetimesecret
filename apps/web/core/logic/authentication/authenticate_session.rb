@@ -29,7 +29,7 @@ module Core::Logic
         # The TTL write_session actually applies: the session middleware
         # re-applies the configured expire_after on every commit (a
         # remembered session gets its fixed deadline instead, see
-        # Onetime::RememberMe) — nothing consumes a per-login TTL, so
+        # Onetime::Session::RememberMe) — nothing consumes a per-login TTL, so
         # reporting anything else (the old hardcoded 30 days) was a lie in
         # the auth log.
         @session_ttl             = Onetime.session_config['expire_after'].to_i
@@ -295,8 +295,8 @@ module Core::Logic
       # So nothing of it is kept. The hash is cleared first (every key the
       # previous occupant left, including the CSRF token, a remember-me
       # deadline and a colonel step-up window), then
-      # {Onetime::SessionRotation.rotate!} ends the old id the way a logout
-      # does (SessionEnded marker, blob, sidecar keys) and re-keys this
+      # {Onetime::Session::Rotation.rotate!} ends the old id the way a logout
+      # does (Onetime::Session::Ended marker, blob, sidecar keys) and re-keys this
       # session hash in place. The request's commit
       # writes whatever is put in afterwards under the new id, and the
       # response sets the new cookie. Onetime::Middleware::CsrfResponseHeader
@@ -309,7 +309,7 @@ module Core::Logic
       # suspended check, before any identity key is written.
       #
       # IMPERSONATION. A colonel impersonation marker in the session is ended
-      # with {Onetime::SessionImpersonation.stop!} before the clear, so the
+      # with {Onetime::Session::Impersonation.stop!} before the clear, so the
       # trail records its stop (ended_by: logout) instead of holding a start
       # with no end; logout does the same (Core::Controllers::Authentication#logout,
       # Onetime::Helpers::SessionHelpers#logout!). Over HTTP this login does
@@ -321,20 +321,20 @@ module Core::Logic
       #
       # FAILURE: the login does not continue on a session whose old id could
       # not be ended. The hash is left empty and
-      # {Onetime::SessionRotation::Incomplete} is raised, so the commit writes
+      # {Onetime::Session::Rotation::Incomplete} is raised, so the commit writes
       # nothing signed-in under either id; the controller answers it as a
       # failed sign-in. A nil result is a session that is not a Rack
       # session-store session (a bare Hash): it has no server-side id that
       # could have been set in advance, so the login continues.
       #
-      # @raise [Onetime::SessionRotation::Incomplete]
+      # @raise [Onetime::Session::Rotation::Incomplete]
       def start_new_session!
         previous_handle = session_log_handle
-        Onetime::SessionImpersonation.stop!(sess, ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT)
+        Onetime::Session::Impersonation.stop!(sess, ended_by: Onetime::Session::Impersonation::ENDED_BY_LOGOUT)
         sess.clear
 
         rotation = begin
-          Onetime::SessionRotation.rotate!(sess)
+          Onetime::Session::Rotation.rotate!(sess)
         rescue StandardError => ex
           refuse_unrotated_session!(previous_handle, reason: :error, error: "#{ex.class}: #{ex.message}")
         end
@@ -353,8 +353,8 @@ module Core::Logic
         auth_logger.info 'Login session id rotated',
           {
             user_id: cust.objid,
-            previous_session_handle: Onetime::SessionEnded.handle_for(rotation.old_sid),
-            session_handle: Onetime::SessionEnded.handle_for(rotation.new_sid),
+            previous_session_handle: Onetime::Session::Ended.handle_for(rotation.old_sid),
+            session_handle: Onetime::Session::Ended.handle_for(rotation.new_sid),
           }
       end
 
@@ -374,7 +374,7 @@ module Core::Logic
             error: error,
           }
 
-        raise Onetime::SessionRotation::Incomplete,
+        raise Onetime::Session::Rotation::Incomplete,
           "session id rotation incomplete (#{reason}); login refused"
       end
 

@@ -29,7 +29,7 @@ RSpec.describe Onetime::Middleware::CookieTossing do
   end
 
   describe 'the cookie name' do
-    it 'defaults to the configured session cookie, the one Onetime::Session is mounted with' do
+    it 'defaults to the configured session cookie, the one Onetime::Session::RackStore is mounted with' do
       expect(middleware.options[:session_key]).to eq(Onetime.session_config['key'])
       expect(middleware.options[:session_key]).to eq('onetime.session')
     end

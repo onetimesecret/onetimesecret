@@ -150,7 +150,7 @@ way it is.
 1. **Bounded lifetime.** An impersonation session would need a lifetime shorter
    than an ordinary session, independent of the configured expiry. The session
    store re-applies the configured `expire_after` on every commit
-   (`lib/onetime/session.rb:663-673`), which is correct for ordinary sessions —
+   (`Onetime::Session::RackStore#write_session`), which is correct for ordinary sessions —
    activity should extend them. A shorter-lived session variant is a new concept
    the store does not have today, and it would have to be built before, not
    alongside, any impersonation feature.
@@ -270,5 +270,5 @@ consolidated behind one shared resolver rather than each growing its own copy
 of the check. The reasoning stands; only its premise (no caller) has changed.
 
 Line references in the sections above have drifted with the code: the session
-store's expiry re-application is now `lib/onetime/session.rb:703-708`, and the
-sidecar admission rule is now `lib/onetime/session/sidecar.rb:99`.
+store's expiry re-application is now in `Onetime::Session::RackStore#write_session`,
+and the sidecar admission rule is in the `Onetime::Session::Sidecar` module doc.

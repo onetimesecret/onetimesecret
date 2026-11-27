@@ -14,7 +14,7 @@ require 'securerandom'
 require_relative '../../middleware/snapshot_ordering'
 
 RSpec.describe Core::Middleware::SnapshotOrdering do
-  let(:env_key) { Onetime::SnapshotOrdering::ENV_KEY }
+  let(:env_key) { Onetime::Session::SnapshotOrdering::ENV_KEY }
   let(:sid) { SecureRandom.hex(32) }
   let(:downstream_seen) { {} }
 
@@ -47,7 +47,7 @@ RSpec.describe Core::Middleware::SnapshotOrdering do
 
   before do
     allow(OT).to receive(:global_secret).and_return('snapshot-ordering-mw-secret')
-    allow(Onetime::SessionSidecar).to receive(:allocate_counter).and_return('1758236400000042')
+    allow(Onetime::Session::Sidecar).to receive(:allocate_counter).and_return('1758236400000042')
   end
 
   describe 'an ordered session' do
@@ -57,7 +57,7 @@ RSpec.describe Core::Middleware::SnapshotOrdering do
       middleware.call(env)
 
       expect(downstream_seen[:ordering]).to include(
-        epoch: Onetime::SnapshotOrdering.epoch_for(sid),
+        epoch: Onetime::Session::SnapshotOrdering.epoch_for(sid),
         version: '1758236400000042',
       )
     end
@@ -71,13 +71,13 @@ RSpec.describe Core::Middleware::SnapshotOrdering do
     it 'allocates exactly once per request' do
       middleware.call(env_for({ 'authenticated' => true }))
 
-      expect(Onetime::SessionSidecar).to have_received(:allocate_counter).once
+      expect(Onetime::Session::Sidecar).to have_received(:allocate_counter).once
     end
 
     it 'hands the allocator the lifetime the session commit will write, not a remaining TTL' do
       middleware.call(env_for({ 'authenticated' => true }))
 
-      expect(Onetime::SessionSidecar).to have_received(:allocate_counter)
+      expect(Onetime::Session::Sidecar).to have_received(:allocate_counter)
         .with(sid, 'snapshot_version', ttl: 7200)
     end
 
@@ -96,7 +96,7 @@ RSpec.describe Core::Middleware::SnapshotOrdering do
 
         expect(env).not_to have_key(env_key)
       end
-      expect(Onetime::SessionSidecar).not_to have_received(:allocate_counter)
+      expect(Onetime::Session::Sidecar).not_to have_received(:allocate_counter)
       expect(downstream_seen[:called]).to be(true)
     end
 
@@ -113,7 +113,7 @@ RSpec.describe Core::Middleware::SnapshotOrdering do
 
     before do
       allow(Onetime).to receive(:session_logger).and_return(logger)
-      allow(Onetime::SessionSidecar).to receive(:allocate_counter)
+      allow(Onetime::Session::Sidecar).to receive(:allocate_counter)
         .and_raise(Redis::CannotConnectError, "Error connecting for key sidecar:#{sid}:snapshot_version")
     end
 
@@ -128,14 +128,14 @@ RSpec.describe Core::Middleware::SnapshotOrdering do
     end
 
     it 'records a session id that fails the sidecar format guard the same way' do
-      allow(Onetime::SessionSidecar).to receive(:allocate_counter).and_call_original
+      allow(Onetime::Session::Sidecar).to receive(:allocate_counter).and_call_original
       env                 = env_for({ 'authenticated' => true })
       bad_id              = double('sid', public_id: 'not-a-valid-sid')
       env['rack.session'].define_singleton_method(:id) { bad_id }
 
       middleware.call(env)
 
-      expect(env[env_key]).to eq(error: 'Onetime::SessionSidecar::CounterAllocationError')
+      expect(env[env_key]).to eq(error: 'Onetime::Session::Sidecar::CounterAllocationError')
     end
 
     it 'logs a diagnostic with the request id and error class, and never the session id' do

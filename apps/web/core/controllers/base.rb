@@ -461,7 +461,7 @@ module Core
       # @param success_redirect [String] Path to redirect on success (HTML)
       # @param error_redirect [String, nil] Path to redirect on error (HTML), nil to re-raise
       # @param failure_codes [Hash{String=>Symbol}] the stable failure code
-      #   (Onetime::SessionFailureCode) a JSON error carries, keyed by the
+      #   (Onetime::Session::FailureCode) a JSON error carries, keyed by the
       #   FormError's error_type; an error_type not listed stays uncoded
       # @yield Optional block for additional processing after logic.process
       # @return [Hash, nil] JSON response Hash for routes with response=json, nil otherwise
@@ -514,7 +514,7 @@ module Core
           error_type = ex.error_type || ex.message.downcase
 
           failure_code = failure_codes[error_type]
-          Onetime::SessionFailureCode.stash(req.env, failure_code) if failure_code
+          Onetime::Session::FailureCode.stash(req.env, failure_code) if failure_code
 
           json_error(ex.message, field_error: [field, error_type], status: status)
         elsif redirect_path

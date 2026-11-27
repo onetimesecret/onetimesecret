@@ -2,11 +2,12 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for Onetime::ActiveSessionGate — per-request enforcement of
+# Unit tests for Onetime::Session::ActiveSessionGate — per-request enforcement of
 # Rodauth's account_active_session_keys table in full auth mode.
 #
 # Terms (Rack session, active-session row, join key, revoke, refuse) are
-# defined in the gate's module doc. `session` below is the Rack session; the
+# defined in docs/architecture/terminology.md ("Session Terminology").
+# `session` below is the Rack session; the
 # rows inserted into the table are active-session rows.
 #
 # The table is real (in-memory SQLite with the production column shape) so
@@ -18,7 +19,7 @@ require 'spec_helper'
 require 'sequel'
 require 'onetime/session/active_session_gate'
 
-RSpec.describe Onetime::ActiveSessionGate do
+RSpec.describe Onetime::Session::ActiveSessionGate do
   let(:db) do
     Sequel.sqlite.tap do |sqlite|
       # Auth::Database loads the same extension on the authdb connection; the
@@ -283,7 +284,7 @@ RSpec.describe Onetime::ActiveSessionGate do
     end
   end
 
-  # "Remember me" (Onetime::RememberMe): a row with remember_until trades the
+  # "Remember me" (Onetime::Session::RememberMe): a row with remember_until trades the
   # inactivity deadline for a fixed one.
   describe 'remembered rows' do
     let(:now) { Time.now }
@@ -601,7 +602,7 @@ RSpec.describe Onetime::ActiveSessionGate do
     end
   end
 
-  # #4455. Passive is a route declaration (Onetime::SessionActivity), so these
+  # #4455. Passive is a route declaration (Onetime::Session::Activity), so these
   # examples drive it through the same env key Otto publishes. "The clock" is
   # the row's own timestamps: the gate decides in the database, so moving
   # `last_use` is the controlled clock and stubbing Time.now would test nothing.

@@ -189,7 +189,7 @@ the main finding here.
 > describe the code when this document was written (2026-07-27). Since then
 > Rodauth's `remember` feature is no longer enabled
 > (`apps/web/auth/config/features/remember_me.rb`), and the checkbox extends
-> the signed-in session itself (`Onetime::RememberMe`,
+> the signed-in session itself (`Onetime::Session::RememberMe`,
 > `lib/onetime/session/remember_me.rb`). No remember cookie or key row is
 > issued, so there is no second credential for a revocation to miss. The
 > current behaviour is recorded in

@@ -768,7 +768,7 @@ RSpec.describe 'Colonel customer support features', type: :integration do
           'rack.session' => {
             'authenticated' => true,
             # #4409: hand-seeded sessions need the surface marker the login hooks record.
-            Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+            Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
             'external_id' => cust.extid,
             'email' => cust.email,
           },

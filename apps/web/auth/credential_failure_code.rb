@@ -4,7 +4,7 @@
 
 #
 # The one seam between Rodauth's error reasons and the stable failure codes
-# (#4469; vocabulary in Onetime::SessionFailureCode).
+# (#4469; vocabulary in Onetime::Session::FailureCode).
 #
 # Rodauth renders its own JSON error body and offers no hook into it, but it
 # names every error it throws: `set_error_reason(reason)` runs first in
@@ -100,15 +100,15 @@ module Auth
         key = reason&.to_sym
 
         if CREDENTIAL_REASONS.key?(key)
-          Onetime::SessionFailureCode.stash(env, CREDENTIAL_REASONS.fetch(key))
+          Onetime::Session::FailureCode.stash(env, CREDENTIAL_REASONS.fetch(key))
         elsif SESSION_REASONS.key?(key)
           mapped = SESSION_REASONS.fetch(key)
-          Onetime::SessionFailureCode.stash(env, mapped) if mapped
+          Onetime::Session::FailureCode.stash(env, mapped) if mapped
         else
-          Onetime::SessionFailureCode.forget(env)
+          Onetime::Session::FailureCode.forget(env)
         end
 
-        env.is_a?(Hash) ? env[Onetime::SessionFailureCode::ENV_KEY] : nil
+        env.is_a?(Hash) ? env[Onetime::Session::FailureCode::ENV_KEY] : nil
       end
     end
   end

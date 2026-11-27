@@ -40,7 +40,7 @@ the matrix asserts the session ID is absent from every public payload.
 
 | Surface | Request | Route auth | Decides through |
 |---|---|---|---|
-| Protected HTML | `GET /dashboard` (`Accept: text/html`) | `sessionauth` | `BaseSessionAuthStrategy` → `CustomerSessionEvaluator` |
+| Protected HTML | `GET /dashboard` (`Accept: text/html`) | `sessionauth` | `BaseSessionAuthStrategy` → `Onetime::Session::CustomerSessionEvaluator` |
 | Hydrated HTML | `GET /` (`Accept: text/html`) | `noauth` | `NoAuthStrategy` → evaluator → `InitializeViewVars` → serializers |
 | Bootstrap | `GET /bootstrap/me` | `noauth` | same as hydrated HTML |
 | Protected API | `GET /api/account/` | `sessionauth,basicauth` | `BaseSessionAuthStrategy`, then `BasicAuthStrategy` |
@@ -109,7 +109,7 @@ challenge either.
 
 `customer_unavailable` is also the answer when the request's surface cannot be
 read. A datastore blip makes DomainStrategy classify a custom domain or a
-platform subdomain `:invalid`. `Onetime::SessionSurface.match_status`
+platform subdomain `:invalid`. `Onetime::Session::Surface.match_status`
 classifies that host again. If the lookup answers, the session is compared as
 usual. If it fails again, the surface is unknown rather than wrong, so the
 session is kept instead of being destroyed as `surface_mismatch`.
@@ -154,7 +154,7 @@ Every credential 401 carries a `WWW-Authenticate` challenge, chosen by the
 code that rejected the credential rather than by the route or by the
 request's headers. The strategies that examine an `Authorization` header
 stash the scheme they examined beside the reason
-(`Onetime::SessionFailureCode.stash_scheme`, `onetime.session_failure_scheme`),
+(`Onetime::Session::FailureCode.stash_scheme`, `onetime.session_failure_scheme`),
 and only they do: the Basic auth strategies stash `Basic`, so
 `api_key_invalid` and the `suspended_credentials` they stash are challenged
 with `Basic realm="onetimesecret"`, the scheme those strategies accept and
@@ -303,7 +303,7 @@ In simple mode there is no auth database and no active-session row, so
 exactly as above.
 
 On an **active** full-mode session whose row is older than
-`ActiveSessionGate::TOUCH_INTERVAL` (300 s), every surface that evaluates the
+`Onetime::Session::ActiveSessionGate::TOUCH_INTERVAL` (300 s), every surface that evaluates the
 session refreshes the row's `last_use`, with one exception:
 `GET /bootstrap/me` verifies the session and refreshes nothing (D8). The
 full-mode spec pins both halves: hydrated HTML leaves the row `:touched`, the
@@ -328,7 +328,7 @@ unchanged. The session marker still appears in `message` on routes whose chain
 is `sessionauth` alone.
 
 **D2. A request that finds an expired row deletes it, on every surface.**
-`inactive` and `absolute_expired` reach `ActiveSessionGate#expire`
+`inactive` and `absolute_expired` reach `Onetime::Session::ActiveSessionGate#expire`
 (`lib/onetime/session/active_session_gate.rb:210-218`), which deletes the row
 and answers `:revoked`. A `GET /bootstrap/me` poll is enough to do it. From
 then on the state is indistinguishable from `revoked`, and both answer
@@ -385,13 +385,13 @@ as activity.** Until #4455 both refreshed `last_use` on an active row, so a
 tab left open kept its session alive through its periodic poll. A page load
 is a user action; a background poll is not. `GET /bootstrap/me` now declares
 `activity=passive` in `apps/web/core/routes.txt`
-(`Onetime::SessionActivity`). It runs the same SELECT, enforces both
+(`Onetime::Session::Activity`). It runs the same SELECT, enforces both
 deadlines and still removes an expired row (D2), but it moves none of the
 three inactivity clocks: the active-session row's `last_use`
-(`ActiveSessionGate`), the sidecar's `last_activity_at` that the admin idle
+(`Onetime::Session::ActiveSessionGate`), the sidecar's `last_activity_at` that the admin idle
 bound reads (`Operations::Sessions::TrackMetadata`), and the Rack session
 blob's TTL, which is the only inactivity clock in simple mode
-(`Onetime::Session#write_session`). Hydrated HTML is unchanged. This
+(`Onetime::Session::RackStore#write_session`). Hydrated HTML is unchanged. This
 divergence is deliberate and stays.
 
 Two limits are worth knowing. The verdict is memoized per request, so a
@@ -409,7 +409,7 @@ of its requests a timer sent, so it says so with a request header:
 X-Session-Activity: passive
 ```
 
-`Onetime::SessionActivity.passive?` honours it next to the route option, and
+`Onetime::Session::Activity.passive?` honours it next to the route option, and
 the three clocks above treat the request exactly as they treat the poll. The
 header can only take activity away:
 
@@ -463,7 +463,7 @@ valid:
 | Row absent | `active_session_gate.rb:170` → `revoked` `:225-228` | `revoked` | "Sign out everywhere", an operator, or Rodauth's sweep. |
 | Auth database could not answer | `active_session_gate.rb:176-177` → `unavailable` `:252-256`; `customer_session_evaluator.rb:156-157` | `authentication_database_unavailable` | Transient; refuses with the same wire response as a rejection (D1, D3), and the session is valid again on the next request. Best fit for "valid on other requests". |
 | Customer store could not answer | `customer_session_evaluator.rb:184-203` | `customer_storage_unavailable` | Same shape as above. |
-| Request surface could not be read | `Onetime::SessionSurface.match_status` | `customer_storage_unavailable` | Same shape as above. Until #4450, a blip on a custom-domain or subdomain host destroyed the session as `tenant_surface_mismatch`, a real sign-out. |
+| Request surface could not be read | `Onetime::Session::Surface.match_status` | `customer_storage_unavailable` | Same shape as above. Until #4450, a blip on a custom-domain or subdomain host destroyed the session as `tenant_surface_mismatch`, a real sign-out. |
 | Tenant surface did not match | `customer_session_evaluator.rb:139` | `tenant_surface_mismatch` | A session established on one host presented on another refuses there and only there. |
 | Credential watermark | `customer_session_evaluator.rb:148`, `:205-210` | `credential_stale` | A password change elsewhere invalidates this session. |
 
@@ -473,7 +473,7 @@ in, then refused):
 
 | Candidate | Where | Reproduced by | Why it fits |
 |---|---|---|---|
-| Logout undone by an in-flight request | `apps/web/core/controllers/authentication.rb` `#logout` cleared the Rack session only; the store is last-writer-wins (`lib/onetime/session.rb` `#write_session`) and every response re-sends the cookie | `spec/integration/full/logout_ends_active_session_spec.rb`; `e2e/auth/session-consistency.spec.ts` "a session ended outside the tab" | A request that loaded the session before `GET /logout` and committed after it wrote the whole blob back under the old id and re-installed the old cookie. The active-session row had never been removed, so the copy was a valid session: observed as `/api/organizations` 401, then `GET /bootstrap/me` `authenticated`, 30 ms after the logout. Tabs of one browser then disagree about whether the user is signed in. Fixed twice over. Logout removes the row first (`Onetime::ActiveSessionGate.end_session`), so in full mode a copy is refused as `active_session_revoked`. And every path that deletes a session blob first sets a 300-second ended-marker (`Onetime::SessionEnded`, key `ended_sid:<HMAC of the id>`), which `#write_session` looks for after its own `SET`: a late write is taken back out, reported as not saved, and sends no cookie. That covers what the row cannot: simple mode, which has no row, and a single-session revoke (`Operations::Sessions::RevokeForCustomer`, `DeleteSession`), which deletes the blob and leaves the row in both modes. `spec/integration/simple/logout_write_back_spec.rb` holds a real request open across the logout and across a revoke. |
+| Logout undone by an in-flight request | `apps/web/core/controllers/authentication.rb` `#logout` cleared the Rack session only; the store is last-writer-wins (`lib/onetime/session/rack_store.rb` `#write_session`) and every response re-sends the cookie | `spec/integration/full/logout_ends_active_session_spec.rb`; `e2e/auth/session-consistency.spec.ts` "a session ended outside the tab" | A request that loaded the session before `GET /logout` and committed after it wrote the whole blob back under the old id and re-installed the old cookie. The active-session row had never been removed, so the copy was a valid session: observed as `/api/organizations` 401, then `GET /bootstrap/me` `authenticated`, 30 ms after the logout. Tabs of one browser then disagree about whether the user is signed in. Fixed twice over. Logout removes the row first (`Onetime::Session::ActiveSessionGate.end_session`), so in full mode a copy is refused as `active_session_revoked`. And every path that deletes a session blob first sets a 300-second ended-marker (`Onetime::Session::Ended`, key `ended_sid:<HMAC of the id>`), which `#write_session` looks for after its own `SET`: a late write is taken back out, reported as not saved, and sends no cookie. That covers what the row cannot: simple mode, which has no row, and a single-session revoke (`Operations::Sessions::RevokeForCustomer`, `DeleteSession`), which deletes the blob and leaves the row in both modes. `spec/integration/simple/logout_write_back_spec.rb` holds a real request open across the logout and across a revoke. |
 
 Client-side amplifiers — code that turns one refusal, or one failed poll, into
 a signed-out UI (unchanged since `56a95f8b6`; addressed by #4456, #4458,
@@ -511,24 +511,22 @@ Recorded as a baseline so #4466 and #4467 start from observed behaviour, in
   `onetime.session` cookies is refused with `403` in either order, by
   `Onetime::Middleware::CookieTossing` (`site.middleware.cookie_tossing`,
   default on since 2026-09-28); before that the first cookie on the request
-  was used. The refusal runs above `Onetime::Session` and sets no session
+  was used. The refusal runs above `Onetime::Session::RackStore` and sets no session
   cookie, only the clears. Completing the second factor rotates the ID again and carries the
   session data, the active-session row and the sidecar values across
-  (`Onetime::SessionRotation`, called from `after_two_factor_authentication`;
+  (`Onetime::Session::Rotation`, called from `after_two_factor_authentication`;
   `apps/web/auth/spec/integration/full_mfa/mfa_session_rotation_spec.rb`).
   The login above is the full-mode one. Unreleased (not in v0.26.15 or
   earlier): simple-mode password sign-in and the colonel step-up now also
   start a new ID (`spec/integration/simple/login_session_rotation_spec.rb`,
   `spec/integration/full/colonel_elevation_session_rotation_spec.rb`). The
-  state of each establishment path is listed in
-  `lib/onetime/session/rotation.rb` ("Which transitions renew the id") and in
-  the rollout doc
+  state of each establishment path is listed in the rollout doc
   ([session-consistency-rollout.md](./session-consistency-rollout.md),
   "Session-id renewal by path").
 - **Remember-me continuation (#4467):** the baseline first pinned that
   Rodauth's remember credential outlived an active-session revocation. That
   mechanism is gone. The remember-me checkbox now extends the session itself
-  (`Onetime::RememberMe`, `lib/onetime/session/remember_me.rb`): the login
+  (`Onetime::Session::RememberMe`, `lib/onetime/session/remember_me.rb`): the login
   stamps `remember_until` on the Rack session and, in full mode, on the
   active-session row (`apps/web/auth/config/features/remember_me.rb`), and
   Rodauth's `remember` feature is not enabled. There is one Rack session and

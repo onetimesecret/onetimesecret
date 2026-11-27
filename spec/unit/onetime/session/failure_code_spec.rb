@@ -11,8 +11,8 @@
 require 'spec_helper'
 require 'onetime/session/failure_code'
 
-RSpec.describe Onetime::SessionFailureCode do
-  let(:refusal_reasons) { Onetime::CustomerSessionEvaluator::REASONS - [:authenticated] }
+RSpec.describe Onetime::Session::FailureCode do
+  let(:refusal_reasons) { Onetime::Session::CustomerSessionEvaluator::REASONS - [:authenticated] }
   let(:credential_reasons) { described_class::CREDENTIAL_REASON_SCOPES.keys }
 
   it 'codes every evaluator refusal and every credential reason, and nothing else' do

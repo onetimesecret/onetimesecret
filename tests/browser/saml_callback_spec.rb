@@ -17,7 +17,7 @@ require 'zlib'
 require 'socket'
 require 'climate_control'
 require 'middleware/detect_host'
-require 'onetime/session'
+require 'onetime/session/rack_store'
 require 'onetime/middleware/domain_strategy'
 require 'onetime/middleware/public_host_rewrite'
 require 'onetime/middleware/saml_callback_transport'
@@ -288,7 +288,7 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport, lane_env: { 'SAML_ENA
             use Rack::DetectHost, logger: config.logger
             use Onetime::Middleware::StripForwardedHost
             use Onetime::Middleware::SamlCallbackTransport::Boundary
-            use Onetime::Session, key: 'saml.browser.session', secret: 'x' * 64, namespace: "#{prefix}:session", same_site: :lax, secure: true, expire_after: 300
+            use Onetime::Session::RackStore, key: 'saml.browser.session', secret: 'x' * 64, namespace: "#{prefix}:session", same_site: :lax, secure: true, expire_after: 300
             use Onetime::Middleware::DomainStrategy
             use Onetime::Middleware::PublicHostRewrite
             use Rack::Protection::HttpOrigin, **Onetime::Middleware::HttpOriginOptions.options

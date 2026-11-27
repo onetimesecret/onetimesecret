@@ -192,7 +192,7 @@ backups and `site.secret` must live in separate trust domains (the config
 already advises offsite backup of the secret — keep them apart).
 
 **F13 (info): session crypto is a separate, hand-rolled AES-256-GCM**
-(HKDF subkeys, HMAC, no AAD) in `lib/onetime/session.rb`, duplicated
+(HKDF subkeys, HMAC, no AAD) in `lib/onetime/session/rack_store.rb`, duplicated
 inline in `confirm_email_change.rb`. Outside this DPA clause's scope, but
 two copies of bespoke crypto is drift risk; consolidate or migrate to
 familia encrypted fields eventually.

@@ -68,7 +68,7 @@ module Onetime
         # case-insensitive (RFC 9110 §11.1); the token is taken verbatim.
         BEARER_HEADER = %r{\ABearer[ \t]+(?<token>[A-Za-z0-9._~+/=-]+)[ \t]*\z}i
 
-        SCHEME = Onetime::SessionFailureCode::SCHEME_BEARER
+        SCHEME = Onetime::Session::FailureCode::SCHEME_BEARER
 
         # @param audience [String] the `aud` this strategy accepts
         def initialize(audience: Onetime::Paseto::V3_AUDIENCE)
@@ -175,7 +175,7 @@ module Onetime
         # A token minted at or before the account's last credential change
         # (password change or API key rotation, Customer#bearer_token_watermark)
         # is retired the way a session authenticated before a password change
-        # is (Onetime::CustomerSessionEvaluator#predates_credential_change?).
+        # is (Onetime::Session::CustomerSessionEvaluator#predates_credential_change?).
         # The mint issues strictly after the same watermark
         # (V3::Logic::Auth::GenerateToken#issuance_time).
         def predates_credential_change?(cust, claims)

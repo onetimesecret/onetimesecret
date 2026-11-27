@@ -252,7 +252,7 @@ module Onetime
         #
         # @return [Array(Integer, Array<String>)]
         def purge_tracked(db, tracked, watermark)
-          codec   = watermark.positive? ? Onetime::SessionCodec.from_config : nil
+          codec   = watermark.positive? ? Onetime::Session::Codec.from_config : nil
           spared  = []
           deleted = tracked.count do |sid|
             next false if sid == @except_session_id # keep the current session
@@ -262,9 +262,9 @@ module Onetime
               # No live blob today, but this op is deliberately revoking the sid:
               # an in-flight request that loaded the blob earlier can re-SET it
               # under the same id. Set the ended-marker so the writer's post-SET
-              # {Onetime::SessionEnded.ended?} check takes that copy back out
+              # {Onetime::Session::Ended.ended?} check takes that copy back out
               # (RISK-2026-09-19-01).
-              Onetime::SessionEnded.mark(sid, dbclient: db)
+              Onetime::Session::Ended.mark(sid, dbclient: db)
               next false
             end
 
@@ -282,7 +282,7 @@ module Onetime
             # alive, per-value keys included (killing e.g. a live
             # awaiting_mfa/domain_context out from under a spared session
             # would corrupt the very session this op promises to keep).
-            Onetime::SessionSidecar.purge(sid, dbclient: db)
+            Onetime::Session::Sidecar.purge(sid, dbclient: db)
             true
           end
           [deleted, spared]
@@ -298,7 +298,7 @@ module Onetime
           extid = customer.extid.to_s
           return [0, false] if extid.empty?
 
-          codec   = Onetime::SessionCodec.from_config
+          codec   = Onetime::Session::Codec.from_config
           keys    = Store.scan_keys(db)
           deleted = 0
 
@@ -316,7 +316,7 @@ module Onetime
             Store.destroy_blob(db, key)
             # Deleted-blob branch only — current/spared sids never reach here,
             # so their per-value sidecar keys survive with them.
-            Onetime::SessionSidecar.purge(sid, dbclient: db)
+            Onetime::Session::Sidecar.purge(sid, dbclient: db)
             deleted += 1
           end
 

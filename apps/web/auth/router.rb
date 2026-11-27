@@ -265,7 +265,7 @@ module Auth
     def inflight_session_state
       omniauth_keys  = OMNIAUTH_FLOW_KEYS.reject { |key| session[key].nil? }
       sidecar_fields = begin
-        Onetime::SessionSidecar.inflight_fields(session.id&.public_id)
+        Onetime::Session::Sidecar.inflight_fields(session.id&.public_id)
       rescue StandardError
         []
       end
@@ -277,9 +277,9 @@ module Auth
     #
     # This codebase overrides Rodauth's clear_session to `session.destroy`
     # (see Auth::Config::Base), so rodauth.clear_session routes through the
-    # store's delete path (Onetime::Session#delete_session). That path
+    # store's delete path (Onetime::Session::RackStore#delete_session). That path
     # already DELs the session blob, purges the sid's sidecar registry keys
-    # (SessionSidecar.purge — including the explicit-use hand-off stashes
+    # (Onetime::Session::Sidecar.purge — including the explicit-use hand-off stashes
     # sso_connect_intent / link_sso_pending_bind), and runs the in-flight
     # tripwire that warns if a session is destroyed while a hand-off field
     # still holds a live value. A purge failure there is logged and the
@@ -287,8 +287,8 @@ module Auth
     # needed here — the destroy leaves nothing behind.
     def clear_gated_session
       rodauth.clear_session
-      Onetime::CustomerSessionEvaluator.forget(env)
-      Onetime::ActiveSessionGate.forget(env)
+      Onetime::Session::CustomerSessionEvaluator.forget(env)
+      Onetime::Session::ActiveSessionGate.forget(env)
     end
 
     # A session refusal body. The stable `code` / `code_scope` pair (#4462),
@@ -305,8 +305,8 @@ module Auth
     # evaluator's. Logged here, once per refusal, with the same code and the
     # request id (#4461).
     def session_refusal(body, reason)
-      Onetime::SessionFailureCode.log_refusal(reason, env)
-      Onetime::SessionFailureCode.stash(env, reason)
+      Onetime::Session::FailureCode.log_refusal(reason, env)
+      Onetime::Session::FailureCode.stash(env, reason)
       body
     end
 
@@ -413,7 +413,7 @@ module Auth
       # Invariant: every other rejection is definitive and is never
       # overwritten by a fallback :active_session_unavailable, which would
       # preserve the cookie.
-      customer_session_verdict = Onetime::CustomerSessionEvaluator.evaluate(session, env: env)
+      customer_session_verdict = Onetime::Session::CustomerSessionEvaluator.evaluate(session, env: env)
       auth_session_reason      = Auth::SessionRecheck.reason_for(customer_session_verdict, session, env)
 
       case auth_session_reason
@@ -492,8 +492,8 @@ module Auth
             level: :warn,
             path: r.path_info,
             account_id: session['account_id'],
-            recorded_surface: Onetime::SessionSurface.recorded(session),
-            request_surface: Onetime::SessionSurface.for_env(env),
+            recorded_surface: Onetime::Session::Surface.recorded(session),
+            request_surface: Onetime::Session::Surface.for_env(env),
             outcome: outcome,
           )
         end
@@ -557,7 +557,7 @@ module Auth
         # the same middleware. Rodauth's other errors replace or withdraw it
         # through Auth::CredentialFailureCode; the SSO-linking routes withdraw
         # it themselves, as their 401s are about a token.
-        Onetime::SessionFailureCode.stash(env, auth_session_reason)
+        Onetime::Session::FailureCode.stash(env, auth_session_reason)
       when :identity_missing, :customer_not_found, :account_suspended, :stale_credentials,
            :admin_session_expired
         # A definitive rejection destroys the invalid session before dispatch.
@@ -611,7 +611,7 @@ module Auth
       # Rodauth's login/2FA/verify hooks mutate session['authenticated'] and
       # session['awaiting_mfa'] in-band, and it uses `throw :halt` when it
       # answers a route. That halts before any post-r.rodauth invalidation runs,
-      # so the CustomerSessionEvaluator memo (populated at the top of this
+      # so the Onetime::Session::CustomerSessionEvaluator memo (populated at the top of this
       # route block) would go stale for anyone else reading env[ENV_KEY] later.
       # An `ensure` block is the only reliable invalidation point for both the
       # halt and pass-through paths. Delete on a hash — cheap and always safe.
@@ -621,8 +621,8 @@ module Auth
         # Both memos: the active-session sub-verdict was computed for the same
         # pre-Rodauth identity (a login mints a new join key, a logout removes
         # the row), and Auth::SessionRecheck reads it on its own.
-        Onetime::CustomerSessionEvaluator.forget(env)
-        Onetime::ActiveSessionGate.forget(env)
+        Onetime::Session::CustomerSessionEvaluator.forget(env)
+        Onetime::Session::ActiveSessionGate.forget(env)
       end
 
       # Account routes (mfa-status, account info)

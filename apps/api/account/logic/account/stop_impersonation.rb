@@ -92,7 +92,7 @@ module AccountAPI
         def authorized?
           return false unless sess.respond_to?(:[])
 
-          @marker = Onetime::SessionImpersonation.active(sess)
+          @marker = Onetime::Session::Impersonation.active(sess)
           return false unless marker
 
           external_id = sess['external_id'].to_s

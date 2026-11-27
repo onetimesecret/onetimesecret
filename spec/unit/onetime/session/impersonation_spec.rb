@@ -15,7 +15,7 @@ require 'onetime/session/impersonation'
 #   2. Resolver fall-through — every invalidation ends the OVERLAY and answers
 #      the PRINCIPAL. None of them may reject the session, because a rejected
 #      session strands the operator with no way back to their own account.
-RSpec.describe Onetime::SessionImpersonation do
+RSpec.describe Onetime::Session::Impersonation do
   let(:now) { 1_756_700_000 }
 
   let(:target) do

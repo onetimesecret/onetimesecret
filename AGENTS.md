@@ -102,7 +102,7 @@ Do not conflate technical merits or risk with development hygiene. Scope, PR siz
 - OAuth connect-intent binding is enforced transitively via the single
   `session['omniauth.state']` slot (omniauth-oauth2 >= 1.9 rejects mismatched
   callbacks). Explicit per-intent transaction binding is not required.
-- SessionSidecar stores per-value Redis keys with individual TTLs. Single-use
+- Onetime::Session::Sidecar stores per-value Redis keys with individual TTLs. Single-use
   semantics come from short-TTL delete-on-read keys; expiry is not data loss.
 - Issuerless SSO providers (GitHub, Google) are refused on tenant surfaces
   (`refuse_issuerless_on_tenant?`); identity lookups never match across
@@ -110,7 +110,7 @@ Do not conflate technical merits or risk with development hygiene. Scope, PR siz
 
 These exemptions describe the _current_ mechanisms. A PR that modifies the
 mechanism enforcing an invariant (e.g. the omniauth-oauth2 version or state
-slot handling, SessionSidecar TTL/delete-on-read behavior, the issuerless
+slot handling, Onetime::Session::Sidecar TTL/delete-on-read behavior, the issuerless
 refusal path) puts that invariant in scope: review the change against the
 invariant rather than exempting it.
 

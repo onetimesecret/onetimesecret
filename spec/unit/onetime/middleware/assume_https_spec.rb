@@ -3,11 +3,11 @@
 require 'spec_helper'
 require 'onetime/middleware/assume_https'
 require 'onetime/middleware/strip_forwarded_host'
-require 'onetime/session'
+require 'onetime/session/rack_store'
 
 RSpec.describe Onetime::Middleware::AssumeHttps, :aggregate_failures do
   let(:session) do
-    Onetime::Session.new(
+    Onetime::Session::RackStore.new(
       ->(_env) { [200, {}, ['ok']] },
       secret: 's' * 128,
       key: 'test.session',

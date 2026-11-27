@@ -12,8 +12,8 @@
 # Abstract::Persisted#commit_session (rack-session 2.1): with :renew set it
 # calls `delete_session(req, session.id, options)` and writes the session
 # data under the id that call returns. On this store
-# (Onetime::Session#delete_session) that call is the same step a logout
-# takes: it writes the SessionEnded marker for the old id, deletes the old
+# (Onetime::Session::RackStore#delete_session) that call is the same step a logout
+# takes: it writes the Onetime::Session::Ended marker for the old id, deletes the old
 # blob, purges its sidecar keys, and returns a fresh id.
 #
 # So what the old id is guaranteed here is what delete_session gives it: no
@@ -107,7 +107,7 @@ RSpec.describe 'Simple-mode password change starts a new session id (#4466)', ty
     expect(new_sid).not_to be_nil
     expect(new_sid).not_to eq(old_sid)
     expect(session_store.find_key(db, old_sid)).to be_nil
-    expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+    expect(Onetime::Session::Ended.ended?(old_sid)).to be(true)
 
     # The session data crossed to the new id, re-stamped past the watermark.
     blob = blob_for(new_sid)

@@ -15,7 +15,7 @@ module Auth::Config::Hooks
         # session is destroyed. delete_session purges every sidecar key for the
         # sid, but that purge is best-effort; this explicit clear is the cheap
         # guarantee the proof is gone even when the destruction is partial.
-        Onetime::RecentReauth.clear(session)
+        Onetime::Session::RecentReauth.clear(session)
 
         loggable_email = Onetime::Utils.obscure_email(session['email'] || 'n/a')
         OT.info "[auth] User logging out: #{loggable_email}"

@@ -113,7 +113,7 @@ Onetime::Customer.load(@change_cust.objid).passphrase?(@new_password)
 
 ## M-2: simple-mode change revokes the OTHER session blob and keeps the current one
 @db    = Familia.dbclient
-@codec = Onetime::SessionCodec.from_config
+@codec = Onetime::Session::Codec.from_config
 @m2_cust = Onetime::Customer.create!(email: generate_random_email)
 @m2_cust.update_passphrase @current_password
 @current_sid = SecureRandom.hex(32)

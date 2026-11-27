@@ -87,7 +87,7 @@ module Auth::Config::Base
     # Override clear_session to properly destroy session and trigger cookie deletion
     # Rodauth's default clear_session only calls session.clear which doesn't delete
     # the session from the store or generate a new session ID. We need session.destroy
-    # to trigger delete_session on our custom Onetime::Session store.
+    # to trigger delete_session on our custom Onetime::Session::RackStore store.
     auth.clear_session do
       session.destroy
     end

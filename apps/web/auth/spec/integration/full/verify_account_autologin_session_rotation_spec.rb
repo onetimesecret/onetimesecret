@@ -89,7 +89,7 @@ RSpec.describe 'Verify-account autologin starts a new session id (#4466)', type:
 
   def blob_for(sid)
     key = store.find_key(db, sid)
-    key && store.load_data(db, key, codec: Onetime::SessionCodec.from_config)
+    key && store.load_data(db, key, codec: Onetime::Session::Codec.from_config)
   end
 
   # Status of GET /auth/account.json (a Rodauth login-required route) for the
@@ -140,7 +140,7 @@ RSpec.describe 'Verify-account autologin starts a new session id (#4466)', type:
     expect(new_sid).not_to be_nil
     expect(new_sid).not_to eq(old_sid)
     expect(store.find_key(db, old_sid)).to be_nil
-    expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+    expect(Onetime::Session::Ended.ended?(old_sid)).to be(true)
 
     blob = blob_for(new_sid)
     expect(blob).to include('account_id' => account[:id], 'autologin_type' => 'verify_account')

@@ -475,17 +475,17 @@ RSpec.describe 'DomainStrategy classification contract' do
 
   # -------------------------------------------------------- session surface
   #
-  # SessionSurface takes neither polarity: it classifies an :invalid request
+  # Onetime::Session::Surface takes neither polarity: it classifies an :invalid request
   # again with Chooserator.classify!. The only stub is the datastore seam
   # (display_domain_index), so the real finder and the real classifier decide,
   # for the reason the section above gives. The descriptor consumers
-  # (RecentReauth, ReauthOffer, WebAuthn surface_scope, OmniAuth Connect) read
+  # (Onetime::Session::RecentReauth, ReauthOffer, WebAuthn surface_scope, OmniAuth Connect) read
   # for_env and are pinned by the first group; the session evaluators read
   # match_status and are pinned by the second.
-  describe 'SessionSurface — :invalid is classified again' do
+  describe 'Onetime::Session::Surface — :invalid is classified again' do
     let(:parser) { Onetime::Middleware::DomainStrategy::Parser }
     let(:index) { instance_double(Familia::HashKey) }
-    let(:tenant) { { Onetime::SessionSurface::KEY => { 'kind' => 'custom', 'id' => 'domain-1' } } }
+    let(:tenant) { { Onetime::Session::Surface::KEY => { 'kind' => 'custom', 'id' => 'domain-1' } } }
 
     before do
       allow(Onetime::Middleware::DomainStrategy).to receive_messages(
@@ -504,12 +504,12 @@ RSpec.describe 'DomainStrategy classification contract' do
       end
 
       it 'answers for_env exactly as a healthy :custom request would' do
-        expect(Onetime::SessionSurface.for_env(env_for(:invalid)))
-          .to eq(Onetime::SessionSurface.for_env(env_for(:custom).merge('onetime.custom_domain_id' => 'domain-1')))
+        expect(Onetime::Session::Surface.for_env(env_for(:invalid)))
+          .to eq(Onetime::Session::Surface.for_env(env_for(:custom).merge('onetime.custom_domain_id' => 'domain-1')))
       end
 
       it 'keeps the tenant session' do
-        expect(Onetime::SessionSurface.match_status(tenant, env_for(:invalid))).to eq(:match)
+        expect(Onetime::Session::Surface.match_status(tenant, env_for(:invalid))).to eq(:match)
       end
     end
 
@@ -517,20 +517,20 @@ RSpec.describe 'DomainStrategy classification contract' do
       before { allow(index).to receive(:get).and_raise(Redis::BaseError, 'connection reset') }
 
       it 'answers nil to the descriptor consumers' do
-        expect(Onetime::SessionSurface.for_env(env_for(:invalid))).to be_nil
+        expect(Onetime::Session::Surface.for_env(env_for(:invalid))).to be_nil
       end
 
       it 'answers :unavailable, never :mismatch, to the session evaluators' do
-        expect(Onetime::SessionSurface.match_status(tenant, env_for(:invalid))).to eq(:unavailable)
+        expect(Onetime::Session::Surface.match_status(tenant, env_for(:invalid))).to eq(:unavailable)
       end
 
       it 'turns into the evaluator outage verdict, which keeps the session' do
         session = tenant.merge('authenticated' => true, 'external_id' => 'ur_1')
-        verdict = Onetime::CustomerSessionEvaluator.evaluate(session, env: env_for(:invalid))
+        verdict = Onetime::Session::CustomerSessionEvaluator.evaluate(session, env: env_for(:invalid))
 
         expect(verdict.reason).to eq(:customer_unavailable)
-        expect(Onetime::SessionFailureCode.for(verdict.reason)['code_scope'])
-          .to eq(Onetime::SessionFailureCode::SCOPE_VERIFICATION_UNAVAILABLE)
+        expect(Onetime::Session::FailureCode.for(verdict.reason)['code_scope'])
+          .to eq(Onetime::Session::FailureCode::SCOPE_VERIFICATION_UNAVAILABLE)
       end
     end
 
@@ -544,19 +544,19 @@ RSpec.describe 'DomainStrategy classification contract' do
       end
 
       it 'answers nil to the descriptor consumers' do
-        expect(Onetime::SessionSurface.for_env(env_for(:invalid))).to be_nil
+        expect(Onetime::Session::Surface.for_env(env_for(:invalid))).to be_nil
       end
 
       it 'answers :mismatch, not :unavailable, to the session evaluators' do
-        expect(Onetime::SessionSurface.match_status(tenant, env_for(:invalid))).to eq(:mismatch)
+        expect(Onetime::Session::Surface.match_status(tenant, env_for(:invalid))).to eq(:mismatch)
       end
     end
 
     it 'maps :unverified to no surface, without reading the datastore' do
       allow(index).to receive(:get)
 
-      expect(Onetime::SessionSurface.for_env(env_for(:unverified))).to be_nil
-      expect(Onetime::SessionSurface.match_status(tenant, env_for(:unverified))).to eq(:mismatch)
+      expect(Onetime::Session::Surface.for_env(env_for(:unverified))).to be_nil
+      expect(Onetime::Session::Surface.match_status(tenant, env_for(:unverified))).to eq(:mismatch)
       expect(index).not_to have_received(:get)
     end
 
@@ -565,7 +565,7 @@ RSpec.describe 'DomainStrategy classification contract' do
     it 'answers :mismatch for nil without reading the datastore' do
       allow(index).to receive(:get)
 
-      expect(Onetime::SessionSurface.match_status(tenant, env_for(nil))).to eq(:mismatch)
+      expect(Onetime::Session::Surface.match_status(tenant, env_for(nil))).to eq(:mismatch)
       expect(index).not_to have_received(:get)
     end
   end

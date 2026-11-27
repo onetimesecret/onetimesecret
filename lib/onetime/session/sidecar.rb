@@ -4,55 +4,23 @@
 
 require 'familia'
 
+require_relative '../session'
 require_relative 'codec'
 require_relative '../logger_methods'
 
 module Onetime
-  # Per-value session storage with independent TTLs (issue #3858).
+  # Stores registered session fields as Redis keys with independent TTLs.
+  # {#commit} externalizes configured fields; {#merge} restores them to the
+  # Rack hash. Explicit-use fields use the read/write/consume API instead.
   #
-  # The session blob at `session:<sid>` is one encrypted value with one TTL, so
-  # every field in it lives exactly as long as the session does. Some session
-  # state wants a SHORTER lifetime than the session itself (an MFA completion
-  # window, a UI context hint, a one-shot nonce). Redis TTLs are per-key, not
-  # per-hash-field, so independent lifetimes require one Redis key per
-  # (sid, field): the STRING key `sidecar:<sid>:<field>` — deliberately
-  # OUTSIDE the `session:` namespace (see {key_for} for why).
-  #
-  # This module is that primitive. A closed registry ({FIELDS}) declares which
-  # session fields may be externalized and under what policy. Registered
-  # `externalize: true` fields are handled transparently by the Rack store
-  # ({Onetime::Session}): {#commit} strips them out of the blob at write time
-  # and stores them as sibling keys; {#merge} overlays them back into the
-  # session hash at read time. Existing call sites (`sess['awaiting_mfa'] =
-  # true`, `sess.delete('awaiting_mfa')`) do not change. The explicit API
-  # ({#write}/{#read}/{#consume}/{#delete}/{#purge}) exists for cleanup
-  # surfaces, ops, and explicit-use fields.
-  #
-  # ## Failure posture
-  #
-  # Best-effort, like the two existing sidecars (SessionMetadata via
-  # TrackMetadata; the colonel entitlement-preview SETs): a sidecar failure
-  # must never fail the session write — {Onetime::Session}'s outer rescue
-  # returns false, which Rack reads as "not persisted" and may drop the
-  # cookie. The middleware therefore wraps every hook in its own rescue.
-  #
-  # ## The admission rule (the security contract)
-  #
-  # Best-effort storage is only safe for a field whose ABSENCE IS THE SAFE
-  # STATE: if a sidecar write is lost or the key expires early, the session
-  # must degrade to a state that grants nothing. See the registry comment.
-  #
-  # ## Why a plain module, not a Familia model
-  #
-  # A Horreum is one backing hash with one default_expiration for the whole
-  # record — the exact shape this primitive exists to escape. And a raw
-  # `SET key payload EX ttl` is atomic (no SET-then-EXPIRE gap), which
-  # Familia::StringKey's two-step set + update_expiration would reintroduce.
-  module SessionSidecar
+  # Sidecar failures must not fail the Rack session write. Admit only fields
+  # whose absence grants nothing and whose presence is not identity. Use
+  # atomic SET with expiry rather than a separate expiry command.
+  module Session::Sidecar
     extend self
     extend Onetime::LoggerMethods
 
-    # Same format Session#valid_session_id? enforces. Every mutator is gated on
+    # Same format Onetime::Session::RackStore#valid_session_id? enforces. Every mutator is gated on
     # it, which guarantees two things at once: (1) every key this module ever
     # creates has the canonical `sidecar:<hex-sid>:<registered-field>` shape,
     # and (2) a sid can never inject `:`-delimited segments into the keyspace.
@@ -69,7 +37,7 @@ module Onetime
     #                   #effective_ttl: a sidecar key must never outlive the
     #                   session blob)
     #   encrypted     — codec-wrapped envelope (AES-256-GCM + HMAC via
-    #                   Onetime::SessionCodec, sid/field-bound) vs plaintext
+    #                   Onetime::Session::Codec, sid/field-bound) vs plaintext
     #                   JSON envelope
     #   merge_on_read — overlaid into the session hash by find_session
     #   externalize   — write_session strips it from the blob and owns the
@@ -105,7 +73,7 @@ module Onetime
     #                   is their common case), so a future refactor that
     #                   re-keys sessions mid-flow would strand them SILENTLY —
     #                   except for this warning at the destroy site. A re-key
-    #                   at the END of a hand-off (Onetime::SessionRotation on
+    #                   at the END of a hand-off (Onetime::Session::Rotation on
     #                   MFA completion, #4466) names the fields it completed
     #                   and deletes them on the old sid before the destroy,
     #                   so the warning still means a stranded hand-off.
@@ -177,7 +145,7 @@ module Onetime
       # { account_id, surface, at } payload since #4411; the pre-#4411 bare
       # account id is refused as malformed). EXPLICIT-USE: written by
       # omniauth_request_validation_phase when a logged-in caller POSTs
-      # connect=1 AND the RecentReauth gate consumed a fresh proof, consumed
+      # connect=1 AND the Session::RecentReauth gate consumed a fresh proof, consumed
       # (atomic GETDEL) by account_from_omniauth. Living here instead of in the
       # blob is the fix for the abandoned-connect gap: a connect abandoned at
       # the IdP (cancel / IdP error / closed tab) never reaches the consuming
@@ -193,7 +161,7 @@ module Onetime
       # Single-use WebAuthn re-authentication challenge. Explicit-use and
       # session-id-bound: verification atomically consumes it before checking
       # the assertion, so an old or concurrently replayed assertion cannot mint
-      # a fresh RecentReauth proof. Absence always refuses.
+      # a fresh Session::RecentReauth proof. Absence always refuses.
       'reauth_webauthn_challenge' => { ttl: 120, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true },
       # One-shot recent full re-authentication proof. Connect admission consumes
       # this key atomically, so sequential and concurrent replay both fail.
@@ -472,7 +440,7 @@ module Onetime
 
     # Report which destroy_warn fields currently hold a live TRUTHY value for
     # this sid — the probe behind the middleware's destroyed-with-in-flight-
-    # state warning (Session#delete_session), the tripwire for the
+    # state warning (Onetime::Session::RackStore#delete_session), the tripwire for the
     # sid-stability assumption the hand-off fields ride on.
     #
     # TRUTHY, not merely present, is the line: a stored FALSY value is healthy
@@ -524,7 +492,7 @@ module Onetime
     end
     alias delete_all purge
 
-    # Read-side middleware hook (used only by Onetime::Session#find_session):
+    # Read-side middleware hook (used only by Onetime::Session::RackStore#find_session):
     # overlay every merge_on_read+externalize field onto the freshly-decoded
     # session hash, in one pipeline.
     #
@@ -588,7 +556,7 @@ module Onetime
       { data: data, fields: merged }
     end
 
-    # Write-side middleware hook (used only by Onetime::Session#write_session,
+    # Write-side middleware hook (used only by Onetime::Session::RackStore#write_session,
     # BEFORE blob serialization): externalize every registered field out of the
     # session hash. Per externalize field:
     #
@@ -745,7 +713,7 @@ module Onetime
     # Envelopes are JSON both ways so values round-trip with their types
     # (false/nil/hashes), which a bare string value would flatten.
     #
-    # encrypted: the canonical SessionCodec blob format wrapped around
+    # encrypted: the canonical Session::Codec blob format wrapped around
     # {'sid','f','v'}. The sid/field binding prevents replaying one session's
     # sidecar value under another sid or field — a property the session blob
     # itself does not have, so sidecar posture is strictly >= blob posture.
@@ -755,7 +723,7 @@ module Onetime
     # SessionMetadata fields and the entitlement-preview SETs.
     def encode_envelope(sid, field, value, policy, codec)
       if policy[:encrypted]
-        codec ||= Onetime::SessionCodec.from_config
+        codec ||= Onetime::Session::Codec.from_config
         raise 'session codec unavailable for encrypted sidecar field' unless codec
 
         codec.encode({ 'sid' => sid, 'f' => field, 'v' => value })
@@ -771,7 +739,7 @@ module Onetime
       return nil if raw.nil?
 
       if policy[:encrypted]
-        codec ||= Onetime::SessionCodec.from_config
+        codec ||= Onetime::Session::Codec.from_config
         return nil unless codec
 
         envelope = codec.decode(raw)

@@ -10,7 +10,7 @@ require 'nokogiri'
 # them together.
 #
 # Row keys:
-#   verdict      CustomerSessionEvaluator status memoized for the request
+#   verdict      Onetime::Session::CustomerSessionEvaluator status memoized for the request
 #   markers      the bracket marker the session strategy fails with, per surface
 #   protected    :refused (302 HTML / 401 API) or :authenticated
 #   public       what hydration and GET /bootstrap/me expose
@@ -209,7 +209,7 @@ module CustomerSessionFailureMatrix
   end
 
   def session_codec
-    Onetime::SessionCodec.from_config
+    Onetime::Session::Codec.from_config
   end
 
   def session_blob
@@ -224,13 +224,13 @@ module CustomerSessionFailureMatrix
   # runs on its own thread, joined before the held request continues, right
   # after that request's first customer-session evaluation (which has loaded
   # the session). The interleaving is therefore exact, not timed, and the late
-  # write goes through the real Onetime::Session#write_session.
+  # write goes through the real Onetime::Session::RackStore#write_session.
   #
   # @return [Rack::MockResponse] the held request's response
   def hold_request_while
     fired = false
 
-    allow(Onetime::CustomerSessionEvaluator).to receive(:evaluate).and_wrap_original do |original, session, **kwargs|
+    allow(Onetime::Session::CustomerSessionEvaluator).to receive(:evaluate).and_wrap_original do |original, session, **kwargs|
       verdict = original.call(session, **kwargs)
       unless fired
         fired = true
@@ -281,7 +281,7 @@ module CustomerSessionFailureMatrix
       end
 
     headers = { 'HTTP_ACCEPT' => config.fetch(:accept), 'HTTP_X_REQUEST_ID' => request_id }
-    headers[Onetime::SessionActivity::HEADER_ENV_KEY] = Onetime::SessionActivity::PASSIVE if declare_passive
+    headers[Onetime::Session::Activity::HEADER_ENV_KEY] = Onetime::Session::Activity::PASSIVE if declare_passive
     public_send(verb, config.fetch(:path), {}, headers)
 
     payload = parse_bootstrap(last_response, config[:bootstrap]) if config[:bootstrap] && last_response.status == 200
@@ -290,7 +290,7 @@ module CustomerSessionFailureMatrix
     {
       status: last_response.status,
       payload: payload,
-      verdict: last_request.env[Onetime::CustomerSessionEvaluator::ENV_KEY]&.status,
+      verdict: last_request.env[Onetime::Session::CustomerSessionEvaluator::ENV_KEY]&.status,
       authenticated: payload&.fetch('authenticated', nil),
       awaiting_mfa: payload&.fetch('awaiting_mfa', nil),
       auth_status: payload&.fetch('auth_status', nil),
@@ -336,7 +336,7 @@ module CustomerSessionFailureMatrix
   # Attach the SQL capture to every Sequel::Database that talks to the
   # account_active_session_keys table on this request path — both the
   # test_db (which the row-count assertions read through) and the
-  # Auth::Database.connection (which the ActiveSessionGate's expiring DELETE
+  # Auth::Database.connection (which the Onetime::Session::ActiveSessionGate's expiring DELETE
   # is issued against). The two are the SAME underlying PostgreSQL database
   # but distinct Sequel::Database instances whenever both FullModeSuiteDatabase
   # AND PostgresModeSuiteDatabase have set up in one process (each installs
@@ -391,7 +391,7 @@ module CustomerSessionFailureMatrix
     @matrix_customer = Onetime::Customer.find_by_extid(blob.fetch('external_id'))
     raise 'matrix login did not resolve a Customer' unless @matrix_customer
 
-    stale = Time.now - (Onetime::ActiveSessionGate::TOUCH_INTERVAL + 60)
+    stale = Time.now - (Onetime::Session::ActiveSessionGate::TOUCH_INTERVAL + 60)
     active_session_rows.update(last_use: stale)
   end
 
@@ -420,9 +420,9 @@ module CustomerSessionFailureMatrix
     when :revoked
       active_session_rows.delete
     when :inactive
-      active_session_rows.update(last_use: Time.now - (Onetime::ActiveSessionGate::INACTIVITY_DEADLINE + 60))
+      active_session_rows.update(last_use: Time.now - (Onetime::Session::ActiveSessionGate::INACTIVITY_DEADLINE + 60))
     when :absolute_expired
-      active_session_rows.update(created_at: Time.now - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 60))
+      active_session_rows.update(created_at: Time.now - (Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 60))
     when :legacy_unstamped
       rewrite_session_blob { |blob| blob.delete('active_session_id_hmac') }
     when :mfa_pending
@@ -439,7 +439,7 @@ module CustomerSessionFailureMatrix
       rewrite_session_blob { |blob| blob['authenticated_at'] = watermark - 1 }
     when :tenant_surface_mismatch
       rewrite_session_blob do |blob|
-        blob[Onetime::SessionSurface::KEY] = { 'kind' => 'custom', 'id' => 'other-tenant' }
+        blob[Onetime::Session::Surface::KEY] = { 'kind' => 'custom', 'id' => 'other-tenant' }
       end
     when :authentication_database_unavailable, :customer_storage_unavailable
       # Applied around evaluation/request by with_matrix_state_dependencies.
@@ -530,7 +530,7 @@ module CustomerSessionFailureMatrix
         expect(observation[:refusal_code]).to be_nil
         expect(observation[:refusal_body]).to be_nil
       else
-        if expectation.fetch(:scope) == Onetime::SessionFailureCode::SCOPE_VERIFICATION_UNAVAILABLE
+        if expectation.fetch(:scope) == Onetime::Session::FailureCode::SCOPE_VERIFICATION_UNAVAILABLE
           expect(observation[:status]).to eq(503)
           expect(observation[:retry_after]).to eq(Onetime::Middleware::SessionFailureCode::UNAVAILABLE_RETRY_AFTER.to_s)
           expect(observation[:www_authenticate]).to be_nil
