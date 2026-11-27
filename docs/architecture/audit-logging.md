@@ -9,7 +9,7 @@ outside the entitlement entirely.
 
 | Stream | User-facing name | Answers | Store / retention | Status |
 |---|---|---|---|---|
-| Secret Activity (#3633/#3635/#3637) | **Secret Activity** | what happened to a secret, and who acted | Valkey/Redis sorted set, configurable cap (default 10,000 newest per org) | Shipped |
+| Secret Activity (#3633/#3635/#3637) | **Secret Activity** | what happened to a secret, and who acted | Valkey/Redis sorted sets, member and guest partitions with separate caps (default 10,000 rows each per org); identical fetches coalesce into one counted row | Shipped |
 | Security Events (#2799) | **Security Events** | who did what to the account/org (login, MFA, SSO config) | SQL (`account_authentication_audit_logs`), TTL-based | Backend table live (Rodauth); product surface unstarted |
 | Operator audit log | — (colonel-only) | what operators did in the admin console, and which sensitive things they looked at | `ColonelAuditEvent` (Familia; three capped sub-streams) | Shipped, colonel app only |
 
@@ -61,10 +61,14 @@ thread them down; the model layer validates and appends.
                                                  │ Organization                         │
                                                  │  Features::SecretActivity            │
                                                  │  record_secret_activity_event        │
-                                                 │  sorted set `secret_activity_events` │
-                                                 │  (score = epoch s, member =          │
-                                                 │   event hash; configurable cap,       │
-                                                 │   default 10,000)                     │
+                                                 │  (one Lua script per write)          │
+                                                 │  sorted sets `secret_activity_member`│
+                                                 │   and `secret_activity_guest`        │
+                                                 │   (score = last_at, member = id;     │
+                                                 │   separate caps, default 10,000)     │
+                                                 │  hashes `secret_activity_detail`     │
+                                                 │   (id → JSON) and                    │
+                                                 │   `secret_activity_count` (id → n)   │
                                                  └──────────────────────────────────────┘
 ```
 
@@ -89,16 +93,20 @@ Key files:
 
 ### Event kinds (11)
 
-| Kind | Emitted when | Actor |
-|---|---|---|
-| `created` | secret concealed/generated in org context, or by a guest on the org's custom domain | `creator`, or `anonymous` for a guest |
-| `status_get` / `secret_get` | a third party fetched the status/secret link | tri-state |
-| `previewed` | the creator opened their own secret link | tri-state (creator by construction, but **recorded**, never inferred) |
-| `creator_status_get` | the creator checked their own secret's status | tri-state |
-| `receipt_viewed` | the creator's receipt page loaded (once per receipt, atomic claim) | tri-state |
-| `revealed` / `burned` | terminal lifecycle transition (CAS winner) | tri-state |
-| `expired` / `orphaned` | system-detected transition, no acting individual | `system` |
-| `reveal_failed_undecryptable` | reveal rolled back on undecryptable ciphertext | tri-state (threaded from the reveal) |
+| Kind | Emitted when | Actor | Repeats share a row |
+|---|---|---|---|
+| `created` | secret concealed/generated in org context, or by a guest on the org's custom domain | `creator`, or `anonymous` for a guest | no |
+| `status_get` / `secret_get` | a third party fetched the status/secret link | tri-state | yes |
+| `previewed` | the creator opened their own secret link | tri-state (creator by construction, but **recorded**, never inferred) | yes |
+| `creator_status_get` | the creator checked their own secret's status | tri-state | yes |
+| `receipt_viewed` | the creator's receipt page loaded (once per receipt, atomic claim) | tri-state | no |
+| `revealed` / `burned` | terminal lifecycle transition (CAS winner) | tri-state | no |
+| `expired` / `orphaned` | system-detected transition, no acting individual | `system` | no |
+| `reveal_failed_undecryptable` | reveal rolled back on undecryptable ciphertext | tri-state (threaded from the reveal) | yes |
+
+"Repeats share a row" means identical events inside one coalesce window are
+stored once with a count (see Event record). Lifecycle kinds happen at most
+once per receipt, so each is its own row.
 
 "Tri-state" is the computed discriminator (`creator` / `authenticated_other` /
 `anonymous`). A fifth value, `unknown`, is the ADR-023 sentinel for an actor —
@@ -108,16 +116,63 @@ path and is id-carrying when an authenticated principal is known.
 
 ### Event record
 
-Members of the org sorted set are plain string-keyed hashes:
+Each organization has five keys (Familia related fields, so they are
+removed with the organization):
+
+| Key | Type | Holds |
+|---|---|---|
+| `secret_activity_member` | sorted set | ids of events on member-owned receipts, and events with no receipt; score = `last_at` |
+| `secret_activity_guest` | sorted set | ids of events on receipts a guest created (empty owner); score = `last_at` |
+| `secret_activity_detail` | hash | id → the first occurrence's record as JSON, plus `first_at` (written with HSETNX) |
+| `secret_activity_count` | hash | id → occurrences (HINCRBY) |
+| `secret_activity_events` | sorted set | the pre-coalescing trail: read-only, merged at read time, never written |
+
+The record is string-keyed:
 
 ```
-kind, at (epoch float), nonce            — identity of the event
+kind, first_at (epoch float)             — what happened, and when it first happened
 receipt, secret                          — SHORTIDS (see identifier policy below)
+domain_id, domain                        — domain shortid and FQDN (custom-domain shares only)
 actor                                    — creator | authenticated_other | anonymous | system | unknown
 actor_id                                 — FULL customer objid (authenticated actors only)
 net_ip_partial, net_ua_partial,          — privacy-reduced network context (ADR-022;
-net_ip_hash                                fetch events only)
+net_ip_hash, net_country                   fetch events only)
 ```
+
+Reads add `id`, `count`, `last_at` (the score) and `at` (= `last_at`, kept for
+older clients). Legacy rows read as `count` 1 with `first_at` = `last_at` =
+`at`, and their `nonce` becomes the `id`.
+
+**Event id.** `e1:` plus the first 20 hex characters of SHA-256 over kind,
+receipt, secret, actor, actor_id, net_ip_hash, net_ua_partial, net_country,
+domain_id and a bucket. For the kinds that repeat (`secret_get`,
+`status_get`, `previewed`, `creator_status_get`,
+`reveal_failed_undecryptable`) the bucket is `floor(at / window)`, so the
+same fetch from the same network and actor inside one window gets the same
+id. Every other kind, and every kind when the window is 0, uses a random
+bucket and never shares a row. Network context is part of the identity, so
+two different clients fetching one link stay two rows.
+
+**Write.** One Lua script (EVALSHA, with EVAL on NOSCRIPT) does HSETNX on
+the detail, HINCRBY on the count, `ZADD GT` (a late-arriving older repeat
+cannot move `last_at` back), and the trim: when the partition is over its
+cap it reads the oldest ids, HDELs them from both hashes, then
+ZREMRANGEBYRANK. The hashes and the sorted sets are trimmed in one atomic
+step.
+
+**Read.** `secret_activity_events_page(offset:, limit:)` takes the newest
+`offset + limit` from each partition and from the legacy set, merges them by
+score (id breaks ties), slices the page, then hydrates with one HMGET per
+hash. `total` (from `secret_activity_event_count`) is the sum of the three
+cardinalities, so a coalesced row counts once.
+
+**Domain owner.** A member can share on a custom domain that a different
+organization owns. Events on that receipt go to the receipt's own
+organization and also to the domain owner's trail, in the same partition, so
+an organization sees all activity on its branded links. The second write is
+skipped when the domain owner is the same organization (all guests, and
+same-org members), absent or archived, and it fails on its own without
+affecting the first.
 
 ### Actor model: recorded, not derived
 
@@ -198,12 +253,30 @@ Two caps, one TTL rule:
   the org trail, so one hammered link (scanner, monitor) cannot evict every
   other receipt's history. Lifecycle transitions bypass the guard. The
   timeline key's TTL is clamped to its receipt's remaining TTL.
-- **Org trail**: newest events up to the configured cap (default 10,000;
-  `SECRET_ACTIVITY_MAX_EVENTS`, minimum 100), no TTL (organizations are
-  permanent records). Lowering the cap removes each organization's oldest events
-  on its next write. `receipt_viewed` is additionally bounded to once per receipt
-  by an atomic claim (`claim_once!`), since the receipt page is not covered by
-  the timeline saturation guard.
+- **Org trail**: two partitions, each keeping its newest rows up to its own
+  cap, no TTL (organizations are permanent records). Lowering a cap removes
+  that partition's oldest rows on its next write. `receipt_viewed` is
+  additionally bounded to once per receipt by an atomic claim (`claim_once!`),
+  since the receipt page is not covered by the timeline saturation guard.
+- **Why two partitions.** Anyone can create a secret on an organization's
+  custom-domain homepage without signing in, so guest `created` events have
+  no per-writer bound. With one shared cap, a guest flood would evict every
+  member event. Guest events go to their own partition with its own cap, so
+  a flood trims only older guest events. Coalescing does not bound creation
+  floods (each `created` is its own row); it bounds repeated fetches, and the
+  per-receipt saturation guard above still applies to them.
+- **Settings** (`features.secret_activity` in `config.defaults.yaml`):
+
+  | Setting | Env | Default | Meaning |
+  |---|---|---|---|
+  | `collect` | `SECRET_ACTIVITY_COLLECT` | true | false pauses writes; stored rows stay readable |
+  | `max_events` | `SECRET_ACTIVITY_MAX_EVENTS` | 10,000 | member partition cap (minimum 100) |
+  | `max_guest_events` | `SECRET_ACTIVITY_MAX_GUEST_EVENTS` | 10,000 | guest partition cap (minimum 100) |
+  | `coalesce_window` | `SECRET_ACTIVITY_COALESCE_WINDOW` | 3600 | seconds; identical fetches in one window share a row; 0 turns coalescing off |
+
+  The API returns the caps, the window and `trimmed` (a partition has reached
+  its cap) in `details.retention`; the Activity tab uses `trimmed` for the
+  "older activity has been trimmed" notice.
 - Append is best-effort everywhere: the trail never drives behavior, and a
   failed append must never break a state transition or read path.
 
@@ -221,6 +294,8 @@ by `require_entitlement_in!`) gates the panel **content only** — the tab is
 always visible; unentitled users see an inline upgrade notice, never a hidden
 tab (the entitlement-gated-skeleton trap). The table mounts lazily per tab
 open, so each visit fetches fresh — desirable for an audit view.
+A row with `count` above 1 shows a "×N" badge whose tooltip gives the first
+and last times.
 
 ## Security Events
 

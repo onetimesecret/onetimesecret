@@ -1,5 +1,20 @@
 .. A new scriv changelog fragment.
 
+Added
+-----
+
+- Secret Activity now records events on secrets guests create on an
+  organization's custom domain in a separate guest partition with its own
+  cap (``SECRET_ACTIVITY_MAX_GUEST_EVENTS``, default 10,000), so guest
+  activity cannot push out members' events.
+- Identical secret and status fetches from the same network and actor within
+  one window (``SECRET_ACTIVITY_COALESCE_WINDOW``, default 3600 seconds; 0
+  turns it off) are stored as one row with a count. The Activity tab shows
+  the count with the first and last times. Creation and lifecycle events are
+  never combined.
+- When a member shares on a custom domain owned by another organization, the
+  events also go to the domain owner's Secret Activity.
+
 Fixed
 -----
 
