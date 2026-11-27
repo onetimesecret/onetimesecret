@@ -183,6 +183,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       allow(Onetime::Receipt).to receive(:expiring_within).and_return([])
       allow(Onetime::Receipt).to receive(:warning_sent?).and_return(false)
       allow(Onetime::Receipt).to receive(:mark_warning_sent)
+      allow(Onetime::Receipt).to receive(:remove_from_expiration_timeline).and_return(true)
       allow(Onetime::Receipt).to receive(:cleanup_expired_from_timeline).and_return(0)
       allow(Onetime::Receipt).to receive(:load)
 
@@ -191,7 +192,9 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
     end
 
     it 'queries secrets expiring within warning window (24 hours)' do
-      expect(Onetime::Receipt).to receive(:expiring_within).with(24 * 3600).and_return([])
+      # Paged, soonest first: the first page is one batch long.
+      expect(Onetime::Receipt).to receive(:expiring_within)
+        .with(24 * 3600, offset: 0, count: described_class::DEFAULT_BATCH_SIZE).and_return([])
 
       described_class.send(:process_expiring_secrets)
     end
@@ -239,21 +242,23 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       expect(metadata_no_email).not_to have_received(:unregister_from_expiration_notifications)
     end
 
-    it 'gives freed batch slots to due warnings on the next scan' do
+    # A dropped entry takes no batch slot: with batch_size 1, the due
+    # warning behind an anonymous receipt goes out in the same run.
+    it 'gives the slot of a dropped entry to a due warning in the same run' do
       allow(OT).to receive(:conf).and_return(OT::Config.wrap({
         'jobs' => { 'expiration_warnings' => { 'enabled' => true, 'warning_hours' => 24, 'batch_size' => 1 } },
       }))
       timeline = %w[meta456 meta123]
-      allow(Onetime::Receipt).to receive(:expiring_within) { timeline.dup }
+      allow(Onetime::Receipt).to receive(:expiring_within) do |_s, offset: 0, count: nil|
+        count ? (timeline[offset, count] || []) : timeline.dup
+      end
       allow(Onetime::Receipt).to receive(:load).with('meta456').and_return(anonymous_metadata)
       allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
-      allow(anonymous_metadata).to receive(:unregister_from_expiration_notifications) { timeline.delete('meta456') }
+      allow(anonymous_metadata).to receive(:unregister_from_expiration_notifications) { !timeline.delete('meta456').nil? }
 
       described_class.send(:process_expiring_secrets)
-      expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
-
-      described_class.send(:process_expiring_secrets)
-      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).with(:expiration_warning, anything, domain_id: nil)
+      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).once
+        .with(:expiration_warning, anything, domain_id: nil)
     end
 
     # Mail goes only to a verified owner. The skip is permanent, like the
@@ -292,18 +297,17 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
         expect(unverified_receipt).to have_received(:unregister_from_expiration_notifications)
       end
 
-      it 'gives the freed batch slot to a due warning on the next scan' do
+      it 'gives the slot of the dropped entry to a due warning in the same run' do
         allow(OT).to receive(:conf).and_return(OT::Config.wrap({
           'jobs' => { 'expiration_warnings' => { 'enabled' => true, 'warning_hours' => 24, 'batch_size' => 1 } },
         }))
         timeline = %w[meta_unv meta123]
-        allow(Onetime::Receipt).to receive(:expiring_within) { timeline.dup }
+        allow(Onetime::Receipt).to receive(:expiring_within) do |_s, offset: 0, count: nil|
+          count ? (timeline[offset, count] || []) : timeline.dup
+        end
         allow(Onetime::Receipt).to receive(:load).with('meta_unv').and_return(unverified_receipt)
         allow(Onetime::Receipt).to receive(:load).with('meta123').and_return(metadata_with_owner)
-        allow(unverified_receipt).to receive(:unregister_from_expiration_notifications) { timeline.delete('meta_unv') }
-
-        described_class.send(:process_expiring_secrets)
-        expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+        allow(unverified_receipt).to receive(:unregister_from_expiration_notifications) { !timeline.delete('meta_unv').nil? }
 
         described_class.send(:process_expiring_secrets)
         expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email)
@@ -490,6 +494,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
           load_secret: live_secret,
           sender_domain_id: 'cd-acme',
           shortid: 'meta_dom',
+          unregister_from_expiration_notifications: true,
           anonymous?: false,
           load_owner: owner,
           secret_shortid: 'dom12345',
@@ -699,6 +704,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       allow(Onetime::Receipt).to receive(:warning_sent?).and_return(false)
       allow(Onetime::Receipt).to receive(:mark_warning_sent)
       allow(Onetime::Receipt).to receive(:cleanup_expired_from_timeline).and_return(0)
+      allow(Onetime::Receipt).to receive(:cleanup_orphaned_warnings).and_return(0)
       allow(Onetime::Jobs::Publisher).to receive(:enqueue_email)
     end
 
@@ -775,6 +781,92 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       described_class.send(:process_expiring_secrets)
 
       expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).exactly(1).time
+    end
+
+    # An in-memory timeline that answers a paged read (offset/count) the
+    # way ZRANGEBYSCORE ... LIMIT does, and an unpaged read with every id.
+    # Removals go through the stubs below, so later pages shift as in Redis.
+    def fake_timeline(ids)
+      allow(Onetime::Receipt).to receive(:expiring_within) do |_seconds, offset: 0, count: nil|
+        count ? (ids[offset, count] || []) : ids.dup
+      end
+      allow(Onetime::Receipt).to receive(:remove_from_expiration_timeline) { |id| ids.delete(id) }
+      ids
+    end
+
+    # The starvation this guards against: already-warned receipts stay on
+    # the timeline until they expire. When the job took batch_size entries
+    # before filtering out the warned ones, batch_size warned receipts
+    # expiring sooner filled every slot, and a receipt that became due later
+    # was not examined at all.
+    it 'warns a due receipt behind batch_size already-warned receipts' do
+      fake_timeline(%w[warned1 warned2 meta3])
+      allow(Onetime::Receipt).to receive(:warning_sent?) { |id| id.start_with?('warned') }
+      allow(Onetime::Receipt).to receive(:load).with('meta3').and_return(metadata3)
+
+      described_class.send(:process_expiring_secrets)
+
+      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).once
+        .with(:expiration_warning, hash_including(secret_shortid: 'key3'), domain_id: nil)
+      expect(Onetime::Receipt).to have_received(:mark_warning_sent).with('meta3')
+      # The warned entries leave the timeline, so they never fill a batch again.
+      expect(Onetime::Receipt).to have_received(:remove_from_expiration_timeline).with('warned1')
+      expect(Onetime::Receipt).to have_received(:remove_from_expiration_timeline).with('warned2')
+    end
+
+    # No double warning: a sent warning marks the receipt and takes it off
+    # the timeline, so a second run does not send again. A receipt still
+    # listed (its removal failed) is caught by warnings_sent.
+    it 'never warns a receipt twice, across runs' do
+      timeline = fake_timeline(%w[meta1])
+      warned   = []
+      allow(Onetime::Receipt).to receive(:mark_warning_sent) { |id| warned << id }
+      allow(Onetime::Receipt).to receive(:warning_sent?) { |id| warned.include?(id) }
+      allow(Onetime::Receipt).to receive(:load).with('meta1').and_return(metadata1)
+      allow(metadata1).to receive(:unregister_from_expiration_notifications) { !timeline.delete('meta1').nil? }
+
+      2.times { described_class.send(:process_expiring_secrets) }
+      expect(timeline).to be_empty
+
+      timeline << 'meta1' # as if the removal had failed
+      described_class.send(:process_expiring_secrets)
+
+      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).once
+      expect(timeline).to be_empty
+    end
+
+    # Bound on work per run: entries that are skipped but kept (no owner
+    # email yet) do not count toward batch_size, so reads are capped at
+    # batch_size * SCAN_LIMIT_FACTOR instead.
+    it 'reads at most batch_size * SCAN_LIMIT_FACTOR entries per run' do
+      kept_ids = Array.new(100) { |n| "kept#{n}" }
+      fake_timeline(kept_ids.dup)
+      loads = 0
+      allow(Onetime::Receipt).to receive(:load) do |_id|
+        loads += 1
+        metadata_no_email
+      end
+
+      described_class.send(:process_expiring_secrets)
+
+      expect(loads).to eq(2 * described_class::SCAN_LIMIT_FACTOR)
+      expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+    end
+
+    # A kept entry ahead of a due one does not block it: the offset steps
+    # past entries that stay on the timeline.
+    it 'warns a due receipt behind kept entries in the same run' do
+      timeline = fake_timeline(%w[noemail1 noemail2 meta3])
+      allow(Onetime::Receipt).to receive(:load).with('noemail1').and_return(metadata_no_email)
+      allow(Onetime::Receipt).to receive(:load).with('noemail2').and_return(metadata_no_email)
+      allow(Onetime::Receipt).to receive(:load).with('meta3').and_return(metadata3)
+      allow(metadata3).to receive(:unregister_from_expiration_notifications) { !timeline.delete('meta3').nil? }
+
+      described_class.send(:process_expiring_secrets)
+
+      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email).once
+        .with(:expiration_warning, hash_including(secret_shortid: 'key3'), domain_id: nil)
+      expect(timeline).to eq(%w[noemail1 noemail2])
     end
   end
 end
