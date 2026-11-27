@@ -56,6 +56,18 @@ export function useSecretContext() {
 }
 ```
 
+`canBurn` (`showBurnControl` in `src/shared/composables/useSecretContext.ts`)
+controls only whether the secret page shows the burn control. It is not an
+authorization rule. The burn endpoints do not check ownership: anyone
+holding the receipt identifier can burn the secret, subject to the passphrase
+if one is set and the route's auth. v1 and v2 accept anonymous callers; v3
+requires a session or token except on its guest route. v2 and v3 also require
+`continue=true` (the v1 controller sets it itself), and anonymous v2/v3 burns
+depend on the guest-route switches `site.interface.api.guest_routes.enabled`
+and `.burn` (both on by default). See the
+security note on `V2::Logic::Secrets::BurnSecret`
+(`apps/api/v2/logic/secrets/burn_secret.rb`), which v3 inherits.
+
 #### B. Secret Lifecycle (The Actor)
 This composable implements a **Finite State Machine (FSM)**. It guarantees the secret cannot be in an invalid state (e.g., "Burned" but also "Ready to View").
 

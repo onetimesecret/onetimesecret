@@ -61,14 +61,13 @@ reviewable and shippable:
 Deferred beyond MVP: slice 30 (pull sync suffices for now), 40, the 22
 rebuild, 60, and the rest of 61.
 
-Extracted ahead of the sequence — slice 61's dropped-expiration-warning bug
-(row 61 above) is a silent data-loss path: expiration warnings queued on
-`email.message.schedule` dead-letter into `dlq.email.message`, where
-`DlqEmailConsumerJob` discards non-auth templates, so the mail is never sent
-and no user-visible error surfaces. This is not coupled to the rest of the
-cutover and should land as its own targeted fix before PR 1 — either route
-`expiration_warning_job.rb` onto a delivered channel or teach the DLQ consumer
-to handle the template — not wait for the full hardening slice.
+Extracted ahead of the sequence: slice 61's dropped-expiration-warning bug
+(row 61 above) was a silent data-loss path. Expiration warnings queued on
+`email.message.schedule` dead-lettered into `dlq.email.message`, where
+`DlqEmailConsumerJob` discards non-auth templates, so the mail was never sent
+and no user-visible error surfaced. It shipped as its own targeted fix in
+0.26.19 (#4844): `expiration_warning_job.rb` now sends at scan time through
+`email.message.send`, and the schedule queue is retired.
 
 ### MVP acceptance test
 

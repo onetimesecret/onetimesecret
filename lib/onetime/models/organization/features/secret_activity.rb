@@ -9,8 +9,13 @@ module Onetime::Organization::Features
   # member = compact event hash) recording what happened to the org's
   # secrets: creation, link/status fetches, reveal, burn, expiry. Events
   # are fanned out from the Receipt (see Receipt::Features::AccessTimeline
-  # and the receipt state transitions), so every API version that touches
-  # a receipt feeds the same trail.
+  # and the receipt state transitions). State transitions (reveal, burn,
+  # expiry, orphaning) record at the model layer and receipt views record
+  # from v1 and v2/v3 alike.
+  # Creation and link/status fetch events come only from the v2/v3 logic
+  # (BaseSecretAction#record_created_activity, AccessTelemetry); v1
+  # creations, incoming-secret creations, and v1 fetches do not feed
+  # the trail.
   #
   # This backs the `audit_logs` entitlement (admin-tier; see
   # OrganizationMembership::ADMIN_ENTITLEMENTS and the billing catalog),
