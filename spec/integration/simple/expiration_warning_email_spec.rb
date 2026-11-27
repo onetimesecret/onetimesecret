@@ -34,7 +34,7 @@ RSpec.describe 'Expiration warning email', type: :integration do
   end
 
   let(:owner) do
-    # Verified: the warning goes only to a verified account (Customer#verified?).
+    # Verified: the warning goes only to a notifiable account (Customer#notifiable?).
     Onetime::Customer.new(email: "expiring-owner-#{SecureRandom.hex(8)}@example.com").tap do |cust|
       cust.verified = 'true'
       cust.save

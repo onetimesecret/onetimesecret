@@ -15,9 +15,11 @@
 # fires only in Rodauth's EMAIL verify_account flow, which a JIT SSO user never
 # traverses — so the Customer stayed unverified forever while its Rodauth
 # accounts row sat at status Verified. That is not cosmetic:
+# an unverified Customer fails every account_verified? check, and
 # Onetime::Application::AuthorizationPolicies#has_system_role? does
-# `return false unless cust.verified?` BEFORE it looks at the role, so an
-# SSO-provisioned colonel/admin could never exercise their role.
+# `return false unless cust.mailbox_verified?` BEFORE it looks at the role.
+# The 'sso' stamp is not mailbox proof, so an SSO-provisioned colonel/admin
+# still needs an operator verify before exercising the role (#4735).
 #
 # WHAT THIS FILE LOCKS IN
 # -----------------------

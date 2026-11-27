@@ -282,7 +282,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
           obscure_email: 'e***g@example.com',
           role: 'customer',
           # Stored form is the canonical STRING 'true' (BooleanFieldType);
-          # the predicate verified? is the correct read.
+          # the predicate account_verified? is the correct read.
           verified: 'true',
           account_verified?: true, mailbox_verified?: true
         )

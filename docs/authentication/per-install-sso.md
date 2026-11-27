@@ -624,7 +624,7 @@ Do not substitute `upn` or `preferred_username`, fabricate an email, enable trus
 
 Every SSO JIT account is stamped `verified: true, verified_by: 'sso'` (unless a hold applies). That records that the IdP asserted the address; it does not record that anyone proved control of the mailbox. Onetime Secret keeps the two apart (#4735):
 
-- `verified?` means the account is open. It gates sign-in and ordinary use.
+- `account_verified?` (formerly `verified?`, still an alias) means the account is open. It gates sign-in, ordinary use and owner notifications.
 - `mailbox_verified?` means the address was proven: `verified_by` is one of `email` (a link delivered to the address was followed), `invite_token`, `cli_provision` or `colonel_admin` (an operator vouched for it). `sso`, `stripe_payment`, `autoverify`, `legacy` and a blank provenance do not qualify.
 
 System roles (colonel, admin, staff), the last-colonel guard, impersonation, and the deferred federated subscription claim require `mailbox_verified?`. The deferral covers a standard signup when email verification is enabled and every SSO JIT account; a deployment that has disabled email verification still claims at standard signup without mailbox proof, as before, and logs each such claim as a security-audit event (the residual tracked as RISK-2026-08-14-M01). An SSO-only account that is granted a system role therefore holds a role that does nothing until an operator confirms the address and runs `bin/ots customers verify EMAIL` (or verifies it in the colonel admin). That rewrites the provenance to `cli_provision`/`colonel_admin` without touching the Rodauth row, and applies any federated subscription that was deferred at JIT time; re-running the verification on an account that already has mailbox proof changes nothing but retries a claim that failed. `bin/ots customers doctor` reports every system-role holder without mailbox proof as `system_role_without_mailbox_proof` (an `admin` or `staff` record also draws `role_invalid`); `bin/ots customers show` prints `verified_by` and `mailbox_verified`.
@@ -1081,7 +1081,7 @@ First check [Email claim and domain errors](#email-claim-and-domain-errors). If 
 
 ### SSO user's colonel/admin role has no effect
 
-Customers provisioned via SSO before v0.26.5 were left unverified in Redis, and system roles require `verified?`. See [runbooks/sso-accounts-unverified.md](../runbooks/sso-accounts-unverified.md) for the `bin/ots customers doctor --all --repair` procedure. (#3973)
+Customers provisioned via SSO before v0.26.5 were left unverified in Redis, and system roles require `mailbox_verified?`, which an unverified account never satisfies. See [runbooks/sso-accounts-unverified.md](../runbooks/sso-accounts-unverified.md) for the `bin/ots customers doctor --all --repair` procedure. (#3973)
 
 A customer provisioned on a current version can also be unverified on purpose: if the IdP asserted `email_verified: false` (for GitLab: reported no `confirmed_at`), or that claim could not be read, the hook records the reason in `verification_hold` and the doctor will not auto-repair it. The same runbook covers what to check before verifying by hand.
 

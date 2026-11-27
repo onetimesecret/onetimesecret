@@ -11,7 +11,7 @@ against the auth database:
 ```bash
 bin/ots customers doctor <email|extid>
 # [HIGH] SSO-provisioned customer is unverified while its auth account is
-#        Verified (system roles are gated on verified?)
+#        Verified (system roles require mailbox_verified?)
 ```
 
 `bin/ots customers show <email>` shows the Redis side: `role: colonel` next to
@@ -24,8 +24,8 @@ Before v0.26.5 (#3973), the OmniAuth JIT signup path created the Rodauth
 and nothing later reconciled the two — `after_verify_account` only fires in the
 email-verification flow, which an SSO user never enters. System roles are
 checked by `has_system_role?` (`lib/onetime/application/authorization_policies.rb`),
-which tests `verified?` before it reads the role, so the role was granted but
-never effective.
+which tests `mailbox_verified?` before it reads the role, and an unverified
+account never satisfies it, so the role was granted but never effective.
 
 v0.26.5 verifies SSO customers at creation. Customers provisioned via SSO on an
 earlier version stay unverified until repaired.
@@ -47,6 +47,11 @@ fires only when all three hold: the Customer is unverified, its
 repair mirrors that stored fact onto the Customer and writes Redis only; it
 never touches the auth database. An existing `verified_by` is preserved; a
 record with none is stamped `sso`. One `ColonelAuditEvent` per repaired customer.
+
+An `sso` stamp is not mailbox proof, so a repaired record stamped `sso` still
+cannot use a system role. Once you have confirmed the address, run
+`bin/ots customers verify <email>` (or verify it in the colonel admin); see
+[per-install-sso.md](../authentication/per-install-sso.md).
 
 ## What the doctor will not repair
 

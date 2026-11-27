@@ -66,7 +66,7 @@ Both are already protected by **two app-layer auth layers** that always enforce:
 
 1. `role=colonel` at the Otto router (`apps/api/colonel/routes.txt`, scope
    `internal`), and
-2. `verify_one_of_roles!(colonel: true)` (plus `cust.verified?`) in each logic
+2. `verify_one_of_roles!(colonel: true)` (plus `cust.mailbox_verified?`) in each logic
    class.
 
 `site.admin.allowed_hosts` and `site.admin.allowed_cidrs` add a **host layer**
@@ -321,7 +321,7 @@ anything on a stock install beyond that fallback.
 What is left holding the door in that posture:
 
 - `role=colonel` at the Otto router, on every `/api/colonel` route;
-- `verify_one_of_roles!(colonel: true)` (plus `cust.verified?`) in every colonel
+- `verify_one_of_roles!(colonel: true)` (plus `cust.mailbox_verified?`) in every colonel
   logic class;
 - and, since epic #4323: server-side confirmation on 25 verbs, a step-up (sudo)
   window on the 15 destructive ones, four rate-limit buckets on

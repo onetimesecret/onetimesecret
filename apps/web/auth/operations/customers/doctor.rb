@@ -1347,8 +1347,9 @@ module Auth
         # an SSO-provisioned colonel who cannot exercise their role, because
         # has_system_role? tests mailbox_verified? BEFORE it reads the role, and
         # an unverified account is never mailbox_verified?. Healing the flag
-        # alone does not grant the role: 'sso' is not a mailbox provenance, so
-        # the colonel still needs mailbox proof (operator verify; #4735).
+        # grants the role only when the record already carries a mailbox
+        # provenance, since the repair keeps an existing verified_by. A record
+        # stamped 'sso' still needs mailbox proof (operator verify; #4735).
         #
         # The forward fix (config/hooks/omniauth.rb) stops new records drifting.
         # This check is the ONLY thing that heals records created before it, and

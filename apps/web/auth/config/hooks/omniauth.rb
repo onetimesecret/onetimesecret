@@ -983,14 +983,15 @@ module Auth::Config::Hooks
         # PASSWORD signup shape — Rodauth's after_verify_account flips the flag
         # when the emailed link is followed. A JIT SSO account never traverses
         # that flow, so the Customer mirror stayed unverified forever while its
-        # Rodauth account was already open. That is not cosmetic:
-        # has_system_role? (authorization_policies.rb) returns false on
-        # `!cust.mailbox_verified?` BEFORE it reads the role field, and an
-        # unverified account is never mailbox_verified?. Stamping the account
-        # verified here does not satisfy that gate either: 'sso' is not in
-        # MAILBOX_VERIFIED_BY, so an SSO-provisioned colonel still needs
-        # mailbox proof (operator verify; policy in #4735) before it can
-        # exercise the role.
+        # Rodauth account was already open. That mismatch is not cosmetic: an
+        # unverified Customer fails every account_verified? check, owner
+        # notifications among them (Customer#notifiable?). The stamp is not
+        # what unlocks an elevated role, though: has_system_role?
+        # (authorization_policies.rb) returns false on
+        # `!cust.mailbox_verified?` BEFORE it reads the role field, and 'sso'
+        # is not in MAILBOX_VERIFIED_BY, so an SSO-provisioned colonel still
+        # needs mailbox proof (operator verify; policy in #4735) before it
+        # can exercise the role.
         #
         # THE GATE — all three must hold, and nothing else is consulted:
         #

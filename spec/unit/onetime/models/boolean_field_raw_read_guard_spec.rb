@@ -103,7 +103,9 @@ RSpec.describe 'boolean_field raw-read guard' do
 
         storage: :string  — the STRINGS 'true'/'false', so the condition is
                             ALWAYS truthy ("false" is truthy in Ruby). This
-                            is a bug. Use the predicate: `account_verified?`.
+                            is a bug. Use the field's predicate
+                            (`account_verified?` for `verified`,
+                            `suspended?` for `suspended`, and so on).
         storage: :native  — a real Ruby true/false/nil, so a bare read is
                             correct. Mark the line `# boolean_field native`
                             to say so; the guard skips any line containing
