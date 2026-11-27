@@ -22,8 +22,8 @@ module Onetime
 
     # 30 days, the lifetime the sign-in form states
     # (web.COMMON.remember_me_description). It equals the default absolute
-    # lifetime (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE), so by
-    # default the two deadlines fall together; a shorter
+    # lifetime (Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE),
+    # so by default the two deadlines fall together; a shorter
     # `site.session.absolute_timeout` ends a remembered session first.
     DURATION = 30 * 86_400
 
