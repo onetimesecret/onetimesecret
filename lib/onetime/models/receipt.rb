@@ -507,12 +507,15 @@ module Onetime
           end
         end
 
-        # Maintain the owner's live-secret counter at THE single secret-creation
-        # chokepoint (#60). Every path that mints a secret — the API secret
-        # actions, incoming secrets, password-reset and billing-welcome secrets —
+        # Maintain the owner's live-secret counter at the single receipt-backed
+        # secret-creation chokepoint (#60). Every path that mints a secret with
+        # a receipt — the v1/v2 API secret actions, incoming secrets, and the
+        # account verification link (Logic::Base#send_verification_email) —
         # funnels through spawn_pair, so counting here (rather than in each Logic
-        # class) guarantees exactly one increment per created secret and no path
-        # is missed. Anonymous/ownerless creates are skipped inside the helper.
+        # class) gives exactly one increment per receipt-backed secret.
+        # Password-reset and email-change secrets are created with
+        # Secret.create!, have no receipt, and are not counted here.
+        # Anonymous/ownerless creates are skipped inside the helper.
         # The mirror decrement fires at the single early-destruction chokepoint
         # (Secret#destroy! — reveal, burn, and admin delete all funnel through
         # it). The remaining drift source is TTL expiry, where Redis drops the
