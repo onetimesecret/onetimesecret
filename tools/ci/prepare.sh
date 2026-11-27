@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 #
-# tools/ci/prepare.sh — bin/ci prepare: the job preparation a lane needs
-# after its toolchain. What the setup-ruby-test-env and setup-node-env
-# actions do on GitHub beyond installing Ruby and Node:
+# tools/ci/prepare.sh — bin/ci prepare [etc|bundle|pnpm]...: the job
+# preparation a lane needs after its toolchain. What the setup-ruby-test-env
+# and setup-node-env actions do on GitHub beyond installing Ruby and Node:
 #
-#   - etc/<name> from each etc/defaults/<name with .defaults>, where etc/<name> is missing;
-#   - a frozen bundle install into vendor/bundle, in deployment mode, set in
-#     the checkout's .bundle/config (what ruby/setup-ruby's bundler-cache does);
-#   - a frozen pnpm install.
+#   etc     etc/<name> from each etc/defaults/<name with .defaults>, where
+#           etc/<name> is missing;
+#   bundle  a frozen bundle install into vendor/bundle, in deployment mode,
+#           set in the checkout's .bundle/config (what ruby/setup-ruby's
+#           bundler-cache does);
+#   pnpm    a frozen pnpm install.
+#
+# With no argument it runs all three, in that order. A job that needs less
+# names its steps: the RuboCop job runs `bin/ci prepare bundle`, the frontend
+# build `bin/ci prepare pnpm`.
 #
 # The official Ruby image points RubyGems and Bundler at /usr/local/bundle
 # through GEM_HOME and BUNDLE_APP_CONFIG. tests/lanes/run clears both (they
@@ -20,7 +26,13 @@ set -euo pipefail
 # shellcheck source=tools/ci/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-[ "$#" -eq 0 ] || ci_usage_error "usage: bin/ci prepare"
+for name in "$@"; do
+  case "$name" in
+    etc | bundle | pnpm) ;;
+    *) ci_usage_error "usage: bin/ci prepare [etc|bundle|pnpm]... (not a step: ${name})" ;;
+  esac
+done
+[ "$#" -gt 0 ] || set -- etc bundle pnpm
 ci_require_gitlab_job "bin/ci prepare"
 cd "$CI_REPO_ROOT"
 unset GEM_HOME BUNDLE_APP_CONFIG
@@ -61,6 +73,10 @@ pnpm_install() {
   pnpm install --frozen-lockfile
 }
 
-step prepare_etc "etc/ from etc/defaults" seed_etc
-step prepare_bundle "bundle install (frozen, vendor/bundle)" bundle_install
-step prepare_pnpm "pnpm install (frozen)" pnpm_install
+for name in "$@"; do
+  case "$name" in
+    etc) step prepare_etc "etc/ from etc/defaults" seed_etc ;;
+    bundle) step prepare_bundle "bundle install (frozen, vendor/bundle)" bundle_install ;;
+    pnpm) step prepare_pnpm "pnpm install (frozen)" pnpm_install ;;
+  esac
+done
