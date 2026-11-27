@@ -1,16 +1,16 @@
 ---
 id: "052"
-status: proposed
+status: accepted
 title: "ADR-052: Config Keys Are Strings, and Code Reads Config Through get"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
-2026-11-14
+2026-11-26
 
 ## Context
 
@@ -107,3 +107,12 @@ sections below the root are plain Hashes.
   remain to be removed.
 - [ADR-030](adr-030-config-layering-by-scope.md): how config layers are
   sourced.
+
+## Implementation Notes
+
+### Accepted and implemented (2026-11-26)
+
+Proposed on 2026-11-14 and accepted on 2026-11-26. The decision is
+implemented on `develop` through five merge requests: !4959, !4965, !4966
+and !4969 (2026-11-14), and !4975 (2026-11-22), which extended it to
+section reads, config seams and the tests. Issue #3991 is closed.
