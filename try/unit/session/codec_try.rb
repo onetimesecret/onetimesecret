@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# Unit tryouts for Onetime::SessionCodec — the canonical session-blob codec
+# Unit tryouts for Onetime::Session::Codec — the canonical session-blob codec
 # extracted from Onetime::Session so the live Rack store (writer) and the
 # session admin read verbs (reader) share ONE definition of the at-rest format
 # `base64(iv+auth_tag+AES-256-GCM(JSON))--hmac`.
@@ -22,7 +22,7 @@ OT.boot! :test
 require 'onetime/session/codec'
 
 @secret = 'a-test-session-secret-that-is-long-enough-0123456789'
-@codec  = Onetime::SessionCodec.new(@secret)
+@codec  = Onetime::Session::Codec.new(@secret)
 
 ## encode → decode round-trips a session hash
 @hash = { 'account_id' => 7, 'email' => 'alice@example.com', 'authenticated' => true }
@@ -35,7 +35,7 @@ blob.include?('--') && !blob.start_with?('{')
 #=> true
 
 ## a wrong secret cannot decode another codec's blob (HMAC rejects it → nil)
-other = Onetime::SessionCodec.new('a-different-secret-of-sufficient-length-98765')
+other = Onetime::Session::Codec.new('a-different-secret-of-sufficient-length-98765')
 other.decode(@codec.encode(@hash))
 #=> nil
 
@@ -56,7 +56,7 @@ tampered = "#{data.reverse}--#{hmac}"
 
 ## an empty secret is rejected at construction (fail fast, never a silent nil key)
 begin
-  Onetime::SessionCodec.new('')
+  Onetime::Session::Codec.new('')
   :no_raise
 rescue ArgumentError
   :raised
@@ -64,10 +64,10 @@ end
 #=> :raised
 
 ## from_config builds a codec from the running app's session secret
-!Onetime::SessionCodec.from_config.nil?
+!Onetime::Session::Codec.from_config.nil?
 #=> true
 
 ## from_config's codec round-trips (same derivation the live store uses)
-cc = Onetime::SessionCodec.from_config
+cc = Onetime::Session::Codec.from_config
 cc.decode(cc.encode({ 'email' => 'z@z.com' }))
 #=> { 'email' => 'z@z.com' }

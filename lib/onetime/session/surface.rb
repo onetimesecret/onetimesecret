@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'namespace'
+
 module Onetime
   # Classifies request surfaces, stamps the login surface, and checks it on
   # later requests. Canonical and platform subdomains are distinct; custom
@@ -12,7 +14,7 @@ module Onetime
   # {match_status} returns `:unavailable` so callers refuse without destroying
   # the Rack session. Reclassification is memoized per request. A missing
   # stored marker is a mismatch, never a match.
-  module SessionSurface
+  module Session::Surface
     # Session data must remain stable across JSON persistence.
     KEY = 'authenticated_surface'
 

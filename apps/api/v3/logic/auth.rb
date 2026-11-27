@@ -146,7 +146,7 @@ module V3
         def impersonating?
           return false unless sess.respond_to?(:[])
 
-          !Onetime::SessionImpersonation.active(sess).nil?
+          !Onetime::Session::Impersonation.active(sess).nil?
         end
       end
     end

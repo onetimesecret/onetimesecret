@@ -16,13 +16,13 @@ module Auth
   module Operations
     # Verify a complete local re-authentication ceremony for the account already
     # bound to the current session. This operation never establishes or replaces
-    # the login session; it writes RecentReauth after all required factors
+    # the login session; it writes Onetime::Session::RecentReauth after all required factors
     # have succeeded.
     #
     # SESSION ID (#4466). The proof lets this session make one Connect
     # attempt, a capability the session did not have before, so it is
     # written under a NEW id: once every factor has verified,
-    # {Onetime::SessionRotation.rotate!} ends the old id the way a logout
+    # {Onetime::Session::Rotation.rotate!} ends the old id the way a logout
     # does and carries the session data (identity, active-session join key,
     # surface marker, CSRF token) to a new one, and the proof is recorded
     # there. A copy of the pre-ceremony id is signed out rather than handed
@@ -211,7 +211,7 @@ module Auth
           'rp_id' => rp_id,
           'primary' => primary,
         }
-        written = Onetime::SessionSidecar.write(
+        written = Onetime::Session::Sidecar.write(
           session_id,
           CHALLENGE_FIELD,
           pending,
@@ -251,7 +251,7 @@ module Auth
         descriptor = credential_descriptor(row[:surface_scope])
         descriptor = descriptor.merge(rp_id: row[:rp_id]) unless row[:rp_id].to_s.empty?
 
-        Onetime::ReauthPolicy.webauthn_offerable?(
+        Onetime::Session::ReauthPolicy.webauthn_offerable?(
           offer[:surface],
           [descriptor],
           offer[:related_origins],
@@ -284,7 +284,7 @@ module Auth
       end
 
       def consume_webauthn_challenge
-        Onetime::SessionSidecar.consume(session_id, CHALLENGE_FIELD)
+        Onetime::Session::Sidecar.consume(session_id, CHALLENGE_FIELD)
       end
 
       def valid_pending_challenge?(pending, account_id, offer, params, rp_id, primary)
@@ -340,11 +340,11 @@ module Auth
 
       def record(account_id, methods, password_verified: false)
         # A request with no authoritative surface gets no proof
-        # (Onetime::RecentReauth.record answers nil for it). Refuse it here,
+        # (Onetime::Session::RecentReauth.record answers nil for it). Refuse it here,
         # before the id moves: a refusal that followed the rotation would
         # leave the client on the old snapshot epoch with nothing to tell it
         # the id changed.
-        if Onetime::SessionSurface.for_env(@env).nil?
+        if Onetime::Session::Surface.for_env(@env).nil?
           return error(403, 'Re-authentication is unavailable on this surface.', 'invalid_surface', password_verified)
         end
 
@@ -358,7 +358,7 @@ module Auth
           )
         end
 
-        proof = Onetime::RecentReauth.record(
+        proof = Onetime::Session::RecentReauth.record(
           @session,
           @env,
           account_id: account_id,
@@ -389,7 +389,7 @@ module Auth
       # rescue is here because #call maps ArgumentError and TypeError to a
       # failed passkey.
       def renew_session_id(account_id)
-        rotation = Onetime::SessionRotation.rotate!(@session)
+        rotation = Onetime::Session::Rotation.rotate!(@session)
         return :not_needed if rotation.nil?
         return :rotated if rotation.complete
 

@@ -6,6 +6,8 @@ require 'base64'
 require 'openssl'
 require 'familia'
 
+require_relative 'namespace'
+
 module Onetime
   # Shared at-rest format for the Rack session store and session admin reader:
   #
@@ -15,7 +17,7 @@ module Onetime
   # store so either can load it. Verify the HMAC in constant time before
   # decrypting, then verify the GCM tag. {#decode} returns nil for invalid
   # blobs and never deserializes Marshal data.
-  class SessionCodec
+  class Session::Codec
     # 12-byte IV + 16-byte GCM auth tag; anything shorter can't be a payload.
     MIN_ENCRYPTED_BYTES = 28
 
@@ -27,7 +29,7 @@ module Onetime
     # to the legacy/`_raw` path rather than raising. The plain {.new} stays pure
     # (secret in, no globals) for the writer and for tests.
     #
-    # @return [SessionCodec, nil]
+    # @return [Session::Codec, nil]
     def self.from_config
       cfg    = Onetime.respond_to?(:session_config) ? Onetime.session_config : nil
       secret = cfg && cfg['secret']

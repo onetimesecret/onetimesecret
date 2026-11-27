@@ -45,7 +45,7 @@ DB    = Familia.dbclient
 
 @nonce = Familia.generate_id[0, 12]
 @actor = "ur1colonelpub_#{@nonce}" # a PUBLIC id (extid-shaped), never an objid
-@codec = Onetime::SessionCodec.from_config
+@codec = Onetime::Session::Codec.from_config
 
 @cust = Onetime::Customer.create!(email: "revokeall_#{@nonce}@example.com")
 @cust.verified = 'true'

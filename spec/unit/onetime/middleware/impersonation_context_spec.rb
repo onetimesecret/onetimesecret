@@ -17,7 +17,7 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
 
   let(:downstream) do
     lambda do |_env|
-      observed[:context] = Onetime::SessionImpersonation.context
+      observed[:context] = Onetime::Session::Impersonation.context
       observed[:called]  = true
       [200, { 'content-type' => 'application/json' }, ['{}']]
     end
@@ -32,24 +32,24 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
       'target_email' => 'alice@example.com',
       'reason' => 'ticket #123',
       'started_at' => now,
-      'expires_at' => now + Onetime::SessionImpersonation::TTL,
+      'expires_at' => now + Onetime::Session::Impersonation::TTL,
     }
   end
 
   let(:impersonating_session) do
     {
       'external_id' => 'ur_colonel',
-      Onetime::SessionImpersonation::SESSION_KEY => marker,
+      Onetime::Session::Impersonation::SESSION_KEY => marker,
     }
   end
 
   before do
     allow(Familia).to receive(:now).and_return(now)
     allow(Onetime::ColonelAuditEvent).to receive(:record)
-    Onetime::SessionImpersonation.clear_context
+    Onetime::Session::Impersonation.clear_context
   end
 
-  after { Onetime::SessionImpersonation.clear_context }
+  after { Onetime::Session::Impersonation.clear_context }
 
   # SCRIPT_NAME + PATH_INFO, because the universal stack runs inside URLMap and
   # a PATH_INFO-only check goes dead for every mounted app.
@@ -95,7 +95,7 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
     it 'clears the context after the request' do
       middleware.call(env_for('GET', '', '/dashboard'))
 
-      expect(Onetime::SessionImpersonation.context).to be_nil
+      expect(Onetime::Session::Impersonation.context).to be_nil
     end
 
     it 'clears the context even when downstream raises' do
@@ -103,7 +103,7 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
 
       expect { described_class.new(boom).call(env_for('GET', '', '/dashboard')) }
         .to raise_error('boom')
-      expect(Onetime::SessionImpersonation.context).to be_nil
+      expect(Onetime::Session::Impersonation.context).to be_nil
     end
 
     it 'publishes nothing for an ordinary session' do
@@ -339,14 +339,14 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
   end
 
   describe 'expiry' do
-    before { allow(Familia).to receive(:now).and_return(now + Onetime::SessionImpersonation::TTL + 1) }
+    before { allow(Familia).to receive(:now).and_return(now + Onetime::Session::Impersonation::TTL + 1) }
 
     it 'ends the impersonation, audits it, and lets the request through unguarded' do
       env    = env_for('POST', '/api/v3', '/secret/conceal')
       status, = middleware.call(env)
 
       expect(status).to eq(200)
-      expect(impersonating_session).not_to have_key(Onetime::SessionImpersonation::SESSION_KEY)
+      expect(impersonating_session).not_to have_key(Onetime::Session::Impersonation::SESSION_KEY)
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(verb: 'customer.impersonate.stop', detail: hash_including(ended_by: 'expired')),
       )
@@ -430,7 +430,7 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
       middleware.call(env)
 
       expect(Onetime::Customer).to have_received(:load_by_extid_or_email).once.with('ur_target')
-      expect(env[Onetime::SessionImpersonation::TARGET_ENV_KEY]).to eq(['ur_target', target])
+      expect(env[Onetime::Session::Impersonation::TARGET_ENV_KEY]).to eq(['ur_target', target])
     end
 
     # This is the point of the memo: resolve() reads the target twice on its
@@ -445,7 +445,7 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
       allow(target).to receive(:role?).with('colonel').and_return(false)
 
       3.times do
-        effective, = Onetime::SessionImpersonation.resolve(impersonating_session, principal, env: env)
+        effective, = Onetime::Session::Impersonation.resolve(impersonating_session, principal, env: env)
         expect(effective).to be(target)
       end
 
@@ -457,7 +457,7 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
 
       middleware.call(env)
 
-      expect(env).not_to have_key(Onetime::SessionImpersonation::TARGET_ENV_KEY)
+      expect(env).not_to have_key(Onetime::Session::Impersonation::TARGET_ENV_KEY)
     end
   end
 

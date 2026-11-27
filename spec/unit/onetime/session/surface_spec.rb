@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for Onetime::SessionSurface — the pure classifier and comparator
+# Unit tests for Onetime::Session::Surface — the pure classifier and comparator
 # behind surface-bound sessions (#4409). Terms (surface, marker) are defined in
 # the module doc. The strategy symbols (:canonical, :subdomain, :custom,
 # :invalid) mirror what DomainStrategy stashes in env; :unverified is what
@@ -12,7 +12,7 @@ require 'spec_helper'
 require 'onetime/session/surface'
 require 'onetime/session/codec'
 
-RSpec.describe Onetime::SessionSurface do
+RSpec.describe Onetime::Session::Surface do
   def env_for(strategy:, display_domain: nil, custom_domain_id: nil)
     {
       'onetime.domain_strategy'  => strategy,
@@ -74,7 +74,7 @@ RSpec.describe Onetime::SessionSurface do
   end
 
   # DomainStrategy answers :invalid both for a host we do not serve and for
-  # any host whose custom-domain lookup RAISED. SessionSurface classifies an
+  # any host whose custom-domain lookup RAISED. Onetime::Session::Surface classifies an
   # :invalid request again with Chooserator.classify!, the middleware's own
   # classifier minus its rescue. These run the real classifier against a
   # real canonical set; only the datastore read is stubbed.
@@ -232,7 +232,7 @@ RSpec.describe Onetime::SessionSurface do
     it 'matches after the session marker is encoded and decoded' do
       env     = env_for(strategy: :custom, display_domain: 'secrets.acme.com', custom_domain_id: 'domain-abc')
       session = {}
-      codec   = Onetime::SessionCodec.new('surface-round-trip-test-secret')
+      codec   = Onetime::Session::Codec.new('surface-round-trip-test-secret')
 
       described_class.record(session, env)
       restored = codec.decode(codec.encode(session))

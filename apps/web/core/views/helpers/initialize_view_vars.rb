@@ -95,16 +95,16 @@ module Core
         # `unavailable` when the session names a customer this response cannot
         # vouch for, `anonymous` otherwise. It never carries identity.
         if strategy_result
-          verdict       = Onetime::CustomerSessionEvaluator.evaluate(sess, env: req.env)
+          verdict       = Onetime::Session::CustomerSessionEvaluator.evaluate(sess, env: req.env)
           authenticated = verdict.authenticated?
           cust          = verdict.customer
           awaiting_mfa  = verdict.mfa_pending?
-          auth_status   = Onetime::SessionAuthStatus.for_verdict(verdict)
+          auth_status   = Onetime::Session::AuthStatus.for_verdict(verdict)
         else
           authenticated = false
           cust          = nil
           awaiting_mfa  = false
-          auth_status   = Onetime::SessionAuthStatus.without_verdict(sess)
+          auth_status   = Onetime::Session::AuthStatus.without_verdict(sess)
         end
 
         # Bootstrap snapshot ordering (ADR-046), allocated by
@@ -115,7 +115,7 @@ module Core
         # never subjected to ordering by the client. A failed allocation
         # ({ error: }) carries no pair and is passed as nil — the degraded
         # hydration payload.
-        allocation        = req.env[Onetime::SnapshotOrdering::ENV_KEY]
+        allocation        = req.env[Onetime::Session::SnapshotOrdering::ENV_KEY]
         reports_session   = authenticated || awaiting_mfa
         snapshot_ordering = allocation if reports_session && allocation.is_a?(Hash) && allocation[:version]
         if reports_session && snapshot_ordering.nil?

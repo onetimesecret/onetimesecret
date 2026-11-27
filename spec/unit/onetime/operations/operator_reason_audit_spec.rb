@@ -189,14 +189,14 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
     # This op records NO detail at all without a reason, so it pins the
     # nil-detail edge of the rule rather than the merge.
     # `set` is the ended-marker every blob delete writes first
-    # (Onetime::SessionEnded, RISK-2026-09-19-01).
+    # (Onetime::Session::Ended, RISK-2026-09-19-01).
     let(:dbclient) { double('Redis', del: 1, set: 'OK') }
 
     before do
       allow(Onetime::Operations::Sessions::Store)
         .to receive(:find_key).and_return('session:abc')
       allow(Onetime::Operations::Sessions::Store).to receive(:extract_id).and_return('abc')
-      allow(Onetime::SessionSidecar).to receive(:purge)
+      allow(Onetime::Session::Sidecar).to receive(:purge)
     end
 
     it 'records a detail carrying ONLY the reason when one is given' do

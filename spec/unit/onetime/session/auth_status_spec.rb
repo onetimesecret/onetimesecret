@@ -8,8 +8,8 @@
 require 'spec_helper'
 require 'onetime/session/auth_status'
 
-RSpec.describe Onetime::SessionAuthStatus do
-  let(:evaluator) { Onetime::CustomerSessionEvaluator }
+RSpec.describe Onetime::Session::AuthStatus do
+  let(:evaluator) { Onetime::Session::CustomerSessionEvaluator }
 
   def verdict(status, reason)
     identity = status == :authenticated ? { principal: :principal, customer: :customer } : {}
@@ -31,7 +31,7 @@ RSpec.describe Onetime::SessionAuthStatus do
   end
 
   it 'reports a rejected session as anonymous, without its reason' do
-    (Onetime::CustomerSessionEvaluator::REASONS - [:authenticated]).each do |reason|
+    (Onetime::Session::CustomerSessionEvaluator::REASONS - [:authenticated]).each do |reason|
       status = described_class.for_verdict(verdict(:rejected, reason))
 
       expect(status).to eq('anonymous')

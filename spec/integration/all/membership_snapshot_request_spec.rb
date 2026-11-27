@@ -43,7 +43,7 @@ RSpec.describe 'Membership reads per request', type: :integration do
     env 'rack.session', {
       'external_id' => user.extid,
       'authenticated' => true,
-      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+      Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
       'authenticated_at' => now,
       'role' => user.role,
     }

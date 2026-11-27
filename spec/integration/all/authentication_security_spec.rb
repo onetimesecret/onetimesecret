@@ -179,12 +179,12 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
   end
 
   # #4466. The logic hands the strategy result's session (env['rack.session']
-  # in production) to Onetime::SessionRotation after clearing it. The rotation
+  # in production) to Onetime::Session::Rotation after clearing it. The rotation
   # itself, against the real store and the real route, is covered in
   # spec/integration/simple/login_session_rotation_spec.rb.
   describe 'session fixation attack protection' do
     let(:rotation) do
-      Onetime::SessionRotation::Result.new(old_sid: 'sess123', new_sid: 'sess456', complete: true)
+      Onetime::Session::Rotation::Result.new(old_sid: 'sess123', new_sid: 'sess456', complete: true)
     end
 
     before do
@@ -201,7 +201,7 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
       allow(customer).to receive(:pending?).and_return(false)
 
       expect(session).to receive(:clear).ordered
-      expect(Onetime::SessionRotation).to receive(:rotate!).with(session).ordered.and_return(rotation)
+      expect(Onetime::Session::Rotation).to receive(:rotate!).with(session).ordered.and_return(rotation)
       authenticate
     end
 
@@ -210,18 +210,18 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
       allow_any_instance_of(Core::Logic::Authentication::AuthenticateSession).to receive(:send_verification_email)
 
       expect(session).to receive(:clear).ordered
-      expect(Onetime::SessionRotation).to receive(:rotate!).with(session).ordered.and_return(rotation)
+      expect(Onetime::Session::Rotation).to receive(:rotate!).with(session).ordered.and_return(rotation)
       authenticate
     end
 
     it 'does not authenticate on a session whose old id could not be ended' do
       allow(customer).to receive(:pending?).and_return(false)
-      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(
-        Onetime::SessionRotation::Result.new(old_sid: 'sess123', new_sid: 'sess123', complete: false, reason: :marker_not_written),
+      allow(Onetime::Session::Rotation).to receive(:rotate!).and_return(
+        Onetime::Session::Rotation::Result.new(old_sid: 'sess123', new_sid: 'sess123', complete: false, reason: :marker_not_written),
       )
 
       expect(session).not_to receive(:[]=).with('authenticated', true)
-      expect { authenticate }.to raise_error(Onetime::SessionRotation::Incomplete)
+      expect { authenticate }.to raise_error(Onetime::Session::Rotation::Incomplete)
     end
   end
 

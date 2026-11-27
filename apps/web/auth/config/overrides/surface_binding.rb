@@ -38,7 +38,7 @@ module Auth::Config::Overrides
         super
         return if respond_to?(:internal_request?, true) && internal_request?
 
-        Onetime::SessionSurface.record(session, request.env)
+        Onetime::Session::Surface.record(session, request.env)
       end
     end
 

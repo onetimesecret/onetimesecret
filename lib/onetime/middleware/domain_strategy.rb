@@ -41,7 +41,7 @@ module Onetime
     # category with the host and the reason (CustomDomain#unserved_reason:
     # unverified or orphan), since the request logger below never sees the
     # request. Off the middleware path (classify! from
-    # Onetime::SessionSurface) it maps to no surface.
+    # Onetime::Session::Surface) it maps to no surface.
     #
     # @note Adds to Rack environment (not on an :unverified answer):
     #   - env['onetime.display_domain']  : Normalized domain for display
@@ -135,7 +135,7 @@ module Onetime
     # spec drives :unverified through every row. No consumer below sees it
     # on a served request (the middleware answers it), and each answers it
     # like nil: false for the positive operator test, false for `== :custom`,
-    # no session surface (SessionSurface.descriptor maps it to nil), no
+    # no session surface (Onetime::Session::Surface.descriptor maps it to nil), no
     # organization scope from the classification.
     #
     #   Consumer                                         :invalid resolves to
@@ -166,18 +166,18 @@ module Onetime
     #   InitializeViewVars / GetFavicon                   default favicon
     #   API v1 Logic::Base#custom_domain?                 false
     #   -- re-classified (session surface binding) --
-    #   SessionSurface.for_env                            nil when the published
+    #   Onetime::Session::Surface.for_env                            nil when the published
     #                                                     lookup is absent or
     #                                                     read_failed; with none
     #                                                     published, the healthy
     #                                                     answer (classify! again)
     #                                                     or nil if that read fails
-    #   SessionSurface.match_status                       :unavailable when the
+    #   Onetime::Session::Surface.match_status                       :unavailable when the
     #                                                     read failed, so the
     #                                                     session is kept
-    #   CustomerSessionEvaluator / Auth::SessionRecheck   :customer_unavailable
+    #   Onetime::Session::CustomerSessionEvaluator / Auth::SessionRecheck   :customer_unavailable
     #                                                     (refused, session kept)
-    #   RecentReauth, ReauthOffer / ReauthPolicy,         the descriptor above;
+    #   Onetime::Session::RecentReauth, ReauthOffer / Onetime::Session::ReauthPolicy,         the descriptor above;
     #   WebAuthn surface_scope, OmniAuth Connect          nil refuses, as before
     #   -- organization scope (reads the published lookup) --
     #   OrganizationLoader#request_scope_domains          UNREGISTERED_HOST (every
@@ -514,7 +514,7 @@ module Onetime
           # the host and not a failure.
           #
           # For a caller that must tell the two kinds of :invalid apart and
-          # has no published lookup to read (Onetime::SessionSurface off
+          # has no published lookup to read (Onetime::Session::Surface off
           # the middleware path). The middleware keeps {classify}.
           #
           # @return [Classification]

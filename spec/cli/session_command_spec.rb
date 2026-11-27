@@ -133,7 +133,7 @@ RSpec.describe 'Session Command', type: :cli do
       allow(redis).to receive(:get).and_return(serialized_session)
       # The ended-marker goes in before the blob comes out, so a request in
       # flight cannot write the session back (RISK-2026-09-19-01).
-      expect(redis).to receive(:set).with(Onetime::SessionEnded.key_for(session_id), '1', ex: Onetime::SessionEnded::TTL).ordered
+      expect(redis).to receive(:set).with(Onetime::Session::Ended.key_for(session_id), '1', ex: Onetime::Session::Ended::TTL).ordered
       expect(redis).to receive(:del).with("session:#{session_id}").ordered
 
       output = run_cli_command_quietly('session', 'delete', session_id, '--force')

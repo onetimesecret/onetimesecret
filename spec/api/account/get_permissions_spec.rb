@@ -128,7 +128,7 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
       'external_id' => user.extid,
       'authenticated' => true,
       # #4409: hand-seeded sessions need the surface marker the login hooks record.
-      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+      Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
       'session_id' => SecureRandom.hex(16)
     }
   end

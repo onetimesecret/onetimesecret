@@ -106,7 +106,7 @@ module Onetime
         # session: set by the auth strategy when it refuses an admin request on
         # either bound, and by #admin_session_expiry_reason when it admits the
         # REAUTH_EXEMPT request past a tripped bound. Either way the request is
-        # not activity. Read by Onetime::SessionActivity.refused?
+        # not activity. Read by Onetime::Session::Activity.refused?
         # (TrackMetadata and the session blob TTL).
         EXPIRED_ENV_KEY = 'onetime.admin_session_expired'
 

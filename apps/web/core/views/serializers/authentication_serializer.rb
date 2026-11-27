@@ -28,8 +28,8 @@ module Core
         # never disagree (#4462). A client that reads only the booleans sees
         # nothing more permissive than the status says.
         output['auth_status']   = resolve_auth_status(view_vars)
-        output['authenticated'] = output['auth_status'] == Onetime::SessionAuthStatus::AUTHENTICATED
-        output['awaiting_mfa']  = output['auth_status'] == Onetime::SessionAuthStatus::MFA_PENDING
+        output['authenticated'] = output['auth_status'] == Onetime::Session::AuthStatus::AUTHENTICATED
+        output['awaiting_mfa']  = output['auth_status'] == Onetime::Session::AuthStatus::MFA_PENDING
 
         # The customerCanonical schema requires either a valid object or null.
         # Never serialize a supplied customer unless the evaluator projection is
@@ -77,7 +77,7 @@ module Core
           # Not gated on cust.role?(:colonel): `cust` is the TARGET during an
           # impersonation, so a role gate here would suppress the banner in
           # exactly the case it exists for.
-          output['impersonation'] = Onetime::SessionImpersonation.context
+          output['impersonation'] = Onetime::Session::Impersonation.context
 
         end
 
@@ -90,7 +90,7 @@ module Core
         # @return [Hash] Template with all possible authentication output fields
         def output_template
           {
-            'auth_status' => Onetime::SessionAuthStatus::ANONYMOUS,
+            'auth_status' => Onetime::Session::AuthStatus::ANONYMOUS,
             'authenticated' => false,
             'awaiting_mfa' => false,
             'has_password' => false,
@@ -117,22 +117,22 @@ module Core
         # a serialized identity. Compatibility inputs can only withhold.
         #
         # @param view_vars [Hash]
-        # @return [String] one of Onetime::SessionAuthStatus::VALUES
+        # @return [String] one of Onetime::Session::AuthStatus::VALUES
         def resolve_auth_status(view_vars)
           status = view_vars['auth_status']
-          unless Onetime::SessionAuthStatus::VALUES.include?(status)
+          unless Onetime::Session::AuthStatus::VALUES.include?(status)
             status = if view_vars['authenticated'] == true
-                       Onetime::SessionAuthStatus::AUTHENTICATED
+                       Onetime::Session::AuthStatus::AUTHENTICATED
                      elsif view_vars['awaiting_mfa'] == true
-                       Onetime::SessionAuthStatus::MFA_PENDING
+                       Onetime::Session::AuthStatus::MFA_PENDING
                      else
-                       Onetime::SessionAuthStatus::ANONYMOUS
+                       Onetime::Session::AuthStatus::ANONYMOUS
                      end
           end
-          return status unless status == Onetime::SessionAuthStatus::AUTHENTICATED
+          return status unless status == Onetime::Session::AuthStatus::AUTHENTICATED
           return status if view_vars['authenticated'] == true && !view_vars['cust'].nil?
 
-          Onetime::SessionAuthStatus::UNAVAILABLE
+          Onetime::Session::AuthStatus::UNAVAILABLE
         end
 
         # Checks whether the authenticated account has a password hash set.

@@ -263,7 +263,7 @@ Signed-in user clicks "Connect {provider}"
 Form POST /auth/sso/{provider} with connect=1  (submitSsoLogin, src/shared/utils/sso.ts)
     │
     ▼
-omniauth_request_validation_phase → RecentReauth.satisfied? consumes the recent-reauth proof (#4411)
+omniauth_request_validation_phase → Onetime::Session::RecentReauth.satisfied? consumes the recent-reauth proof (#4411)
     ├─ no proof / stale / other account / other surface / non-local primary
     │     → no intent; redirect /reauth?redirect=/account/settings/security/connections
     └─ fresh proof → write sidecar:<sid>:sso_connect_intent = { account_id, surface, at }
@@ -298,17 +298,17 @@ The division of labour: OAuth `state`/CSRF proves *"this browser initiated a req
 
 #### Recent full re-authentication gates the intent (#4411)
 
-An authenticated session plus `connect=1` is intent, not proof. Attaching a login identity changes the account's authenticators ([OWASP ASVS 5.0.0 requirement 7.5.1](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v75-defenses-against-session-abuse)), so the request phase mints the intent **only** after `Onetime::RecentReauth.satisfied?` (`lib/onetime/session/recent_reauth.rb`, #4410) consumes a proof that is:
+An authenticated session plus `connect=1` is intent, not proof. Attaching a login identity changes the account's authenticators ([OWASP ASVS 5.0.0 requirement 7.5.1](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v75-defenses-against-session-abuse)), so the request phase mints the intent **only** after `Onetime::Session::RecentReauth.satisfied?` (`lib/onetime/session/recent_reauth.rb`, #4410) consumes a proof that is:
 
 | Binding | Requirement |
 |---------|-------------|
 | Account | recorded for the session's account (`session_value`) |
-| Surface | recorded on the surface the initiation arrives on (`Onetime::SessionSurface.for_env`) |
-| Age | no older than `RecentReauth::CONNECT_MAX_AGE` (300s) |
+| Surface | recorded on the surface the initiation arrives on (`Onetime::Session::Surface.for_env`) |
+| Age | no older than `Onetime::Session::RecentReauth::CONNECT_MAX_AGE` (300s) |
 | Ceremony | first completed method is a local primary (`password` or `webauthn`), with every MFA factor the account requires already completed |
 | Use | single-use — the gate consumes it, so one ceremony admits exactly one initiation; a second initiation (or a concurrent one) is refused |
 
-A proof is recorded only by a completed local ceremony: a password (or WebAuthn-primary) login that satisfied MFA policy, or a completed `POST /auth/reauth` (`apps/web/auth/routes/reauth.rb`, the surface-aware re-authentication endpoint from #4414). A magic-link login, an SSO callback, and a password step that stopped short of required MFA never record one, so none of them can reach the intent write. A remembered session (`Onetime::RememberMe`) is the session its login created, not a session restored from a credential; its proof is the one that login recorded, and it ages out on the same `CONNECT_MAX_AGE` clock. A user who signed in with a password moments ago passes the gate on that login; otherwise the refusal redirects to `/reauth?redirect=/account/settings/security/connections`, the re-authentication view returns them to the panel, and they click Connect again.
+A proof is recorded only by a completed local ceremony: a password (or WebAuthn-primary) login that satisfied MFA policy, or a completed `POST /auth/reauth` (`apps/web/auth/routes/reauth.rb`, the surface-aware re-authentication endpoint from #4414). A magic-link login, an SSO callback, and a password step that stopped short of required MFA never record one, so none of them can reach the intent write. A remembered session (`Onetime::Session::RememberMe`) is the session its login created, not a session restored from a credential; its proof is the one that login recorded, and it ages out on the same `CONNECT_MAX_AGE` clock. A user who signed in with a password moments ago passes the gate on that login; otherwise the refusal redirects to `/reauth?redirect=/account/settings/security/connections`, the re-authentication view returns them to the panel, and they click Connect again.
 
 Refusal is fail-closed on every path: nothing is minted, any dangling intent from an earlier initiation is deleted, and `omniauth_connect_reauth_required` (level `warn`) is logged. Platform mailbox-proof linking is a separate recovery policy and does not satisfy this gate.
 
@@ -477,7 +477,7 @@ policy exception rather than NIST AAL conformance.
 
 **Confirm logs the user in.** The account is passwordless and clicking the emailed link proves mailbox control — the *same* proof magic-link uses to authenticate — so on success the confirm route establishes the session through Rodauth's own `login` machinery (`rodauth.login('sso_link_confirm')`), not a hand-rolled session. That runs the normal `after_login` path (Redis session blob via `SyncSession` — the real app auth gate — plus `active_sessions` registration and MFA detection). The user lands signed in and their newly linked SSO works next time.
 
-**MFA-safe bind, completed after the second factor.** SSO logins are MFA-exempt, so if the passwordless account has a pending second factor the identity bind is **deferred** rather than performed at confirm time — a pre-2FA bind would be an MFA-bypassing login path. The authorized bind is stashed by `Auth::Operations::DeferredSsoBind` in a short-TTL `SessionSidecar` key bound to the partial-MFA session's sid (#3858), the login proceeds to the OTP step (emitting `mfa_required`, logged as `sso_link_verification_deferred_mfa`), and `after_two_factor_authentication` (`config/hooks/two_factor.rb`) completes the bind once the second factor succeeds — OTP *or* recovery code. Completion is single-use (atomic GETDEL at the store), account-bound, and audit-and-skip on conflict/mismatch (`sso_deferred_bind_completed`): MFA has already succeeded, so nothing on that path may fail the login. For a login that never went through a deferred branch the check is one Redis GETDEL and no DB access. Moot for default installs (MFA off), load-bearing for `AUTH_MFA_ENABLED` deployments. The password interstitial uses the same machinery (#3877/#3879).
+**MFA-safe bind, completed after the second factor.** SSO logins are MFA-exempt, so if the passwordless account has a pending second factor the identity bind is **deferred** rather than performed at confirm time — a pre-2FA bind would be an MFA-bypassing login path. The authorized bind is stashed by `Auth::Operations::DeferredSsoBind` in a short-TTL `Onetime::Session::Sidecar` key bound to the partial-MFA session's sid (#3858), the login proceeds to the OTP step (emitting `mfa_required`, logged as `sso_link_verification_deferred_mfa`), and `after_two_factor_authentication` (`config/hooks/two_factor.rb`) completes the bind once the second factor succeeds — OTP *or* recovery code. Completion is single-use (atomic GETDEL at the store), account-bound, and audit-and-skip on conflict/mismatch (`sso_deferred_bind_completed`): MFA has already succeeded, so nothing on that path may fail the login. For a login that never went through a deferred branch the check is one Redis GETDEL and no DB access. Moot for default installs (MFA off), load-bearing for `AUTH_MFA_ENABLED` deployments. The password interstitial uses the same machinery (#3877/#3879).
 
 **Platform-only.** Like the password interstitial, mailbox-proof linking is only offered on the platform callback path. A tenant admin controls their own IdP and could otherwise trigger link emails to arbitrary platform addresses, so tenant callbacks keep the unchanged H-3 refusal.
 

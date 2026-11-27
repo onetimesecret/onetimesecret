@@ -730,7 +730,7 @@ RSpec.shared_examples 'platform SAML SSO' do
     # the id the request phase ran on.
     it 'signs in under a new session id and ends the one the request phase used', :aggregate_failures do
       store   = Onetime::Operations::Sessions::Store
-      codec   = Onetime::SessionCodec.from_config
+      codec   = Onetime::Session::Codec.from_config
       created_emails << email
       request = start_login
       old_sid = rack_mock_session.cookie_jar['onetime.session']
@@ -744,7 +744,7 @@ RSpec.shared_examples 'platform SAML SSO' do
       expect(new_sid).not_to be_nil
       expect(new_sid).not_to eq(old_sid)
       expect(store.find_key(Familia.dbclient, old_sid)).to be_nil
-      expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+      expect(Onetime::Session::Ended.ended?(old_sid)).to be(true)
 
       account_id = db[:accounts].where(email: email).get(:id)
       blob       = store.load_data(Familia.dbclient, store.find_key(Familia.dbclient, new_sid), codec: codec)

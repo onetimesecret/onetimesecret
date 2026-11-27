@@ -4,6 +4,7 @@
 
 require 'openssl'
 
+require_relative 'namespace'
 require_relative 'sidecar'
 
 module Onetime
@@ -11,7 +12,7 @@ module Onetime
   # identifies a session-ID lifetime; the version is a positive canonical
   # decimal string within it. The client decides whether to accept a snapshot.
   # `snapshot_generated_at` is for age and diagnostics, never for ordering.
-  module SnapshotOrdering
+  module Session::SnapshotOrdering
     extend self
 
     # Rack env key holding this request's allocation:
@@ -72,7 +73,7 @@ module Onetime
     # @return [Hash] { epoch:, version:, generated_at: }
     def allocate(session, ttl: nil)
       sid     = session_id(session)
-      version = SessionSidecar.allocate_counter(sid, FIELD, ttl: ttl)
+      version = Session::Sidecar.allocate_counter(sid, FIELD, ttl: ttl)
 
       {
         epoch: epoch_for(sid),

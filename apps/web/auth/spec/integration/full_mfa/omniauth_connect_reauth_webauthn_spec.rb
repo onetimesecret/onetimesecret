@@ -34,7 +34,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
   include OAuthFlowHelper
   include_context 'domains enabled'
 
-  let(:reauth_key) { Onetime::RecentReauth::KEY }
+  let(:reauth_key) { Onetime::Session::RecentReauth::KEY }
 
   def current_sid
     rack_mock_session.cookie_jar['onetime.session']
@@ -72,8 +72,8 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
     initiate_sso_connect(host)
     skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if last_response.status == 404
     expect(last_response.status).to eq(302)
-    expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(true)
-    expect(Onetime::SessionSidecar.exists?(sid, reauth_key)).to be(false)
+    expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(true)
+    expect(Onetime::Session::Sidecar.exists?(sid, reauth_key)).to be(false)
 
     clear_body_headers
     header 'Host', host
@@ -81,7 +81,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
     expect(last_response.status).to eq(302)
     expect(identities.where(provider: 'oidc', uid: uid).all)
       .to contain_exactly(hash_including(account_id: account_id))
-    expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(false)
+    expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(false)
   end
 
   context 'with the passkey registered on the tenant host' do
@@ -101,8 +101,8 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
       sid = current_sid
       # The login's own second-factor completion records a proof; the subject
       # here is the explicit re-authentication ceremony, so clear it.
-      expect(Onetime::SessionSidecar.read(sid, reauth_key)).to include('methods' => %w[password webauthn])
-      Onetime::SessionSidecar.delete(sid, reauth_key)
+      expect(Onetime::Session::Sidecar.read(sid, reauth_key)).to include('methods' => %w[password webauthn])
+      Onetime::Session::Sidecar.delete(sid, reauth_key)
 
       clear_body_headers
       header 'Host', host
@@ -119,7 +119,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
       password_only = json_body
       expect(password_only['mfa_required']).to eq(true)
       expect(password_only['mfa_methods']).to include('webauthn')
-      expect(Onetime::SessionSidecar.exists?(sid, reauth_key)).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(sid, reauth_key)).to be(false)
 
       setup_mock_auth(email: unique_test_email('asserted-victim'), uid: uid)
       begin
@@ -127,7 +127,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
         skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if last_response.status == 404
         expect(last_response.status).to eq(302)
         expect(last_response.location.to_s).to include(Auth::Config::Hooks::OmniAuth.connect_reauth_redirect)
-        expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(false)
+        expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(false)
 
         # Password + passkey: the operation issues a challenge bound to this
         # session, surface and RP ID, then verifies the signed assertion.
@@ -145,7 +145,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
         expect(challenge_body.dig('webauthn_auth', 'rpId')).to eq(host)
         expect(challenge_body.dig('webauthn_auth', 'allowCredentials').map { |c| c['id'] })
           .to eq([passkey.webauthn_id])
-        expect(Onetime::SessionSidecar.exists?(sid, reauth_key)).to be(false)
+        expect(Onetime::Session::Sidecar.exists?(sid, reauth_key)).to be(false)
 
         csrf_json_post(
           '/auth/reauth',
@@ -160,13 +160,13 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
         # The proof is recorded under a new session id (#4466).
         expect(current_sid).not_to eq(sid)
         sid = current_sid
-        expect(Onetime::SessionSidecar.read(sid, reauth_key)).to include(
+        expect(Onetime::Session::Sidecar.read(sid, reauth_key)).to include(
           'account_id' => account_id,
           'surface' => tenant_surface(tenant),
           'methods' => %w[password webauthn],
         )
         # The challenge is single-use: consumed by the verification.
-        expect(Onetime::SessionSidecar.exists?(sid, Auth::Operations::Reauthenticate::CHALLENGE_FIELD)).to be(false)
+        expect(Onetime::Session::Sidecar.exists?(sid, Auth::Operations::Reauthenticate::CHALLENGE_FIELD)).to be(false)
         expect(auth_db[:account_webauthn_keys].where(account_id: account_id).get(:sign_count)).to be > 0
 
         connect_and_bind(host, sid: sid, uid: uid, account_id: account_id)
@@ -185,7 +185,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
       passkey = register_passkey(host, email: email)
       login_with_password_and_passkey(host, email: email, passkey: passkey)
       sid     = current_sid
-      Onetime::SessionSidecar.delete(sid, reauth_key)
+      Onetime::Session::Sidecar.delete(sid, reauth_key)
 
       setup_mock_auth(email: unique_test_email('asserted-victim'), uid: uid)
       begin
@@ -196,7 +196,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
         challenge      = challenge_body['webauthn_auth_challenge']
         expect(challenge).not_to be_nil
         expect(challenge_body.dig('webauthn_auth', 'rpId')).to eq(host)
-        expect(Onetime::SessionSidecar.exists?(sid, reauth_key)).to be(false)
+        expect(Onetime::Session::Sidecar.exists?(sid, reauth_key)).to be(false)
 
         # A challenge issued for the primary ceremony cannot be spent through
         # the second-factor path (pending['primary'] is part of the binding).
@@ -210,7 +210,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
         )
         expect(last_response.status).to eq(401)
         expect(json_body['error_code']).to eq('invalid_webauthn')
-        expect(Onetime::SessionSidecar.exists?(sid, reauth_key)).to be(false)
+        expect(Onetime::Session::Sidecar.exists?(sid, reauth_key)).to be(false)
 
         # ...and that attempt consumed it, so a fresh challenge is required.
         csrf_json_post('/auth/reauth', method: 'webauthn')
@@ -229,7 +229,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
         # The proof is recorded under a new session id (#4466).
         expect(current_sid).not_to eq(sid)
         sid = current_sid
-        expect(Onetime::SessionSidecar.read(sid, reauth_key)).to include(
+        expect(Onetime::Session::Sidecar.read(sid, reauth_key)).to include(
           'account_id' => account_id,
           'surface' => tenant_surface(tenant),
           'methods' => %w[webauthn],
@@ -253,7 +253,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
       passkey       = register_passkey(canonical_host, email: email)
       expect(auth_db[:account_webauthn_keys].where(account_id: account_id).select_map(:rp_id)).to eq([canonical_host])
       expect(JSON.parse(auth_db[:account_webauthn_keys].where(account_id: account_id).get(:surface_scope)))
-        .to eq(Onetime::SessionSurface::CANONICAL)
+        .to eq(Onetime::Session::Surface::CANONICAL)
       signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(tenant[:domain].identifier)
       expect(signin_config.related_origin_members(current_domain: host)).to eq([])
 
@@ -267,7 +267,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
       csrf_json_post('/auth/recovery-auth', 'recovery-code' => recovery_codes_for(account_id).fetch(0))
       expect(last_response.status).to eq(200), last_response.body
       sid = current_sid
-      Onetime::SessionSidecar.delete(sid, reauth_key)
+      Onetime::Session::Sidecar.delete(sid, reauth_key)
 
       clear_body_headers
       header 'Host', host
@@ -286,13 +286,13 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
       expect(last_response.status).to eq(200)
       expect(json_body['mfa_required']).to eq(true)
       expect(json_body['mfa_methods']).not_to include('webauthn')
-      expect(Onetime::SessionSidecar.exists?(sid, reauth_key)).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(sid, reauth_key)).to be(false)
 
       # Asking for the passkey second factor: no eligible credential, no challenge.
       csrf_json_post('/auth/reauth', method: 'password', password: AuthTestConstants::TEST_PASSWORD, mfa_method: 'webauthn')
       expect(last_response.status).to eq(403)
       expect(json_body['error_code']).to eq('webauthn_unavailable')
-      expect(Onetime::SessionSidecar.exists?(sid, Auth::Operations::Reauthenticate::CHALLENGE_FIELD)).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(sid, Auth::Operations::Reauthenticate::CHALLENGE_FIELD)).to be(false)
 
       # Presenting an assertion the platform passkey signed for its own RP ID:
       # refused before any verification, and no proof.
@@ -311,7 +311,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
       csrf_json_post('/auth/reauth', method: 'webauthn')
       expect(last_response.status).to eq(400)
       expect(json_body['error_code']).to eq('invalid_method')
-      expect(Onetime::SessionSidecar.exists?(sid, reauth_key)).to be(false)
+      expect(Onetime::Session::Sidecar.exists?(sid, reauth_key)).to be(false)
 
       setup_mock_auth(email: unique_test_email('asserted-victim'), uid: uid)
       begin
@@ -319,7 +319,7 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
         skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if last_response.status == 404
         expect(last_response.status).to eq(302)
         expect(last_response.location.to_s).to include(Auth::Config::Hooks::OmniAuth.connect_reauth_redirect)
-        expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(false)
+        expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(false)
         expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
       ensure
         teardown_mock_auth

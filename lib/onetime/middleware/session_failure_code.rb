@@ -10,7 +10,7 @@ module Onetime
     ##
     # SessionFailureCode
     #
-    # Adds the stable `code` / `code_scope` pair (Onetime::SessionFailureCode)
+    # Adds the stable `code` / `code_scope` pair (Onetime::Session::FailureCode)
     # to a JSON 401 that refused a request for its session (#4462) or for a
     # credential it presented (#4469), and gives the refusal its HTTP
     # semantics: a `WWW-Authenticate` challenge on every annotated 401, and a
@@ -26,7 +26,7 @@ module Onetime
     # Rodauth likewise renders its own JSON error and exposes the reason only
     # through `set_error_reason`. Same constraint, same answer as
     # RetryAfterHeader: the code that refuses stashes the typed reason in the
-    # Rack env (Onetime::SessionFailureCode.stash) and this middleware,
+    # Rack env (Onetime::Session::FailureCode.stash) and this middleware,
     # mounted once in the universal stack, carries it across the boundary for
     # every surface. `annotate` is the one place the refusal is rendered, so
     # the status and the headers are decided there as well as the body.
@@ -60,7 +60,7 @@ module Onetime
     #   expiry from a token it should not retry.
     #
     # The scheme is read from the stash, not from the request: the Basic
-    # strategies record `Onetime::SessionFailureCode::SCHEME_BASIC` and
+    # strategies record `Onetime::Session::FailureCode::SCHEME_BASIC` and
     # PasetoAuthStrategy records SCHEME_BEARER beside the reason
     # (SCHEME_ENV_KEY), and nothing else does. A refusal stashed by a
     # form login, a re-authentication or the simple-mode sign-in is
@@ -129,7 +129,7 @@ module Onetime
     # replace a value that is already present.
     #
     class SessionFailureCode
-      ENV_KEY = Onetime::SessionFailureCode::ENV_KEY
+      ENV_KEY = Onetime::Session::FailureCode::ENV_KEY
 
       STATUS         = 401
       # Annotated only for a credential-scope stash. Headers a follow-up adds
@@ -186,12 +186,12 @@ module Onetime
       def status_annotated?(env, status)
         return true if status.to_i == STATUS
 
-        status.to_i == CREDENTIAL_STATUS && Onetime::SessionFailureCode.credential?(env[ENV_KEY])
+        status.to_i == CREDENTIAL_STATUS && Onetime::Session::FailureCode.credential?(env[ENV_KEY])
       end
 
       # Whether the stashed reason is the refusal this response answers.
       def refusal_answered?(env)
-        return true if Onetime::SessionFailureCode.credential?(env[ENV_KEY])
+        return true if Onetime::Session::FailureCode.credential?(env[ENV_KEY])
 
         result = env['otto.strategy_result']
         # No Otto auth chain ran: the /auth Roda app, whose router and routes
@@ -211,13 +211,13 @@ module Onetime
       # the 503 rewrite is a 401 rewrite.
       def annotate(env, status, headers, body)
         reason    = env[ENV_KEY]
-        codes     = Onetime::SessionFailureCode.for(reason)
+        codes     = Onetime::Session::FailureCode.for(reason)
         annotated = annotate_body(body, codes)
         return [status, headers, body] unless annotated
 
         set_header(headers, CONTENT_LENGTH, annotated.bytesize.to_s)
 
-        if codes['code_scope'] == Onetime::SessionFailureCode::SCOPE_VERIFICATION_UNAVAILABLE
+        if codes['code_scope'] == Onetime::Session::FailureCode::SCOPE_VERIFICATION_UNAVAILABLE
           set_header_unless_present(headers, RETRY_AFTER, UNAVAILABLE_RETRY_AFTER.to_s)
           return [UNAVAILABLE_STATUS, headers, [annotated]]
         end
@@ -232,10 +232,10 @@ module Onetime
       # stash, Bearer only on PasetoAuthStrategy's, Session for every other
       # refusal.
       def challenge(env)
-        case Onetime::SessionFailureCode.scheme(env)
-        when Onetime::SessionFailureCode::SCHEME_BASIC
+        case Onetime::Session::FailureCode.scheme(env)
+        when Onetime::Session::FailureCode::SCHEME_BASIC
           BASIC_CHALLENGE
-        when Onetime::SessionFailureCode::SCHEME_BEARER
+        when Onetime::Session::FailureCode::SCHEME_BEARER
           env[ENV_KEY] == :api_token_expired ? BEARER_EXPIRED_CHALLENGE : BEARER_CHALLENGE
         else
           SESSION_CHALLENGE

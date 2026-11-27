@@ -364,7 +364,7 @@ module Auth::Config::Hooks
 
           # Self-heal a DEFERRED SSO bind whose MFA prediction went stale
           # (#3877). The link-sso interstitial stashes a deferred bind (a
-          # sid-bound SessionSidecar key written in the rodauth.login block,
+          # sid-bound Onetime::Session::Sidecar key written in the rodauth.login block,
           # i.e. BEFORE this hook — #3858) only when its pre-login MFA check
           # said a second factor was pending. If the decision just made HERE
           # disagrees (the account's factors changed in the window between the
@@ -415,8 +415,8 @@ module Auth::Config::Hooks
           # covering the requirement. Only explicitly reviewed local primaries
           # may create proof; unknown and future methods remain fail-closed.
           # after_two_factor_authentication owns the MFA-completion path.
-          if Onetime::RecentReauth::LOCAL_PRIMARIES.include?(primary_auth)
-            Onetime::RecentReauth.record(
+          if Onetime::Session::RecentReauth::LOCAL_PRIMARIES.include?(primary_auth)
+            Onetime::Session::RecentReauth.record(
               session,
               request.env,
               account_id: account_id,

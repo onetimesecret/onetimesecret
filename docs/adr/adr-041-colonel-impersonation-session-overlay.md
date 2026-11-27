@@ -68,7 +68,7 @@ session['impersonation'] = {
 }
 ```
 
-One shared resolver — `Onetime::SessionImpersonation`, in
+One shared resolver — `Onetime::Session::Impersonation`, in
 `lib/onetime/session/impersonation.rb` (a flat name, not nested: `Onetime::Session`
 is a class) — decides the effective customer from (principal, marker) and is the
 only place that decides it; the three sites that today read
@@ -199,7 +199,7 @@ are also recorded.
 The start event is written fail-closed (`fail_closed: true`, the #4333
 family), and because the start operation's only mutation is a session key it
 can do what the destructive fail-closed ops cannot: on a failed write it
-removes the marker (`SessionImpersonation.clear!`, deliberately not `stop!`,
+removes the marker (`Onetime::Session::Impersonation.clear!`, deliberately not `stop!`,
 which would record an orphan stop) and re-raises, so the overlay ends before
 the operator sees success. A live impersonation with no start record therefore
 cannot exist; the failed write itself lands in the trail as

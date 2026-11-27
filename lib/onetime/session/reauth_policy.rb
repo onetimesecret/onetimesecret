@@ -4,6 +4,7 @@
 
 require 'uri'
 
+require_relative 'namespace'
 require_relative 'surface'
 
 module Onetime
@@ -14,8 +15,8 @@ module Onetime
   # offers no methods.
   #
   # This policy does not verify the ceremony (Rodauth) or check the resulting
-  # proof ({Onetime::RecentReauth}).
-  module ReauthPolicy
+  # proof ({Onetime::Session::RecentReauth}).
+  module Session::ReauthPolicy
     # The credential-path tokens {eligible_methods} may return. Ordered by
     # UX preference — password last so the fallback is the last resort a
     # renderer places, not the first.
@@ -25,7 +26,7 @@ module Onetime
       # The credential paths this request's surface may present for re-auth.
       #
       # @param surface [Hash, nil] the resolved surface descriptor (as
-      #   returned by {Onetime::SessionSurface.for_env})
+      #   returned by {Onetime::Session::Surface.for_env})
       # @param password_enabled [Boolean] install-level password capability
       #   (caller has already intersected with tenant SigninConfig)
       # @param webauthn_credentials [Array<Hash>] the account's registered

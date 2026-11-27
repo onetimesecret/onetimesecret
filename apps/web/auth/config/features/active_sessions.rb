@@ -16,15 +16,15 @@ module Auth::Config::Features
 
       # Session deadlines. Rodauth applies them in its sessions-page sweep
       # (remove_inactive_sessions) and refreshes last_use wherever
-      # currently_active_session? runs; Onetime::ActiveSessionGate applies the
+      # currently_active_session? runs; Onetime::Session::ActiveSessionGate applies the
       # same two values on every authenticated request, which is where the
       # deadlines actually end a session. The gate owns the numbers so the
       # two can never drift apart. The sweep's condition is the gate's too
       # (inactive_session_cond below), because only the gate knows about a
       # remembered row's remember_until. The lifetime deadline is the
       # operator's site.session.absolute_timeout, nil (none) when set to 0.
-      auth.session_inactivity_deadline Onetime::ActiveSessionGate::INACTIVITY_DEADLINE
-      auth.session_lifetime_deadline Onetime::ActiveSessionGate.lifetime_deadline
+      auth.session_inactivity_deadline Onetime::Session::ActiveSessionGate::INACTIVITY_DEADLINE
+      auth.session_lifetime_deadline Onetime::Session::ActiveSessionGate.lifetime_deadline
 
       # Stamp the Rodauth-side JOIN KEY into the app session.
       #
@@ -54,7 +54,7 @@ module Auth::Config::Features
       # The RAW token is deliberately NOT carried: the sidecar is not encrypted at
       # rest, and Rodauth itself persists only the digest.
       #
-      # LOAD-BEARING: Onetime::ActiveSessionGate joins every authenticated
+      # LOAD-BEARING: Onetime::Session::ActiveSessionGate joins every authenticated
       # request to its active-session row on this stamp, and a Rack session
       # without one is exempt from revocation (it cannot be joined). The stamp
       # therefore cannot be best-effort: a login whose stamp fails would mint a
@@ -84,7 +84,7 @@ module Auth::Config::Features
         def stamp_active_session_join_key
           # String key matches the app-session convention (SyncSession,
           # 'auth_method'); read back by Sessions::TrackMetadata and joined on
-          # by Onetime::ActiveSessionGate.
+          # by Onetime::Session::ActiveSessionGate.
           session['active_session_id_hmac'] = active_session_join_key
         rescue StandardError => ex
           OT.le '[active_sessions] join-key stamp failed; login refused and Rack session cleared: ' \
@@ -109,7 +109,7 @@ module Auth::Config::Features
         # past the inactivity deadline on one device the moment the account
         # opened its sessions page on another.
         def inactive_session_cond
-          Onetime::ActiveSessionGate.expired_condition
+          Onetime::Session::ActiveSessionGate.expired_condition
         end
         private :inactive_session_cond
       end

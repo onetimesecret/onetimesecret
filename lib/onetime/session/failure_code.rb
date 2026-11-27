@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require_relative 'namespace'
 require_relative 'customer_session_evaluator'
 
 module Onetime
@@ -15,7 +16,7 @@ module Onetime
   # carry a challenge; only credential refusals annotate 403s. The middleware
   # maps JSON verification outages to 503 with `Retry-After`. The fields are
   # additive and do not change redirects.
-  module SessionFailureCode
+  module Session::FailureCode
     # Rack env key written by the code that refuses a request, read by
     # Onetime::Middleware::SessionFailureCode. Holds the reason Symbol.
     ENV_KEY = 'onetime.session_failure_reason'

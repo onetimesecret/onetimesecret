@@ -107,11 +107,11 @@ RSpec.describe 'A request in flight cannot undo the end of its session (RISK-202
     sid = current_session_id
     logout_from_another_tab(sid)
 
-    key = Onetime::SessionEnded.key_for(sid)
+    key = Onetime::Session::Ended.key_for(sid)
     expect(Familia.dbclient.exists?(key)).to be(true)
     expect(key).not_to include(sid)
     expect(key).not_to include('session')
-    expect(Familia.dbclient.ttl(key)).to be_between(1, Onetime::SessionEnded::TTL)
+    expect(Familia.dbclient.ttl(key)).to be_between(1, Onetime::Session::Ended::TTL)
     expect(Familia.dbclient.get(key)).to eq('1')
   end
 

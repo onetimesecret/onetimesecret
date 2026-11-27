@@ -72,7 +72,7 @@ RSpec.describe 'SSO callback sign-in starts a new session id (#4466)', type: :in
 
   def blob_for(sid)
     key = store.find_key(db, sid)
-    key && store.load_data(db, key, codec: Onetime::SessionCodec.from_config)
+    key && store.load_data(db, key, codec: Onetime::Session::Codec.from_config)
   end
 
   # The anonymous session the browser holds before it signs in, stored
@@ -110,7 +110,7 @@ RSpec.describe 'SSO callback sign-in starts a new session id (#4466)', type: :in
     expect(new_sid).not_to be_nil
     expect(new_sid).not_to eq(old_sid)
     expect(store.find_key(db, old_sid)).to be_nil
-    expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+    expect(Onetime::Session::Ended.ended?(old_sid)).to be(true)
 
     account = auth_db[:accounts].where(email: OT::Utils.normalize_email(email)).first
     blob    = blob_for(new_sid)

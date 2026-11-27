@@ -88,7 +88,7 @@ module Core
       # `snapshot_generated_at` rides with the pair and orders nothing.
       #
       # @param output [Hash] the serializer output, mutated
-      # @param ordering [Hash, nil] Onetime::SnapshotOrdering allocation
+      # @param ordering [Hash, nil] Onetime::Session::SnapshotOrdering allocation
       def self.serialize_snapshot_ordering(output, ordering)
         epoch   = ordering.is_a?(Hash) ? ordering[:epoch] : nil
         version = ordering.is_a?(Hash) ? ordering[:version] : nil

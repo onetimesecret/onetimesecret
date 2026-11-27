@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'namespace'
+
 module Onetime
   # Extends one session for a fixed {DURATION} from sign-in, with no extra
   # cookie or account-wide token, so per-device revocation is unchanged.
@@ -12,7 +14,7 @@ module Onetime
   # session even after the feature is disabled. When disabled, writes cap the
   # rolling lifetime at any existing stamp. Activity never moves the deadline,
   # and absolute session and admin bounds still apply.
-  module RememberMe
+  module Session::RememberMe
     extend self
 
     # Rack session key. String, the app-session convention.

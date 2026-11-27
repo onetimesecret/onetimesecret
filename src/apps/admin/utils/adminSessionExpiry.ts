@@ -47,7 +47,7 @@ import { ref, type Ref } from 'vue';
  */
 
 /**
- * The stable failure code, from `Onetime::SessionFailureCode`
+ * The stable failure code, from `Onetime::Session::FailureCode`
  * (lib/onetime/session/failure_code.rb), mirrored in
  * `src/schemas/contracts/session-failure.ts`. This is the contract.
  */

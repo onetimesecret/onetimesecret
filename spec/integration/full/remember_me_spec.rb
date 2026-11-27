@@ -22,8 +22,8 @@ RSpec.describe 'Remember me: a fixed 30-day session (full mode)', type: :integra
   include CustomerSessionFailureMatrix
 
   let(:matrix_password) { 'Remember-Test1234!' }
-  let(:gate) { Onetime::ActiveSessionGate }
-  let(:duration) { Onetime::RememberMe::DURATION }
+  let(:gate) { Onetime::Session::ActiveSessionGate }
+  let(:duration) { Onetime::Session::RememberMe::DURATION }
 
   before do
     clear_cookies

@@ -189,7 +189,7 @@ RSpec.describe 'Orphaned Session Handling', :shared_db_state, type: :integration
   describe 'POST /auth/logout with deleted account, ahead of Rodauth' do
     it 'is caught by the active-session gate before any audit INSERT or FK rescue path' do
       # Deleting the account deletes its active-session rows, so
-      # Onetime::ActiveSessionGate (consulted by the router ahead of
+      # Onetime::Session::ActiveSessionGate (consulted by the router ahead of
       # r.rodauth) sees the orphaned Rack session as :revoked and clears it
       # before Rodauth's logout runs, answering the logout itself with
       # success. No audit INSERT is attempted for the missing account, so

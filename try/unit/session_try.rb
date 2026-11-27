@@ -73,7 +73,7 @@ end
   expire_after: 3600,
   namespace: 'session',
 })
-@try_codec = Onetime::SessionCodec.new(@secret)
+@try_codec = Onetime::Session::Codec.new(@secret)
 DB = Familia.dbclient
 
 # Helper method to access private methods for testing
@@ -356,7 +356,7 @@ found_sid, found_data = call_private_method(@sidecar_session, :find_session, @sc
 ## of all gated routes indefinitely
 @sw_sid = SecureRandom.hex(32)
 DB.set("session:#{@sw_sid}", @try_codec.encode({ 'account_id' => 1, 'awaiting_mfa' => false }))
-Onetime::SessionSidecar.write(@sw_sid, 'awaiting_mfa', true, codec: @try_codec)
+Onetime::Session::Sidecar.write(@sw_sid, 'awaiting_mfa', true, codec: @try_codec)
 @sw_req = MockRequestWithEnv.new
 _sw_sid, @sw_data = call_private_method(@sidecar_session, :find_session, @sw_req, @sw_sid)
 @sw_data['awaiting_mfa']
@@ -376,7 +376,7 @@ call_private_method(@sidecar_session, :write_session, @sw_req, @sw_sid, @sw_data
 ## presents as {} even while sidecar keys still exist — they are inert until
 ## purged or TTL-expired
 @bm_sid = SecureRandom.hex(32)
-Onetime::SessionSidecar.write(@bm_sid, 'awaiting_mfa', true, codec: @try_codec)
+Onetime::Session::Sidecar.write(@bm_sid, 'awaiting_mfa', true, codec: @try_codec)
 _bm_sid, bm_data = call_private_method(@sidecar_session, :find_session, MockRequestWithEnv.new, @bm_sid)
 [bm_data, DB.exists("sidecar:#{@bm_sid}:awaiting_mfa")]
 #=> [{}, 1]
@@ -416,8 +416,8 @@ unk_sid, unk_data = call_private_method(@sidecar_session, :find_session, MockReq
 ## gone — the purge is unconditional, not gated on the blob still existing (the
 ## pre-#4391 router-level behavior). Seed a sidecar for a fresh sid with NO
 ## blob, then delete_session must still DEL it.
-@orphan_sid = SecureRandom.hex(32) # 64 hex chars — satisfies SessionSidecar::SID_FORMAT
-Onetime::SessionSidecar.write(@orphan_sid, 'domain_context', { 'host' => 'x' }, codec: @try_codec)
+@orphan_sid = SecureRandom.hex(32) # 64 hex chars — satisfies Onetime::Session::Sidecar::SID_FORMAT
+Onetime::Session::Sidecar.write(@orphan_sid, 'domain_context', { 'host' => 'x' }, codec: @try_codec)
 before = DB.exists("sidecar:#{@orphan_sid}:domain_context")
 call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @orphan_sid, {})
 [before, DB.exists("session:#{@orphan_sid}"), DB.exists("sidecar:#{@orphan_sid}:domain_context")]
@@ -459,8 +459,8 @@ _psid, @polled_data = call_private_method(@sidecar_session, :find_session, MockR
 
 ## a request a session gate REFUSED keeps the remaining TTL too: a rejected
 ## request cannot revive or extend the session it was refused under
-@refused_verdict = Onetime::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
-@refused_req = MockRequestWithEnv.new({}, { Onetime::CustomerSessionEvaluator::ENV_KEY => @refused_verdict })
+@refused_verdict = Onetime::Session::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
+@refused_req = MockRequestWithEnv.new({}, { Onetime::Session::CustomerSessionEvaluator::ENV_KEY => @refused_verdict })
 DB.expire("session:#{@ttl_sid}", 300)
 call_private_method(@sidecar_session, :write_session, @refused_req, @ttl_sid, @ttl_data, {})
 DB.ttl("session:#{@ttl_sid}") <= 300
@@ -468,8 +468,8 @@ DB.ttl("session:#{@ttl_sid}") <= 300
 
 ## one refused because verification was UNAVAILABLE likewise: an outage cannot
 ## hand back a fresh deadline
-@outage_verdict = Onetime::CustomerSessionEvaluator::Verdict.new(status: :unavailable, reason: :active_session_unavailable)
-@outage_req = MockRequestWithEnv.new({}, { Onetime::CustomerSessionEvaluator::ENV_KEY => @outage_verdict })
+@outage_verdict = Onetime::Session::CustomerSessionEvaluator::Verdict.new(status: :unavailable, reason: :active_session_unavailable)
+@outage_req = MockRequestWithEnv.new({}, { Onetime::Session::CustomerSessionEvaluator::ENV_KEY => @outage_verdict })
 call_private_method(@sidecar_session, :write_session, @outage_req, @ttl_sid, @ttl_data, {})
 DB.ttl("session:#{@ttl_sid}") <= 300
 #=> true
@@ -534,6 +534,6 @@ call_private_method(@log_session, :delete_session, MockRequestWithEnv.new, @log_
 # Cleanup: sidecar fixtures (the TTL clamp would reap them anyway)
 [@sc_sid, @sw_sid, @bm_sid, @orphan_sid, @ttl_sid, @new_sid, @log_sid].compact.each do |sid|
   DB.del("session:#{sid}")
-  Onetime::SessionSidecar.purge(sid)
+  Onetime::Session::Sidecar.purge(sid)
 end
 # Note: Redis TTL will automatically clean up test sessions

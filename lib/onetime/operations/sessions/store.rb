@@ -95,7 +95,7 @@ module Onetime
         #
         # @param dbclient [Object]
         # @param key [String]
-        # @param codec [Onetime::SessionCodec, nil] when given, the PRIMARY path:
+        # @param codec [Onetime::Session::Codec, nil] when given, the PRIMARY path:
         #   session values are AES-256-GCM encrypted + HMAC signed
         #   (`base64(...)--hmac`), so a plain JSON.parse always failed and every
         #   session fell through to the `_raw` preview — the colonel console
@@ -126,7 +126,7 @@ module Onetime
         #
         # @param dbclient [Object]
         # @param keys [Array<String>]
-        # @param codec [Onetime::SessionCodec, nil]
+        # @param codec [Onetime::Session::Codec, nil]
         # @return [Array<Array(String, Hash|nil)>] `[key, data]` pairs in input order
         def load_data_multi(dbclient, keys, codec: nil)
           keys.each_slice(LOAD_BATCH).flat_map do |batch|
@@ -148,7 +148,7 @@ module Onetime
         # bounded `_raw` preview. NEVER Marshal.load (see the security note above).
         #
         # @param raw_data [String, nil]
-        # @param codec [Onetime::SessionCodec, nil]
+        # @param codec [Onetime::Session::Codec, nil]
         # @return [Hash, nil]
         def decode_data(raw_data, codec: nil)
           return nil unless raw_data
@@ -186,7 +186,7 @@ module Onetime
         end
 
         # Delete a session blob: the ONE way the session operations end a
-        # session. The ended-marker goes in first (Onetime::SessionEnded), so
+        # session. The ended-marker goes in first (Onetime::Session::Ended), so
         # a request that loaded the session before this and commits after it
         # cannot write the blob back and undo the revocation
         # (RISK-2026-09-19-01). A bare `del` leaves that race open; do not
@@ -194,13 +194,13 @@ module Onetime
         #
         # ## Refusal contract
         #
-        # When {Onetime::SessionEnded.mark} returns false (transient datastore
+        # When {Onetime::Session::Ended.mark} returns false (transient datastore
         # failure), the DEL is REFUSED and this returns nil. The invariant is
         # "no blob delete without a live marker": deleting the blob after a
         # failed marker would leave a post-write EXISTS check with nothing to
         # find, and an in-flight writer's copy would survive as a working
         # session. Callers observe nil and log the refusal (see
-        # {Onetime::SessionEnded.handle_for} for a sid-safe log identifier).
+        # {Onetime::Session::Ended.handle_for} for a sid-safe log identifier).
         #
         # @param dbclient [Object] Redis-like client
         # @param key [String] the resolved session key ({find_key}, {scan_keys})
@@ -208,7 +208,7 @@ module Onetime
         #   not be written and the DEL was refused
         def destroy_blob(dbclient, key)
           sid = extract_id(key)
-          return nil unless Onetime::SessionEnded.mark(sid, dbclient: dbclient)
+          return nil unless Onetime::Session::Ended.mark(sid, dbclient: dbclient)
 
           dbclient.del(key)
         end
@@ -217,7 +217,7 @@ module Onetime
         # session:/rack:session: prefix, not just one — the legacy
         # `session:rack:session:<sid>` shape ({key_patterns}) nests two, and a
         # single strip would leave `rack:session:<sid>`, which then fails the
-        # sidecar sid-format guard so {SessionSidecar.purge} silently no-ops.
+        # sidecar sid-format guard so {Onetime::Session::Sidecar.purge} silently no-ops.
         #
         # @param key [String]
         # @return [String]
@@ -236,9 +236,9 @@ module Onetime
         # real session values are strings, but the loose `*session*` match also
         # catches non-string keys such as the entitlement-preview SETs
         # (`session:<sid>:entitlement_preview_*`), which would WRONGTYPE on GET.
-        # Per-value sidecar keys (Onetime::SessionSidecar) ARE strings, but live
+        # Per-value sidecar keys (Onetime::Session::Sidecar) ARE strings, but live
         # under `sidecar:<sid>:<field>` — outside this match by construction
-        # (the prefix must never contain "session"; see SessionSidecar.key_for)
+        # (the prefix must never contain "session"; see Onetime::Session::Sidecar.key_for)
         # — so no client-side reject is needed and `keys.size >= MAX_SCAN`
         # remains an exact truncation signal for callers that report capping.
         # {load_data} stays defensive for anything a filter can't anticipate.

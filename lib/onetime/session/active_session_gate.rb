@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require_relative 'namespace'
 require_relative 'activity'
 require_relative 'remember_me'
 
@@ -19,7 +20,7 @@ module Onetime
   # for deadline checks and `last_use` updates: these timestamps have no time
   # zone. Check expiry before touching the row. Passive requests still verify
   # and expire rows but never refresh `last_use`.
-  module ActiveSessionGate
+  module Session::ActiveSessionGate
     extend self
 
     # Per-request memo of the verdict, keyed in the Rack env.
@@ -195,7 +196,7 @@ module Onetime
     # `last_use` is due a refresh. An activity request refreshes it; a
     # passive one leaves it alone (see the class docstring).
     def record_activity(row_ds, session, env)
-      touch(row_ds, session, env) unless SessionActivity.passive?(env)
+      touch(row_ds, session, env) unless Session::Activity.passive?(env)
     end
 
     def count(env, key)
@@ -232,7 +233,7 @@ module Onetime
     # inactivity deadline (it still ends the row when it lapses, below).
     def inactive_condition
       idle = past_condition(:last_use, INACTIVITY_DEADLINE)
-      return idle unless RememberMe.enabled?
+      return idle unless Session::RememberMe.enabled?
 
       Sequel.&({ remember_until: nil }, idle)
     end
@@ -292,7 +293,7 @@ module Onetime
 
     # A revoked Rack session stays in Redis (refuse, not destroy), and with
     # its remember-me deadline the blob and cookie would live on for up to
-    # {RememberMe::DURATION}. The row is the only thing refusing it, so a
+    # {Session::RememberMe::DURATION}. The row is the only thing refusing it, so a
     # later change that takes the gate out of play (simple mode, active
     # sessions off) would bring it back for that long. Dropping the stamp
     # returns the session to the default lifetime on this request's write:
@@ -300,7 +301,7 @@ module Onetime
     # default TTL (Onetime::Session#expiration_for_write). Not done for
     # :unavailable, where the session is meant to be honoured again.
     def forfeit_remember(session)
-      session.delete(RememberMe::SESSION_KEY) if session.respond_to?(:delete)
+      session.delete(Session::RememberMe::SESSION_KEY) if session.respond_to?(:delete)
     end
 
     # The join, for log lines. The join key is a digest of a random token,

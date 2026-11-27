@@ -190,7 +190,7 @@ here.
   a code; the session is kept (D3 in the failure matrix).
 - Completing the second factor now renews the session id as the password
   step does (`after_two_factor_authentication` calls
-  `Onetime::SessionRotation`; `RISK-2026-09-19-02`). Of the other
+  `Onetime::Session::Rotation`; `RISK-2026-09-19-02`). Of the other
   establishment paths
   [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466) lists,
   invite signup autologin has a spec that asserts the new id since v0.26.13
@@ -263,7 +263,7 @@ the path renews the id by its mechanism but no spec asserts it.
 | Path | New id | Mechanism | Spec |
 |---|---|---|---|
 | Password sign-in, full mode | Yes | Rodauth `login_session`, which calls `clear_session`; this app defines that as `session.destroy` (`apps/web/auth/config/base.rb`) | `spec/integration/full/customer_session_continuation_baseline_spec.rb:18` |
-| Password sign-in, simple mode | Yes (changed) | Session cleared, then `Onetime::SessionRotation.rotate!` | `spec/integration/simple/login_session_rotation_spec.rb:117` |
+| Password sign-in, simple mode | Yes (changed) | Session cleared, then `Onetime::Session::Rotation.rotate!` | `spec/integration/simple/login_session_rotation_spec.rb:117` |
 | OIDC callback sign-in, first sign-in and returning identity | Yes | `login_session` (rodauth-omniauth `login("omniauth")`) | `apps/web/auth/spec/integration/full/sso_callback_session_rotation_spec.rb:124`, `:134` |
 | Platform SAML callback sign-in | Yes | `login_session` | `apps/web/auth/spec/integration/full_saml_platform/platform_saml_sso_spec.rb:705` |
 | Verify-account autologin | Yes | `login_session` (Rodauth `autologin_session`) | `apps/web/auth/spec/integration/full/verify_account_autologin_session_rotation_spec.rb:123` |
@@ -277,7 +277,7 @@ the path renews the id by its mechanism but no spec asserts it.
 | Link-SSO password sign-in | Yes | `rodauth.login('password')` (`apps/web/auth/routes/link_sso.rb:322`) | `apps/web/auth/spec/integration/full/link_sso_session_rotation_spec.rb:65` |
 | SSO Connect callback (binds an identity to the signed-in account) | Yes | The callback ends in rodauth-omniauth's `login("omniauth")`, then `login_session` | `apps/web/auth/spec/integration/full/omniauth_connect_link_spec.rb:1155` |
 | Password change, simple mode | Yes | `:renew` (`AccountAPI::Logic::Account::UpdatePassword`) | `spec/integration/simple/password_change_session_rotation_spec.rb:86` |
-| Re-authentication proof (`POST /auth/reauth`) | Yes (changed) | `rotate!` before `Onetime::RecentReauth.record` (`apps/web/auth/operations/reauthenticate.rb`); no proof when it does not complete; a request with no surface is refused before it | `apps/web/auth/spec/integration/full_mfa/reauth_session_rotation_spec.rb:74`, `:116` |
+| Re-authentication proof (`POST /auth/reauth`) | Yes (changed) | `rotate!` before `Onetime::Session::RecentReauth.record` (`apps/web/auth/operations/reauthenticate.rb`); no proof when it does not complete; a request with no surface is refused before it | `apps/web/auth/spec/integration/full_mfa/reauth_session_rotation_spec.rb:74`, `:116` |
 | First second factor set up (TOTP or passkey) | Yes (changed) | `rotate!` (`apps/web/auth/config/hooks/two_factor.rb`, from `after_otp_setup` and `after_webauthn_setup`); the setup is refused when it does not complete | `apps/web/auth/spec/integration/full_mfa/factor_setup_session_rotation_spec.rb:117`, `:142` |
 | A further factor on a session already two-factor authenticated | No, by the rule | Rodauth does not mark the session again, so nothing is gained | `apps/web/auth/spec/integration/full_mfa/factor_setup_session_rotation_spec.rb:157` |
 | Impersonation start and stop | No, by the rule | Starting needs no step-up, the overlay is read-only, and stopping returns the colonel's own capability (`apps/web/auth/operations/customers/impersonate.rb`, `stop_impersonation.rb`) | `spec/integration/full/impersonation_rack_spec.rb:153` (same id through start and stop) |

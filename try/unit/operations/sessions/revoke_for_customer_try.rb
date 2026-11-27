@@ -60,7 +60,7 @@ Onetime::Operations::Sessions::TrackMetadata.new(
 
 # Mint a REAL encrypted session blob (the same shape the app stores), so the
 # invalidation is genuine — the op must delete this actual key.
-@codec = Onetime::SessionCodec.from_config
+@codec = Onetime::Session::Codec.from_config
 DB.set(@key, @codec.encode({ 'authenticated' => true, 'external_id' => @extid,
                              'email' => @cust.email }))
 

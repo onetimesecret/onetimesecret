@@ -77,12 +77,12 @@ module Onetime
           # Same mutation the CLI performed inline, preserved verbatim.
           Store.destroy_blob(db, key)
 
-          # The sid's per-value sidecar keys (Onetime::SessionSidecar) go with
+          # The sid's per-value sidecar keys (Onetime::Session::Sidecar) go with
           # the blob — an exact O(registry) DEL by name, format-gated inside
           # purge so legacy non-hex ids no-op harmlessly. Derive the bare sid
           # from the resolved key: `key` may be a full `session:<sid>` shape
           # (find_key resolves several), which would fail purge's sid guard.
-          Onetime::SessionSidecar.purge(Store.extract_id(key), dbclient: db)
+          Onetime::Session::Sidecar.purge(Store.extract_id(key), dbclient: db)
 
           # One audit event per successful mutation. Never put session contents
           # (tokens, etc.) into detail — and never the sid itself (see the

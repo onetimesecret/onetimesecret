@@ -31,7 +31,7 @@ module Onetime
 
         def authenticate(env, _requirement)
           session = env['rack.session']
-          verdict = Onetime::CustomerSessionEvaluator.evaluate(
+          verdict = Onetime::Session::CustomerSessionEvaluator.evaluate(
             session,
             env: env,
             before_active: ->(principal) do
@@ -87,7 +87,7 @@ module Onetime
           return nil unless reason
 
           env[AdminSessionLifetime::EXPIRED_ENV_KEY] = reason.to_s
-          Onetime::CustomerSessionEvaluator::Verdict.new(
+          Onetime::Session::CustomerSessionEvaluator::Verdict.new(
             status: :rejected,
             reason: :admin_session_expired,
             detail: reason,
@@ -124,8 +124,8 @@ module Onetime
         # is still logged even if a later strategy saves the request, because
         # a rejected credential is an auditable event.
         def failure_for(verdict, env)
-          env[Onetime::SessionFailureCode::ENV_KEY] = verdict.reason if env.is_a?(Hash)
-          Onetime::SessionFailureCode.log_refusal(verdict.reason, env) unless SILENT_REASONS.include?(verdict.reason)
+          env[Onetime::Session::FailureCode::ENV_KEY] = verdict.reason if env.is_a?(Hash)
+          Onetime::Session::FailureCode.log_refusal(verdict.reason, env) unless SILENT_REASONS.include?(verdict.reason)
 
           if verdict.reason == :admin_session_expired
             return failure(

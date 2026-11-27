@@ -6,7 +6,7 @@
 # {Onetime::CustomDomain::SigninConfig} (#4414). The field is stored as
 # a JSON array of absolute origin URLs; read tolerates historical
 # shapes, write validates and normalizes, and the surface-descriptor
-# resolver hands the ReauthPolicy exactly the shape it expects.
+# resolver hands the Onetime::Session::ReauthPolicy exactly the shape it expects.
 
 require 'spec_helper'
 
@@ -257,7 +257,7 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
     it 'resolves a canonical-host origin to the canonical surface descriptor' do
       config.related_origins_json = JSON.generate(['https://example.com'])
       expect(config.related_origin_members).to eq(
-        [{ 'origin' => 'https://example.com', 'surface' => Onetime::SessionSurface::CANONICAL }],
+        [{ 'origin' => 'https://example.com', 'surface' => Onetime::Session::Surface::CANONICAL }],
       )
     end
 

@@ -10,10 +10,10 @@ module Auth
       # STOP a colonel impersonation on the current session.
       #
       # A deliberately thin wrapper over
-      # {Onetime::SessionImpersonation.stop!}. The audit event lives in the
+      # {Onetime::Session::Impersonation.stop!}. The audit event lives in the
       # primitive, NOT here, because two unrelated paths end an impersonation:
       # this operation (the operator pressed the button) and expiry inside
-      # {Onetime::SessionImpersonation.active} (nobody pressed anything), plus
+      # {Onetime::Session::Impersonation.active} (nobody pressed anything), plus
       # the four resolver-detected invalidations. If the event were emitted
       # here, every path but this one would end an impersonation silently — the
       # exact asymmetry that made the original design record starts without
@@ -24,7 +24,7 @@ module Auth
       class StopImpersonation
         include Onetime::LoggerMethods
 
-        AUDIT_VERB = Onetime::SessionImpersonation::AUDIT_VERB_STOP
+        AUDIT_VERB = Onetime::Session::Impersonation::AUDIT_VERB_STOP
 
         # @!attribute status [r]
         #   @return [Symbol] :stopped, or :no_change when nothing was active
@@ -40,7 +40,7 @@ module Auth
         #   passing a different one here.
         # @param ended_by [String] one of the ENDED_BY_* constants; defaults to
         #   the operator-initiated path.
-        def initialize(session:, actor:, ended_by: Onetime::SessionImpersonation::ENDED_BY_OPERATOR)
+        def initialize(session:, actor:, ended_by: Onetime::Session::Impersonation::ENDED_BY_OPERATOR)
           @session  = session
           @actor    = normalize_actor(actor)
           @ended_by = ended_by.to_s
@@ -54,7 +54,7 @@ module Auth
         #
         # @return [Result]
         def call
-          marker = Onetime::SessionImpersonation.stop!(@session, ended_by: @ended_by)
+          marker = Onetime::Session::Impersonation.stop!(@session, ended_by: @ended_by)
 
           unless marker
             return Result.new(

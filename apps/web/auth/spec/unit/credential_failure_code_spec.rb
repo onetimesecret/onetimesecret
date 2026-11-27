@@ -24,7 +24,7 @@ require_relative '../spec_helper'
 require_relative '../../credential_failure_code'
 
 RSpec.describe Auth::CredentialFailureCode do
-  let(:env_key) { Onetime::SessionFailureCode::ENV_KEY }
+  let(:env_key) { Onetime::Session::FailureCode::ENV_KEY }
 
   def env_with(reason)
     reason ? { env_key => reason } : {}
@@ -33,7 +33,7 @@ RSpec.describe Auth::CredentialFailureCode do
   describe 'vocabulary' do
     it 'maps every credential reason to a code in the credential scope' do
       described_class::CREDENTIAL_REASONS.each_value do |code|
-        expect(Onetime::SessionFailureCode.credential?(code)).to be(true), "#{code} is not a credential code"
+        expect(Onetime::Session::FailureCode.credential?(code)).to be(true), "#{code} is not a credential code"
       end
     end
 
@@ -46,7 +46,7 @@ RSpec.describe Auth::CredentialFailureCode do
       described_class::SESSION_REASONS.each_value do |mapped|
         next if mapped.nil?
 
-        expect(Onetime::SessionFailureCode::SESSION_REASON_SCOPES).to have_key(mapped)
+        expect(Onetime::Session::FailureCode::SESSION_REASON_SCOPES).to have_key(mapped)
       end
     end
 

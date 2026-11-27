@@ -3,7 +3,9 @@
 # frozen_string_literal: true
 
 require 'securerandom'
+require 'familia'
 
+require_relative 'namespace'
 require_relative '../models/colonel_audit_event'
 
 module Onetime
@@ -14,7 +16,7 @@ module Onetime
   # Keep the marker in the blob, not the sidecar: it affects identity and must
   # be read and written with `external_id`. Its fixed {TTL} is independent of
   # the Rack session; {.active} stops and audits an expired marker.
-  module SessionImpersonation
+  module Session::Impersonation
     extend self
 
     # Session blob key. String, because the blob round-trips through JSON and

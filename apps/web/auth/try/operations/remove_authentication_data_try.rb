@@ -40,10 +40,10 @@ require_relative '../../operations/remove_authentication_data'
 ## skipped every authenticated session)
 # Plant blobs with the middleware writer's own secret resolution
 # (session_config['secret'], the chain middleware_stack mounts the session
-# with) — the sweep's SessionCodec.from_config must resolve the SAME secret
+# with) — the sweep's Onetime::Session::Codec.from_config must resolve the SAME secret
 # for the encrypted blob to decode and match.
 @ca_secret     = Onetime.session_config['secret']
-@ca_codec      = Onetime::SessionCodec.new(@ca_secret)
+@ca_codec      = Onetime::Session::Codec.new(@ca_secret)
 @ca_db         = Familia.dbclient
 @ca_extid      = "extid_close_#{SecureRandom.hex(6)}"
 @ca_sid        = SecureRandom.hex(32) # 64 hex -- the shape the sidecar purge is gated on
@@ -53,7 +53,7 @@ require_relative '../../operations/remove_authentication_data'
 @ca_other_blob = "session:#{@ca_other_sid}"
 @ca_op         = Auth::Operations::RemoveAuthenticationData.new(extid: @ca_extid, db: :redis_only)
 @ca_db.set(@ca_blob, @ca_codec.encode({ 'external_id' => @ca_extid, 'authenticated' => true }), ex: 3600)
-Onetime::SessionSidecar.write(@ca_sid, 'awaiting_mfa', true, codec: @ca_codec)
+Onetime::Session::Sidecar.write(@ca_sid, 'awaiting_mfa', true, codec: @ca_codec)
 @ca_db.set(@ca_other_blob, @ca_codec.encode({ 'external_id' => 'someone_else', 'authenticated' => true }), ex: 3600)
 @ca_op.send(:delete_redis_sessions, @ca_extid)
 [@ca_db.exists(@ca_blob), @ca_db.exists(@ca_mfa), @ca_db.exists(@ca_other_blob)]
@@ -63,6 +63,6 @@ Onetime::SessionSidecar.write(@ca_sid, 'awaiting_mfa', true, codec: @ca_codec)
 @ca_db.set(@ca_blob, @ca_codec.encode({ 'external_id' => @ca_extid }), ex: 3600)
 @ca_result = @ca_op.send(:delete_redis_sessions, @ca_extid)
 @ca_db.del(@ca_blob, @ca_other_blob)
-Onetime::SessionSidecar.purge(@ca_sid)
+Onetime::Session::Sidecar.purge(@ca_sid)
 @ca_result
 #=> 1

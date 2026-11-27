@@ -5,7 +5,7 @@
 # Unit tests for Auth::Operations::ReadWebauthnCredentials (#4414).
 #
 # The operation projects rows from account_webauthn_keys into the shape
-# Onetime::ReauthPolicy consumes — { scope: :platform } or
+# Onetime::Session::ReauthPolicy consumes — { scope: :platform } or
 # { scope: :tenant, id: <domain_id> } — reading the surface_scope column
 # added by migration 009. Every branch of the shape decoder is covered
 # here: NULL (legacy), a canonical/subdomain descriptor, a custom
@@ -54,7 +54,7 @@ RSpec.describe Auth::Operations::ReadWebauthnCredentials do
     context 'with a legacy row (NULL surface_scope)' do
       let(:rows_by_account) { { 42 => [{ surface_scope: nil }] } }
 
-      it 'reads as { scope: :platform } (matches ReauthPolicy legacy default)' do
+      it 'reads as { scope: :platform } (matches Onetime::Session::ReauthPolicy legacy default)' do
         expect(op.call(42)).to eq([{ scope: :platform }])
       end
     end

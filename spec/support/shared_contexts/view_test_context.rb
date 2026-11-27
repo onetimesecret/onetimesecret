@@ -57,7 +57,7 @@ RSpec.shared_context 'view_test_context' do
       'authenticated' => true,
       'authenticated_at' => Time.now.to_i,
       'awaiting_mfa' => false,
-      Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+      Onetime::Session::Surface::KEY => { 'kind' => 'canonical' },
     }
   end
 
@@ -130,7 +130,7 @@ RSpec.shared_context 'view_test_context' do
     allow(Onetime::Customer).to receive(:find_by_extid)
       .with('test@example.com')
       .and_return(customer)
-    allow(Onetime::ActiveSessionGate).to receive(:verdict)
+    allow(Onetime::Session::ActiveSessionGate).to receive(:verdict)
       .with(session, env: rack_request.env)
       .and_return(:skipped)
 

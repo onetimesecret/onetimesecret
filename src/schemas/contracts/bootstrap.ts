@@ -560,7 +560,7 @@ export const domainStrategySchema = z.enum(['canonical', 'subdomain', 'custom', 
 
 /**
  * The active impersonation marker, mirroring the Ruby session overlay
- * (`Onetime::SessionImpersonation`) as re-read per request by the context
+ * (`Onetime::Session::Impersonation`) as re-read per request by the context
  * middleware — NOT a client-side derivation.
  *
  * Present (non-null) ONLY while a colonel is presenting as another customer.
@@ -757,7 +757,7 @@ export const SNAPSHOT_GENERATED_AT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{
 
 /**
  * `auth_status` values the SERVER sends. Mirrors
- * `Onetime::SessionAuthStatus::VALUES` (lib/onetime/session/auth_status.rb).
+ * `Onetime::Session::AuthStatus::VALUES` (lib/onetime/session/auth_status.rb).
  *
  * - `authenticated` — an authenticated customer session; `cust` is present.
  * - `mfa_pending`   — first factor passed, second factor outstanding.

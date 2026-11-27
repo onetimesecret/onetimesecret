@@ -76,7 +76,7 @@ RSpec.describe 'OmniAuth Connect post-callback return path (#3849)', type: :inte
   end
 
   def read_intent(sid)
-    Onetime::SessionSidecar.read(sid, 'sso_connect_intent')
+    Onetime::Session::Sidecar.read(sid, 'sso_connect_intent')
   end
 
   def post_callback(host: nil)
@@ -127,7 +127,7 @@ RSpec.describe 'OmniAuth Connect post-callback return path (#3849)', type: :inte
         expect_bound(uid, account_id)
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:omniauth_identity_connected, hash_including(account_id: account_id))
-        expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(false)
+        expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(false)
       ensure
         teardown_mock_auth
       end
@@ -280,7 +280,7 @@ RSpec.describe 'OmniAuth Connect post-callback return path (#3849)', type: :inte
         expect_auth_error_redirect('identity_connect_conflict')
         expect(last_response.location.to_s).not_to include(panel_path)
         expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
-        expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(false)
+        expect(Onetime::Session::Sidecar.exists?(sid, 'sso_connect_intent')).to be(false)
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:omniauth_identity_connect_refused, hash_including(reason: 'session_customer_missing'))
         expect(Auth::Logging).not_to have_received(:log_auth_event)
@@ -322,7 +322,7 @@ RSpec.describe 'OmniAuth Connect post-callback return path (#3849)', type: :inte
           expect(intent).to be_a(Hash)
           expect(intent.keys).to contain_exactly('account_id', 'surface', 'at')
         ensure
-          Onetime::SessionSidecar.delete(sid, 'sso_connect_intent') if sid
+          Onetime::Session::Sidecar.delete(sid, 'sso_connect_intent') if sid
           teardown_mock_auth
         end
       end
@@ -342,7 +342,7 @@ RSpec.describe 'OmniAuth Connect post-callback return path (#3849)', type: :inte
         expect(intent.keys).to contain_exactly('account_id', 'surface', 'at', 'redirect')
         expect(intent['redirect']).to eq(panel_path)
       ensure
-        Onetime::SessionSidecar.delete(sid, 'sso_connect_intent') if sid
+        Onetime::Session::Sidecar.delete(sid, 'sso_connect_intent') if sid
         teardown_mock_auth
       end
     end

@@ -346,7 +346,7 @@ RSpec.describe Core::Views::BaseView do
         'authenticated'    => true,
         'authenticated_at' => Time.now.to_i,
         'awaiting_mfa'     => false,
-        Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+        Onetime::Session::Surface::KEY => { 'kind' => 'canonical' },
       }
     end
 
@@ -372,7 +372,7 @@ RSpec.describe Core::Views::BaseView do
     it 'leaves @cust nil even when the raw session claims authentication' do
       # The evaluator MUST NOT be consulted on this path; if it is, it means
       # identity can hydrate from a session on an error response.
-      expect(Onetime::CustomerSessionEvaluator).not_to receive(:evaluate)
+      expect(Onetime::Session::CustomerSessionEvaluator).not_to receive(:evaluate)
 
       view = described_class.new(rack_request)
       expect(view.cust).to be_nil
@@ -427,7 +427,7 @@ RSpec.describe Core::Views::BaseView do
     before { allow(Onetime).to receive(:session_logger).and_return(logger) }
 
     it 'emits the pair the middleware allocated for an authenticated snapshot' do
-      rack_request.env[Onetime::SnapshotOrdering::ENV_KEY] = allocation
+      rack_request.env[Onetime::Session::SnapshotOrdering::ENV_KEY] = allocation
 
       expect(subject.serialized_data).to include(
         'auth_status' => 'authenticated',
@@ -438,7 +438,7 @@ RSpec.describe Core::Views::BaseView do
     end
 
     it 'renders a degraded hydration payload when allocation failed: no pair, one diagnostic', :aggregate_failures do
-      rack_request.env[Onetime::SnapshotOrdering::ENV_KEY] = { error: 'Redis::CannotConnectError' }
+      rack_request.env[Onetime::Session::SnapshotOrdering::ENV_KEY] = { error: 'Redis::CannotConnectError' }
       rack_request.env['HTTP_X_REQUEST_ID']                = 'req-degraded'
 
       data = subject.serialized_data
@@ -452,7 +452,7 @@ RSpec.describe Core::Views::BaseView do
     end
 
     it 'never labels a payload that reports no session, even if an allocation exists' do
-      rack_request.env[Onetime::SnapshotOrdering::ENV_KEY] = allocation
+      rack_request.env[Onetime::Session::SnapshotOrdering::ENV_KEY] = allocation
       session['authenticated']                             = false
 
       data = described_class.new(rack_request).serialized_data

@@ -162,7 +162,7 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
     db = Familia.dbclient
     key = Onetime::Operations::Sessions::Store.find_key(db, sid)
     expect(key).not_to be_nil, 'HP-PRE-02: login did not persist a session in the lane datastore'
-    Onetime::Operations::Sessions::Store.load_data(db, key, codec: Onetime::SessionCodec.from_config)
+    Onetime::Operations::Sessions::Store.load_data(db, key, codec: Onetime::Session::Codec.from_config)
   end
 
   def login_on(host, colonel: false)
@@ -365,10 +365,10 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
         it "HP-SESSION-#{from}-#{to}: refuses replay on a different surface after accepting the issuing surface" do
           hosts = { tenant: tenant_domain, other: other_host, canonical: canonical_host }
           login_on(hosts.fetch(from))
-          marker = from == :canonical ? Onetime::SessionSurface::CANONICAL : {
+          marker = from == :canonical ? Onetime::Session::Surface::CANONICAL : {
             'kind' => 'custom', 'id' => (from == :tenant ? test_custom_domain : other_domain).identifier,
           }
-          expect(stored_session(@sid)[Onetime::SessionSurface::KEY]).to eq(marker)
+          expect(stored_session(@sid)[Onetime::Session::Surface::KEY]).to eq(marker)
           proxy_get(hosts.fetch(from), '/auth/account', cookie: @cookie)
           expect(last_response.status).to eq(200)
           expect(last_request.env.key?(Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST))

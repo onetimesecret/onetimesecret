@@ -30,7 +30,7 @@ installation served between two observations. The client does not need that
 global order: it only compares snapshots delivered to its own browser session.
 
 The project already has a per-session storage primitive for this scope.
-`Onetime::SessionSidecar` stores registered fields under independent
+`Onetime::Session::Sidecar` stores registered fields under independent
 `sidecar:<sid>:<field>` Redis string keys, clamps their lifetime to the session,
 and removes them through the session cleanup path. Its key naming, lifetime
 clamp, and cleanup fit an ordering watermark. Its value model does not: every
@@ -735,7 +735,7 @@ Rollout guidance for mixed workers and the unversioned-payload rule are in
   load, where the seeded counter makes it invisible. The clock-regression case
   it removes already ends in the same forced page load.
 - **`HINCRBY` on the session:** Rejected because `session:<sid>` is an encrypted
-  Redis string rather than a hash, and each `SessionSidecar` field is already
+  Redis string rather than a hash, and each `Onetime::Session::Sidecar` field is already
   its own Redis string. A counter-specific sidecar `INCR` preserves the current
   key naming, lifetime, and cleanup model. It does not fit the envelope value
   model, which is why the registry gains a counter policy.

@@ -55,7 +55,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     {
       'authenticated'              => true,
       'external_id'                => 'ur_abc',
-      Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+      Onetime::Session::Surface::KEY => { 'kind' => 'canonical' },
     }
   end
   let(:env) do
@@ -99,7 +99,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     it 'hands the typed reason to the failure-code middleware' do
       strategy.authenticate(env, 'authenticated')
 
-      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:admin_session_expired)
+      expect(env[Onetime::Session::FailureCode::ENV_KEY]).to eq(:admin_session_expired)
     end
 
     # The bound runs BEFORE additional_checks, which is where role/permission
@@ -114,22 +114,22 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     # the active-session row's last_use, and a request this bound refuses is
     # not activity — on the sidecar (EXPIRED_ENV_KEY) or on the row.
     it 'never consults the active-session gate, so the refused request does not touch the row' do
-      allow(Onetime::ActiveSessionGate).to receive(:verdict)
+      allow(Onetime::Session::ActiveSessionGate).to receive(:verdict)
 
       strategy.authenticate(env, 'authenticated')
 
-      expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+      expect(Onetime::Session::ActiveSessionGate).not_to have_received(:verdict)
     end
   end
 
   context 'when the gate reports the active-session row has been revoked' do
-    # Full-mode revocation (Onetime::ActiveSessionGate): AFTER the watermark
+    # Full-mode revocation (Onetime::Session::ActiveSessionGate): AFTER the watermark
     # and the admin bound (both refuse without an authdb round trip), BEFORE
     # additional_checks. The gate is consulted with the env so its verdict is
     # memoized for the rest of the request.
     before do
       allow(strategy).to receive(:admin_session_expiry_reason).and_return(nil)
-      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+      allow(Onetime::Session::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
     end
 
     it 'fails with the [SESSION_REVOKED] marker' do
@@ -142,13 +142,13 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     it 'consults the gate with the Rack env (shared per-request memo)' do
       strategy.authenticate(env, 'authenticated')
 
-      expect(Onetime::ActiveSessionGate).to have_received(:verdict).with(session, env: env)
+      expect(Onetime::Session::ActiveSessionGate).to have_received(:verdict).with(session, env: env)
     end
 
     # Fail closed, but under its own marker: an outage must read as an outage
     # in the logs, never as a revocation the operator did not perform.
     it 'refuses a Rack session whose active-session row cannot be checked, with the [SESSION_UNVERIFIED] marker' do
-      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:unavailable)
+      allow(Onetime::Session::ActiveSessionGate).to receive(:verdict).and_return(:unavailable)
 
       result = strategy.authenticate(env, 'authenticated')
 
@@ -170,14 +170,14 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     # must not run at all, so it cannot mask it with a different message.
     it 'reports the stale-credential failure and never consults the gate or the bound' do
       allow(cust).to receive(:last_password_update).and_return(Familia.now.to_i)
-      expect(Onetime::ActiveSessionGate).not_to receive(:verdict)
+      expect(Onetime::Session::ActiveSessionGate).not_to receive(:verdict)
       expect(strategy).not_to receive(:admin_session_expiry_reason)
 
       result = strategy.authenticate(env, 'authenticated')
 
       expect(result.failure_reason).to include('SESSION_STALE_CREDENTIALS')
       expect(env).not_to have_key(lifetime::EXPIRED_ENV_KEY)
-      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:stale_credentials)
+      expect(env[Onetime::Session::FailureCode::ENV_KEY]).to eq(:stale_credentials)
     end
   end
 
@@ -190,7 +190,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
       expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
       expect(strategy.additional_checks_ran).to be true
       expect(env).not_to have_key(lifetime::EXPIRED_ENV_KEY)
-      expect(env).not_to have_key(Onetime::SessionFailureCode::ENV_KEY)
+      expect(env).not_to have_key(Onetime::Session::FailureCode::ENV_KEY)
     end
   end
 
@@ -213,24 +213,24 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
       expect(logger).not_to have_received(:info)
       expect(logger).not_to have_received(:debug)
       expect(logger).not_to have_received(:warn)
-      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:session_missing)
+      expect(env[Onetime::Session::FailureCode::ENV_KEY]).to eq(:session_missing)
     end
 
     it 'does not log when the session has no authenticated flag (not_authenticated)' do
-      env['rack.session'] = { Onetime::SessionSurface::KEY => { 'kind' => 'canonical' } }
+      env['rack.session'] = { Onetime::Session::Surface::KEY => { 'kind' => 'canonical' } }
 
       strategy.authenticate(env, 'authenticated')
 
       expect(logger).not_to have_received(:info)
       expect(logger).not_to have_received(:debug)
       expect(logger).not_to have_received(:warn)
-      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:not_authenticated)
+      expect(env[Onetime::Session::FailureCode::ENV_KEY]).to eq(:not_authenticated)
     end
 
     it 'does not log when the session is authenticated but carries no external_id (identity_missing)' do
       env['rack.session'] = {
         'authenticated'              => true,
-        Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+        Onetime::Session::Surface::KEY => { 'kind' => 'canonical' },
       }
 
       strategy.authenticate(env, 'authenticated')
@@ -238,7 +238,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
       expect(logger).not_to have_received(:info)
       expect(logger).not_to have_received(:debug)
       expect(logger).not_to have_received(:warn)
-      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:identity_missing)
+      expect(env[Onetime::Session::FailureCode::ENV_KEY]).to eq(:identity_missing)
     end
 
     it 'logs when a credentialed session is refused on a surface mismatch' do
@@ -249,17 +249,17 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
       strategy.authenticate(env, 'authenticated')
 
       expect(logger).to have_received(:info).with('Session refused', hash_including(code: 'surface_mismatch'))
-      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:surface_mismatch)
+      expect(env[Onetime::Session::FailureCode::ENV_KEY]).to eq(:surface_mismatch)
     end
 
     it 'logs when the active-session gate revokes a credentialed session' do
       allow(strategy).to receive(:admin_session_expiry_reason).and_return(nil)
-      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+      allow(Onetime::Session::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
 
       strategy.authenticate(env, 'authenticated')
 
       expect(logger).to have_received(:info).with('Session refused', hash_including(code: 'active_session_revoked'))
-      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:active_session_revoked)
+      expect(env[Onetime::Session::FailureCode::ENV_KEY]).to eq(:active_session_revoked)
     end
 
     it 'logs when a credentialed session is refused for stale credentials' do
@@ -271,7 +271,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
       strategy.authenticate(env, 'authenticated')
 
       expect(logger).to have_received(:info).with('Session refused', hash_including(code: 'stale_credentials'))
-      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:stale_credentials)
+      expect(env[Onetime::Session::FailureCode::ENV_KEY]).to eq(:stale_credentials)
     end
   end
 
@@ -285,7 +285,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
       {
         'authenticated'              => true,
         'external_id'                => 'ur_abc',
-        Onetime::SessionSurface::KEY => stored_surface,
+        Onetime::Session::Surface::KEY => stored_surface,
       }
     end
     let(:env) do
@@ -304,7 +304,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     shared_examples 'refuses with SESSION_SURFACE_MISMATCH' do
       it 'refuses before the customer load and the authdb gate' do
         expect(Onetime::Customer).not_to receive(:find_by_extid)
-        expect(Onetime::ActiveSessionGate).not_to receive(:verdict)
+        expect(Onetime::Session::ActiveSessionGate).not_to receive(:verdict)
 
         result = strategy.authenticate(env, 'authenticated')
 

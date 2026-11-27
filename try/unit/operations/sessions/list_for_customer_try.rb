@@ -36,7 +36,7 @@ DB    = Familia.dbclient
 
 @nonce = Familia.generate_id[0, 12]
 @ts    = Familia.now.to_i
-@codec = Onetime::SessionCodec.from_config
+@codec = Onetime::Session::Codec.from_config
 
 @cust  = Onetime::Customer.create!(email: "list_#{@nonce}@example.com")
 @cust.verified = 'true'

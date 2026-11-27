@@ -2,13 +2,13 @@
 #
 # frozen_string_literal: true
 
-require 'rack/session/abstract/id'
 require 'securerandom'
 
 require 'base64'
 require 'openssl'
 require 'familia'
 
+require_relative 'session/namespace'
 require_relative 'logger_methods'
 require_relative 'session/codec'
 require_relative 'session/sidecar'
@@ -65,7 +65,7 @@ module Onetime
   #
   # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/abstract/id.rb
   # @see https://raw.githubusercontent.com/rack/rack-session/dadcfe60f193e8/lib/rack/session/encryptor.rb
-  class Session < Rack::Session::Abstract::PersistedSecure
+  class Session
     include Onetime::LoggerMethods
 
     unless defined?(DEFAULT_OPTIONS)
@@ -152,7 +152,7 @@ module Onetime
       # `base64(...)--hmac` format) lives in the canonical Codec, shared with the
       # session admin read verbs so encoder and decoder can never drift. The ivar
       # is kept for parity with callers/tests that read the raw AES key directly.
-      @codec              = SessionCodec.new(@secret)
+      @codec              = Codec.new(@secret)
       @encryption_key_raw = @codec.encryption_key_raw
     end
 
@@ -162,9 +162,9 @@ module Onetime
     # Two deadlines, both fixed at sign-in and never moved by activity, and
     # the earlier one wins:
     #
-    # - the remember-me deadline, `remember_until` (Onetime::RememberMe), an
+    # - the remember-me deadline, `remember_until` (Onetime::Session::RememberMe), an
     #   integer epoch stamped at a sign-in with the box ticked;
-    # - the lifetime deadline, {Onetime::ActiveSessionGate.lifetime_deadline}
+    # - the lifetime deadline, {Onetime::Session::ActiveSessionGate.lifetime_deadline}
     #   (`site.session.absolute_timeout`, 30 days unless configured, 0 for
     #   none) after `authenticated_at`, the integer epoch every sign-in
     #   writes. The same bound the full-mode active-session row is held to,
@@ -188,10 +188,10 @@ module Onetime
       return nil unless session_data.respond_to?(:[])
 
       deadlines = []
-      remember  = session_data[Onetime::RememberMe::SESSION_KEY]
+      remember  = session_data[Onetime::Session::RememberMe::SESSION_KEY]
       deadlines << remember if remember.is_a?(Integer)
       signed_in = session_data['authenticated_at']
-      lifetime  = Onetime::ActiveSessionGate.lifetime_deadline
+      lifetime  = Onetime::Session::ActiveSessionGate.lifetime_deadline
       deadlines << (signed_in + lifetime) if signed_in.is_a?(Integer) && lifetime
       deadlines.min
     end
@@ -226,7 +226,7 @@ module Onetime
           operation: 'delete',
         }
 
-      # The marker BEFORE the blob (Onetime::SessionEnded): a request that
+      # The marker BEFORE the blob (Onetime::Session::Ended): a request that
       # loaded this session earlier and commits later finds it after its own
       # SET and takes its copy back out. Set-then-delete here and
       # set-then-check there is what leaves no order in which the copy stays.
@@ -236,7 +236,7 @@ module Onetime
       # Deleting the blob without a live marker would leave an in-flight
       # writer's copy behind as a working session — a much worse outcome than
       # a transient logout failure the caller can retry.
-      marker_ok = Onetime::SessionEnded.mark(sid_string, dbclient: @dbclient)
+      marker_ok = Onetime::Session::Ended.mark(sid_string, dbclient: @dbclient)
 
       if !marker_ok
         session_logger.error 'Session delete refused: ended-marker write failed',
@@ -285,12 +285,12 @@ module Onetime
         # state is the point, not a signal. Probe failure degrades to "no
         # warning" and must never block the purge.
         doomed = begin
-          Onetime::SessionSidecar.inflight_fields(sid_string, dbclient: @dbclient, codec: @codec)
+          Onetime::Session::Sidecar.inflight_fields(sid_string, dbclient: @dbclient, codec: @codec)
         rescue StandardError
           []
         end
 
-        Onetime::SessionSidecar.purge(sid_string, dbclient: @dbclient)
+        Onetime::Session::Sidecar.purge(sid_string, dbclient: @dbclient)
 
         unless doomed.empty?
           session_logger.warn 'Session destroyed with in-flight sidecar state',
@@ -616,7 +616,7 @@ module Onetime
           # is not adopted as a session id. And an id that was ended on
           # purpose (revoked from another device, a logout whose response
           # this browser has not applied yet) cannot be written under while
-          # its Onetime::SessionEnded marker lives, so an empty session kept
+          # its Onetime::Session::Ended marker lives, so an empty session kept
           # under it would lose its CSRF token and the next sign-in with it.
           new_sid = generate_sid
           session_logger.debug 'Session id without a blob replaced',
@@ -694,10 +694,10 @@ module Onetime
         # its lifetime deadline is ended the way a logout ends it: marker,
         # blob, sidecars, metadata, and a fresh empty session under a new
         # id, so an in-flight request that loaded it before the deadline
-        # cannot write it back as a live session (Onetime::SessionEnded).
+        # cannot write it back as a live session (Onetime::Session::Ended).
         # Read-time is the one place this can be decided for both auth
         # modes: simple mode has no active-session row, and in full mode the
-        # row (Onetime::ActiveSessionGate) is checked only after this.
+        # row (Onetime::Session::ActiveSessionGate) is checked only after this.
         lapsed = lapsed_deadline(session_data)
         if lapsed
           session_logger.info 'Session past its absolute deadline; ended',
@@ -718,7 +718,7 @@ module Onetime
         # pre-deploy writer, or the commit-failure fallback below that keeps
         # fields in the blob), so the blob copy is at least as fresh and the
         # next commit heals the sidecar from it — a stale sidecar value must
-        # never be laundered back to freshness (see SessionSidecar#merge).
+        # never be laundered back to freshness (see Sidecar#merge).
         # Runs ONLY on this
         # authentic-blob path — a missing/tampered blob must present as {} with
         # its sidecars inert. Own rescue: a sidecar read failure degrades to
@@ -728,7 +728,7 @@ module Onetime
         # The merged field list is stashed in the env so write_session can
         # translate an app-side `sess.delete(field)` into a sidecar DEL.
         begin
-          merged                                        = Onetime::SessionSidecar.merge(sid_string, session_data, dbclient: @dbclient, codec: @codec)
+          merged                                        = Onetime::Session::Sidecar.merge(sid_string, session_data, dbclient: @dbclient, codec: @codec)
           session_data                                  = merged[:data]
           request.env['onetime.session.sidecar_merged'] = merged[:fields] if request.respond_to?(:env)
         rescue StandardError => ex
@@ -756,7 +756,7 @@ module Onetime
         # A remembered session's lifetime is known from here on, so anything
         # that sizes a key to this request's session lifetime (the snapshot
         # ordering counter, ADR-046) sees the fixed one, not the default.
-        apply_cookie_lifetime(request, Onetime::RememberMe.remaining(session_data))
+        apply_cookie_lifetime(request, Onetime::Session::RememberMe.remaining(session_data))
 
         # Return session data - this becomes env['rack.session']
         # Rodauth checks env['rack.session'][:account_id] to verify login
@@ -809,7 +809,7 @@ module Onetime
 
       # Tracks whether the blob SET at line ~783 actually completed. The outer
       # rescue below uses this to know if a compensating DEL is required: an
-      # exception raised AFTER the SET (notably the SessionEnded.ended? check
+      # exception raised AFTER the SET (notably the Ended.ended? check
       # at line ~820, which raises on a datastore error by design) would
       # otherwise leave a freshly-written blob under an already-ended sid and
       # the browser would keep a working session. False by default so a
@@ -847,7 +847,7 @@ module Onetime
       # a blob the next read ends anyway (find_session), so it is given the
       # shortest TTL Redis takes rather than a rolling one. Read here, before
       # the SET below replaces the key.
-      remembered_ttl = Onetime::RememberMe.remaining(session_data)
+      remembered_ttl = Onetime::Session::RememberMe.remaining(session_data)
       rolling_ttl    = remembered_ttl || expiration_for_write(sid_string, request.respond_to?(:env) ? request.env : nil)
       absolute       = absolute_remaining(session_data)
       bounded_ttl    = [absolute, LAPSED_TTL].max if absolute && (rolling_ttl.nil? || absolute < rolling_ttl)
@@ -865,10 +865,10 @@ module Onetime
         # ceiling: the blob is set to write_ttl below in this same request, so
         # write_ttl — not the blob's about-to-be-overwritten remaining TTL — is
         # the authoritative clamp ceiling for the sidecar keys commit writes
-        # (SessionSidecar#ttl_ceiling treats a passed ceiling as
+        # (Sidecar#ttl_ceiling treats a passed ceiling as
         # `authoritative:`). This also covers the FIRST commit, where the blob
         # key does not exist yet so no ceiling could be read off it.
-        session_data  = Onetime::SessionSidecar.commit(
+        session_data  = Onetime::Session::Sidecar.commit(
           sid_string,
           session_data,
           merged: merged_fields,
@@ -963,20 +963,20 @@ module Onetime
       # revocation that ran between this request's read and this write): take
       # the copy back out and report the write as not saved, so Rack sends no
       # cookie either (RISK-2026-09-19-01). AFTER the SET, never before it;
-      # see Onetime::SessionEnded for why only this order closes the race. An
+      # see Onetime::Session::Ended for why only this order closes the race. An
       # error here reaches the outer rescue: a write that could not be checked
       # is not reported as saved.
       #
       # Asked in both auth modes. In full mode a LOGOUT also removes the
       # active-session row, which makes a written-back copy refusable
-      # (Onetime::ActiveSessionGate.end_session), but a single-session revoke
+      # (Onetime::Session::ActiveSessionGate.end_session), but a single-session revoke
       # (Operations::Sessions::RevokeForCustomer, DeleteSession) deletes only
       # the blob and leaves the row, so the row does not cover every way a
       # session ends. The EXISTS costs this method nothing net: it takes the
       # place of the TTL read that used to feed the trace line at the end.
-      if Onetime::SessionEnded.ended?(sid_string, dbclient: @dbclient)
+      if Onetime::Session::Ended.ended?(sid_string, dbclient: @dbclient)
         stringkey.del
-        Onetime::SessionSidecar.purge(sid_string, dbclient: @dbclient)
+        Onetime::Session::Sidecar.purge(sid_string, dbclient: @dbclient)
         session_logger.info 'Session write refused: the session was ended during this request',
           {
             session_handle: handle,
@@ -1052,7 +1052,7 @@ module Onetime
         }
 
       # Compensating delete (RISK-2026-09-19-01): if the blob SET completed
-      # before the exception (e.g. Onetime::SessionEnded.ended? raised on a
+      # before the exception (e.g. Onetime::Session::Ended.ended? raised on a
       # datastore error), the freshly-written blob would otherwise survive
       # under an already-ended sid and the browser would keep a working
       # session. Mirror the successful ended?-true branch: del + purge the
@@ -1064,7 +1064,7 @@ module Onetime
       if blob_written
         begin
           stringkey&.del
-          Onetime::SessionSidecar.purge(sid_string, dbclient: @dbclient)
+          Onetime::Session::Sidecar.purge(sid_string, dbclient: @dbclient)
           session_logger.info 'Session write failed; compensating delete attempted',
             {
               session_handle: handle,
@@ -1111,7 +1111,7 @@ module Onetime
       remaining = absolute_remaining(session_data, now: now)
       return nil if remaining.nil? || remaining.positive?
 
-      remember = session_data[Onetime::RememberMe::SESSION_KEY]
+      remember = session_data[Onetime::Session::RememberMe::SESSION_KEY]
       remember.is_a?(Integer) && remember <= now.to_i ? 'remember' : 'lifetime'
     end
 
@@ -1146,7 +1146,7 @@ module Onetime
     # The blob's TTL is an inactivity clock: the only one in simple auth mode,
     # and the shorter of two in full mode. Resetting it on every write is what
     # keeps an active user signed in, and is exactly what a request that is not
-    # activity must not do (Onetime::SessionActivity): a tab that only polls
+    # activity must not do (Onetime::Session::Activity): a tab that only polls
     # GET /bootstrap/me would otherwise never expire, and a session refused
     # during an authdb outage would come back with a fresh deadline.
     #
@@ -1161,7 +1161,7 @@ module Onetime
     # outlive the blob by less than @expire_after. It is purged with the
     # session and TTL-bounded otherwise.
     def expiration_for_write(sid_string, env)
-      return @expire_after if Onetime::SessionActivity.counts?(env)
+      return @expire_after if Onetime::Session::Activity.counts?(env)
 
       remaining = get_stringkey(sid_string)&.ttl.to_i
       return @expire_after unless remaining.positive?

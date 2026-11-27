@@ -27,7 +27,7 @@ RSpec.describe 'Session surface stamp at update_session', type: :integration do
   def session_blob(sid)
     db    = Familia.dbclient
     dbkey = Onetime::Operations::Sessions::Store.find_key(db, sid)
-    codec = Onetime::SessionCodec.from_config
+    codec = Onetime::Session::Codec.from_config
     Onetime::Operations::Sessions::Store.load_data(db, dbkey, codec: codec)
   end
 
@@ -53,7 +53,7 @@ RSpec.describe 'Session surface stamp at update_session', type: :integration do
     blob = session_blob(rack_mock_session.cookie_jar['onetime.session'])
     expect(blob['account_id']).to eq(account[:id])
     expect(blob['active_session_id_hmac']).to be_a(String)
-    expect(blob[Onetime::SessionSurface::KEY]).to eq(Onetime::SessionSurface::CANONICAL)
+    expect(blob[Onetime::Session::Surface::KEY]).to eq(Onetime::Session::Surface::CANONICAL)
   end
 
   it 'is accepted by the surface gate on the following request' do

@@ -5,7 +5,7 @@
 # The controller-side half of surface-bound sessions (#4409): once a session
 # is stamped with the surface where its login was completed, every subsequent
 # authenticated? call refuses when the request's resolved surface differs.
-# Terms and the descriptor shape are defined in Onetime::SessionSurface.
+# Terms and the descriptor shape are defined in Onetime::Session::Surface.
 #
 # The classifier's own decision table is
 # spec/unit/onetime/session/surface_spec.rb; what is pinned here is the
@@ -45,15 +45,15 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'authentication' => { 'enabled' => true } } }))
     allow(OT).to receive(:info)
     allow(Onetime::Customer).to receive(:find_by_extid).with('ur_abc').and_return(customer)
-    allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:active)
-    allow(Onetime::SessionImpersonation).to receive(:resolve).and_return([customer, nil])
+    allow(Onetime::Session::ActiveSessionGate).to receive(:verdict).and_return(:active)
+    allow(Onetime::Session::Impersonation).to receive(:resolve).and_return([customer, nil])
   end
 
   def session_on(descriptor)
     {
       'authenticated'               => true,
       'external_id'                 => 'ur_abc',
-      Onetime::SessionSurface::KEY  => descriptor,
+      Onetime::Session::Surface::KEY  => descriptor,
     }
   end
 

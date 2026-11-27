@@ -21,7 +21,7 @@ require 'securerandom'
 require 'onetime/operations/sessions/track_metadata'
 
 @db           = Familia.dbclient
-@codec        = Onetime::SessionCodec.from_config
+@codec        = Onetime::Session::Codec.from_config
 @new_password = 'n3wP4ssw0rd'
 
 # A verified customer with a pending reset secret, created the same way

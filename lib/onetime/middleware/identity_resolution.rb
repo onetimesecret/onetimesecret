@@ -34,7 +34,7 @@ module Onetime
     #
     # This is a convenience cache for read paths, not the identity that
     # authorizes a request. The authoritative resolution — including the
-    # colonel-impersonation overlay (Onetime::SessionImpersonation.resolve) —
+    # colonel-impersonation overlay (Onetime::Session::Impersonation.resolve) —
     # happens in the auth strategies, which is what populates
     # `strategy_result.user` and therefore `Onetime::Logic::Base#cust`.
     # `env['identity.resolved']` deliberately stays the PRINCIPAL during an

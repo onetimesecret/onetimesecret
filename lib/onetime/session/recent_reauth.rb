@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require_relative 'namespace'
 require_relative 'sidecar'
 require_relative 'surface'
 
@@ -15,7 +16,7 @@ module Onetime
   # atomically consumes it and checks the account, exact resolved surface,
   # allowed local primary, and caller-supplied age limit. Missing, invalid, or
   # unverifiable proof fails closed.
-  module RecentReauth
+  module Session::RecentReauth
     KEY = 'recent_reauth'
 
     # A proof is valid only when its first completed method is an explicitly
@@ -24,7 +25,7 @@ module Onetime
     LOCAL_PRIMARIES = %w[password webauthn].freeze
 
     # Maximum age of a proof that may mint a Connect intent (#4411). The
-    # sidecar TTL ({SessionSidecar::FIELDS} 'recent_reauth', 900s) is only a
+    # sidecar TTL ({Session::Sidecar::FIELDS} 'recent_reauth', 900s) is only a
     # storage backstop; this window is the authoritative policy and is
     # deliberately the same length as the intent's own TTL — a proof is meant
     # to be spent by the very next Connect initiation, not banked.
@@ -36,14 +37,14 @@ module Onetime
       # nothing is recorded).
       #
       # @param session [Hash] Rack session; persisted keys and values are strings
-      # @param env [Hash] Rack env, for {Onetime::SessionSurface.for_env}
+      # @param env [Hash] Rack env, for {Onetime::Session::Surface.for_env}
       # @param account_id [Integer] the account whose credentials were verified
       # @param methods [Array<String>] the ordered list of completed factors
       #   as observed by the caller (e.g. Rodauth's `authenticated_by`)
       # @param now [Time] override for the recorded timestamp (test seam)
       # @return [Hash, nil] the frozen payload actually stored, or nil
       def record(session, env, account_id:, methods:, now: Time.now)
-        surface           = SessionSurface.for_env(env)
+        surface           = Session::Surface.for_env(env)
         completed_methods = Array(methods).map(&:to_s).freeze
         return nil if surface.nil?
         return nil if account_id.nil?
@@ -57,7 +58,7 @@ module Onetime
         }.freeze
 
         session.delete(KEY) if session.respond_to?(:delete)
-        return nil unless SessionSidecar.write(session_id(session), KEY, payload)
+        return nil unless Session::Sidecar.write(session_id(session), KEY, payload)
 
         payload
       rescue StandardError
@@ -80,13 +81,13 @@ module Onetime
         return false if account_id.nil?
 
         session.delete(KEY) if session.respond_to?(:delete)
-        stored = SessionSidecar.consume(session_id(session), KEY)
+        stored = Session::Sidecar.consume(session_id(session), KEY)
         return false unless stored.is_a?(Hash)
 
         stored_account = stored['account_id']
         return false unless stored_account == Integer(account_id)
 
-        current_surface = SessionSurface.for_env(env)
+        current_surface = Session::Surface.for_env(env)
         return false if current_surface.nil?
         return false unless stored['surface'] == current_surface
 
@@ -108,7 +109,7 @@ module Onetime
       # log the proof or expose it in diagnostics use this; enforcement
       # uses {satisfied?}.
       def recorded(session)
-        SessionSidecar.read(session_id(session), KEY)
+        Session::Sidecar.read(session_id(session), KEY)
       rescue StandardError
         nil
       end
@@ -118,7 +119,7 @@ module Onetime
       # proof is single-use).
       def clear(session)
         session.delete(KEY) if session.respond_to?(:delete)
-        SessionSidecar.delete(session_id(session), KEY)
+        Session::Sidecar.delete(session_id(session), KEY)
       rescue StandardError
         0
       end

@@ -6,7 +6,7 @@ require 'spec_helper'
 require 'otto'
 require 'onetime/session/activity'
 
-RSpec.describe Onetime::SessionActivity do
+RSpec.describe Onetime::Session::Activity do
   describe '.passive?' do
     it 'is true when the matched route declares activity=passive' do
       expect(described_class.passive?('otto.route_options' => { activity: 'passive' })).to be(true)
@@ -113,13 +113,13 @@ RSpec.describe Onetime::SessionActivity do
     # It reaches the activity predicate and nothing else: a refusal stays a
     # refusal, and the header is not an input to it.
     it 'does not touch .refused?' do
-      rejected = Onetime::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
+      rejected = Onetime::Session::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
 
       expect(described_class.refused?(declared('GET'))).to be(false)
-      expect(described_class.refused?(declared('GET', 'passive', Onetime::CustomerSessionEvaluator::ENV_KEY => rejected))).to be(true)
+      expect(described_class.refused?(declared('GET', 'passive', Onetime::Session::CustomerSessionEvaluator::ENV_KEY => rejected))).to be(true)
     end
 
-    it 'is read by SessionActivity and by no other server code' do
+    it 'is read by Onetime::Session::Activity and by no other server code' do
       readers = Dir[File.join(Onetime::HOME, '{lib,apps}/**/*.rb')]
         .reject { |path| path.include?('/spec/') }
         .select { |path| File.read(path).match?(/X_SESSION_ACTIVITY|X-Session-Activity/i) }
@@ -133,7 +133,7 @@ RSpec.describe Onetime::SessionActivity do
   end
 
   describe '.refused? and .counts?' do
-    let(:evaluator) { Onetime::CustomerSessionEvaluator }
+    let(:evaluator) { Onetime::Session::CustomerSessionEvaluator }
     let(:verdict_key) { evaluator::ENV_KEY }
     let(:admin_key) { Onetime::Application::AuthStrategies::AdminSessionLifetime::EXPIRED_ENV_KEY }
 
@@ -160,7 +160,7 @@ RSpec.describe Onetime::SessionActivity do
       customer_unavailable: [:unavailable, true],
     }.freeze
 
-    (Onetime::CustomerSessionEvaluator::REASONS - [:authenticated]).each do |reason|
+    (Onetime::Session::CustomerSessionEvaluator::REASONS - [:authenticated]).each do |reason|
       it "classifies the #{reason} verdict" do
         status, refused = classification.fetch(reason)
         env             = { verdict_key => verdict(status, reason) }

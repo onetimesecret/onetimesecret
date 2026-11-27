@@ -5,6 +5,8 @@
 require 'openssl'
 require 'familia'
 
+require_relative 'namespace'
+
 module Onetime
   # Short-lived tombstone for an intentionally ended session ID. It prevents
   # an in-flight request from restoring the old blob after logout or renewal,
@@ -18,7 +20,7 @@ module Onetime
   # out of the prefix so the admin session scan does not list tombstones.
   # {TTL} must outlast potentially delayed writes, not the session itself.
   # Puma's worker timeout is not a request deadline.
-  module SessionEnded
+  module Session::Ended
     extend self
 
     KEY_PREFIX = 'ended_sid'

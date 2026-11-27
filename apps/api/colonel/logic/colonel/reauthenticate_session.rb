@@ -38,7 +38,7 @@ module ColonelAPI
       #
       # What a verified password does, in order:
       #
-      #   1. Renews the session id (Onetime::SessionRotation.rotate!), with
+      #   1. Renews the session id (Onetime::Session::Rotation.rotate!), with
       #      the refusal semantics of ElevateSession#start_elevated_session!:
       #      the capability being restored is the admin surface, so a copy of
       #      the pre-proof id must not get it back too.
@@ -185,7 +185,7 @@ module ColonelAPI
         # re-authentication continues; sessionauth, the only strategy on this
         # route, always hands over a Rack session.
         #
-        # @return [Onetime::SessionRotation::Result, nil]
+        # @return [Onetime::Session::Rotation::Result, nil]
         # @raise [Onetime::ReauthenticationFailed] when the old id could not be ended
         def renew_session_id!
           previous_handle  = session_log_handle
@@ -194,7 +194,7 @@ module ColonelAPI
           @previous_record = previous_sid && load_session_record(previous_sid)
 
           rotation = begin
-            Onetime::SessionRotation.rotate!(sess)
+            Onetime::Session::Rotation.rotate!(sess)
           rescue StandardError => ex
             refuse_unrotated_session!(
               previous_handle,
@@ -215,8 +215,8 @@ module ColonelAPI
 
           OT.li '[ReauthenticateSession] session id rotated',
             user_id: cust.objid,
-            previous_session_handle: Onetime::SessionEnded.handle_for(rotation.old_sid),
-            session_handle: Onetime::SessionEnded.handle_for(rotation.new_sid)
+            previous_session_handle: Onetime::Session::Ended.handle_for(rotation.old_sid),
+            session_handle: Onetime::Session::Ended.handle_for(rotation.new_sid)
 
           rotation
         end
@@ -265,7 +265,7 @@ module ColonelAPI
 
           OT.lw '[ReauthenticateSession] idle clock carried to the renewed session id',
             user_id: cust.objid,
-            session_handle: Onetime::SessionEnded.handle_for(current_sid)
+            session_handle: Onetime::Session::Ended.handle_for(current_sid)
         rescue StandardError => ex
           OT.le '[ReauthenticateSession] idle clock not carried to the renewed session id',
             user_id: cust.objid,

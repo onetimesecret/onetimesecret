@@ -12,15 +12,15 @@
 # platform-only credential from a tenant-scoped one when deciding what to
 # OFFER. The floor holds by construction (a mismatched credential fails the
 # ceremony), but a UI must not present a button whose ceremony will fail —
-# {Onetime::ReauthPolicy} needs positive evidence about registration surface
+# {Onetime::Session::ReauthPolicy} needs positive evidence about registration surface
 # per row.
 #
-# COLUMN: surface_scope holds a JSON-encoded {Onetime::SessionSurface}
+# COLUMN: surface_scope holds a JSON-encoded {Onetime::Session::Surface}
 # descriptor string:
 #
 #   NULL           — legacy row registered before this ships (treated as
 #                    :platform, i.e. offerable on :canonical only, by
-#                    ReauthPolicy's unknown-scope default; historical rows
+#                    Onetime::Session::ReauthPolicy's unknown-scope default; historical rows
 #                    are overwhelmingly canonical registrations)
 #   '{"kind":"canonical"}'
 #   '{"kind":"subdomain","host":"eu.example.com"}'
@@ -36,7 +36,7 @@
 # which we have no record of — the whole reason for this column. The read
 # path in Auth::Operations::ReadWebauthnCredentials treats NULL as :platform,
 # which matches the historical single-origin deployment and is the same
-# refusal ReauthPolicy already applies to a :platform credential on a tenant
+# refusal Onetime::Session::ReauthPolicy already applies to a :platform credential on a tenant
 # surface. Rows registered after this ships carry a real descriptor and
 # unlock per-surface offer rules.
 #

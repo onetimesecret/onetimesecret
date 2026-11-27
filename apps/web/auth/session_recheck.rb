@@ -9,7 +9,7 @@ require 'onetime/session/customer_session_evaluator'
 # sessions the shared evaluator answers before it reaches those two checks.
 #
 # WHY /auth NEEDS ITS OWN CHECK
-#   Onetime::CustomerSessionEvaluator decides in a fixed, normative order:
+#   Onetime::Session::CustomerSessionEvaluator decides in a fixed, normative order:
 #   session, MFA, the app-level `authenticated` flag, external identity, tenant
 #   surface, customer load, suspension, credential watermark, the caller-owned
 #   boundary, the active-session row, impersonation. Everywhere else in the
@@ -85,14 +85,14 @@ module Auth
     # keeps the cookie.
     #
     # The gate call refreshes the row's `last_use` (throttled, see
-    # Onetime::ActiveSessionGate). For an MFA-pending session that keeps the
+    # Onetime::Session::ActiveSessionGate). For an MFA-pending session that keeps the
     # row of a live challenge fresh, which is the intended reading of
     # "in use".
     #
-    # @param verdict [Onetime::CustomerSessionEvaluator::Verdict]
+    # @param verdict [Onetime::Session::CustomerSessionEvaluator::Verdict]
     # @param session [#[]] the Rack session (string keys)
     # @param env [Hash] the Rack env
-    # @return [Symbol] one of Onetime::CustomerSessionEvaluator::REASONS
+    # @return [Symbol] one of Onetime::Session::CustomerSessionEvaluator::REASONS
     def reason_for(verdict, session, env)
       reason = verdict.reason
       return reason if verdict.authenticated?
@@ -101,7 +101,7 @@ module Auth
       if BEFORE_SURFACE.include?(reason)
         # The evaluator's own mapping: an unreadable surface is its outage
         # verdict, which keeps the session, never a mismatch, which destroys it.
-        case Onetime::SessionSurface.match_status(session, env)
+        case Onetime::Session::Surface.match_status(session, env)
         when :mismatch then return :surface_mismatch
         when :unavailable then reason = :customer_unavailable
         end
@@ -109,7 +109,7 @@ module Auth
         return reason
       end
 
-      case Onetime::ActiveSessionGate.verdict(session, env: env)
+      case Onetime::Session::ActiveSessionGate.verdict(session, env: env)
       when :revoked
         :active_session_revoked
       when :unavailable
@@ -120,7 +120,7 @@ module Auth
     end
 
     # Rodauth's notion of logged in, read the way Rodauth and
-    # Onetime::ActiveSessionGate read it: the configured session_key
+    # Onetime::Session::ActiveSessionGate read it: the configured session_key
     # ('account_id', a string key) holding a value. A genuinely anonymous
     # Rack session has none, and neither check applies to it.
     def rodauth_logged_in?(session)

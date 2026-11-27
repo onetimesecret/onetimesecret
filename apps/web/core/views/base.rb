@@ -62,7 +62,7 @@ module Core
                   end
                 end
         if @strategy_result
-          verdict = Onetime::CustomerSessionEvaluator.evaluate(@sess, env: req.env)
+          verdict = Onetime::Session::CustomerSessionEvaluator.evaluate(@sess, env: req.env)
           @cust   = verdict.customer
         else
           @cust = nil

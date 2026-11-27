@@ -59,7 +59,7 @@ RSpec.shared_context 'strategy test' do
       'rack.session' => {
         'authenticated' => true,
         # #4409: hand-seeded sessions need the surface marker the login hooks record.
-        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+        Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
         'external_id' => test_customer.extid,
         'email' => test_customer.email,
       },

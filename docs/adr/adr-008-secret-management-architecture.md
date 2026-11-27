@@ -78,7 +78,7 @@ Familia 2.12 unlocks additional cryptographic options. These are available but n
 The decision table lists remember-me cookies among the values
 `ACCOUNT_ID_SECRET` obfuscates. Rodauth's `remember` feature is no longer
 enabled: the remember-me checkbox extends the signed-in session itself
-(`Onetime::RememberMe`, `lib/onetime/session/remember_me.rb`;
+(`Onetime::Session::RememberMe`, `lib/onetime/session/remember_me.rb`;
 `apps/web/auth/config/features/remember_me.rb`), so no remember cookie is
 issued. The secret still obfuscates the account ID in email-link tokens
 (`account_id_obfuscation` in `apps/web/auth/config/base.rb`) and keys the

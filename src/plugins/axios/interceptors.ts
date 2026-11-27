@@ -48,7 +48,7 @@ const isValidShrimp = (shrimp: unknown): shrimp is string =>
  * Passive-request declaration (ADR-048, RISK-2026-09-19-04).
  *
  * A request made with `{ passive: true }` carries `X-Session-Activity:
- * passive`. The server (`Onetime::SessionActivity`) still verifies the session
+ * passive`. The server (`Onetime::Session::Activity`) still verifies the session
  * in full but does not move the inactivity clock, so the background refreshes
  * of an unattended tab cannot keep its session alive. It reads the header on
  * GET and HEAD only and it is never an input to authorization; the same

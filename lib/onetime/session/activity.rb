@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'namespace'
+
 module Onetime
   # Classifies requests for the session inactivity clocks: active-session
   # `last_use`, admin `last_activity_at`, and the Rack session blob TTL.
@@ -11,7 +13,7 @@ module Onetime
   # Passive requests still undergo all authentication checks.
   # Read the route options at each decision because Rack may redispatch the env.
   # Refused requests do not refresh the session-store clocks.
-  module SessionActivity
+  module Session::Activity
     extend self
 
     ROUTE_OPTIONS_ENV_KEY = 'otto.route_options'
@@ -71,7 +73,7 @@ module Onetime
       return false unless env.is_a?(Hash)
       return true unless env[Onetime::Application::AuthStrategies::AdminSessionLifetime::EXPIRED_ENV_KEY].nil?
 
-      verdict = env[Onetime::CustomerSessionEvaluator::ENV_KEY]
+      verdict = env[Onetime::Session::CustomerSessionEvaluator::ENV_KEY]
       return false unless verdict.respond_to?(:rejected?) && verdict.respond_to?(:unavailable?)
 
       verdict.rejected? || verdict.unavailable?

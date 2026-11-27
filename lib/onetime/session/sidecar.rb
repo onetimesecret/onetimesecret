@@ -4,6 +4,7 @@
 
 require 'familia'
 
+require_relative 'namespace'
 require_relative 'codec'
 require_relative '../logger_methods'
 
@@ -15,7 +16,7 @@ module Onetime
   # Sidecar failures must not fail the Rack session write. Admit only fields
   # whose absence grants nothing and whose presence is not identity. Use
   # atomic SET with expiry rather than a separate expiry command.
-  module SessionSidecar
+  module Session::Sidecar
     extend self
     extend Onetime::LoggerMethods
 
@@ -36,7 +37,7 @@ module Onetime
     #                   #effective_ttl: a sidecar key must never outlive the
     #                   session blob)
     #   encrypted     — codec-wrapped envelope (AES-256-GCM + HMAC via
-    #                   Onetime::SessionCodec, sid/field-bound) vs plaintext
+    #                   Onetime::Session::Codec, sid/field-bound) vs plaintext
     #                   JSON envelope
     #   merge_on_read — overlaid into the session hash by find_session
     #   externalize   — write_session strips it from the blob and owns the
@@ -72,7 +73,7 @@ module Onetime
     #                   is their common case), so a future refactor that
     #                   re-keys sessions mid-flow would strand them SILENTLY —
     #                   except for this warning at the destroy site. A re-key
-    #                   at the END of a hand-off (Onetime::SessionRotation on
+    #                   at the END of a hand-off (Onetime::Session::Rotation on
     #                   MFA completion, #4466) names the fields it completed
     #                   and deletes them on the old sid before the destroy,
     #                   so the warning still means a stranded hand-off.
@@ -144,7 +145,7 @@ module Onetime
       # { account_id, surface, at } payload since #4411; the pre-#4411 bare
       # account id is refused as malformed). EXPLICIT-USE: written by
       # omniauth_request_validation_phase when a logged-in caller POSTs
-      # connect=1 AND the RecentReauth gate consumed a fresh proof, consumed
+      # connect=1 AND the Session::RecentReauth gate consumed a fresh proof, consumed
       # (atomic GETDEL) by account_from_omniauth. Living here instead of in the
       # blob is the fix for the abandoned-connect gap: a connect abandoned at
       # the IdP (cancel / IdP error / closed tab) never reaches the consuming
@@ -160,7 +161,7 @@ module Onetime
       # Single-use WebAuthn re-authentication challenge. Explicit-use and
       # session-id-bound: verification atomically consumes it before checking
       # the assertion, so an old or concurrently replayed assertion cannot mint
-      # a fresh RecentReauth proof. Absence always refuses.
+      # a fresh Session::RecentReauth proof. Absence always refuses.
       'reauth_webauthn_challenge' => { ttl: 120, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true },
       # One-shot recent full re-authentication proof. Connect admission consumes
       # this key atomically, so sequential and concurrent replay both fail.
@@ -712,7 +713,7 @@ module Onetime
     # Envelopes are JSON both ways so values round-trip with their types
     # (false/nil/hashes), which a bare string value would flatten.
     #
-    # encrypted: the canonical SessionCodec blob format wrapped around
+    # encrypted: the canonical Session::Codec blob format wrapped around
     # {'sid','f','v'}. The sid/field binding prevents replaying one session's
     # sidecar value under another sid or field — a property the session blob
     # itself does not have, so sidecar posture is strictly >= blob posture.
@@ -722,7 +723,7 @@ module Onetime
     # SessionMetadata fields and the entitlement-preview SETs.
     def encode_envelope(sid, field, value, policy, codec)
       if policy[:encrypted]
-        codec ||= Onetime::SessionCodec.from_config
+        codec ||= Onetime::Session::Codec.from_config
         raise 'session codec unavailable for encrypted sidecar field' unless codec
 
         codec.encode({ 'sid' => sid, 'f' => field, 'v' => value })
@@ -738,7 +739,7 @@ module Onetime
       return nil if raw.nil?
 
       if policy[:encrypted]
-        codec ||= Onetime::SessionCodec.from_config
+        codec ||= Onetime::Session::Codec.from_config
         return nil unless codec
 
         envelope = codec.decode(raw)

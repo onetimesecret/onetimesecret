@@ -2,7 +2,7 @@
 //
 // Stable codes on authentication refusals (#4462, #4469).
 //
-// Mirrors `Onetime::SessionFailureCode` (lib/onetime/session/failure_code.rb).
+// Mirrors `Onetime::Session::FailureCode` (lib/onetime/session/failure_code.rb).
 // A refusal from any API surface or from `/auth` that was caused by the
 // customer session, or by a credential the request presented, carries two
 // additive fields:

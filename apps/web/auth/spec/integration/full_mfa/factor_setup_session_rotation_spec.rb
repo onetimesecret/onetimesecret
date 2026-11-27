@@ -54,7 +54,7 @@ RSpec.describe 'Session-id renewal at second-factor setup (#4466)', :full_auth_m
     key = blob_key(sid)
     return nil if key.nil?
 
-    Onetime::Operations::Sessions::Store.load_data(Familia.dbclient, key, codec: Onetime::SessionCodec.from_config)
+    Onetime::Operations::Sessions::Store.load_data(Familia.dbclient, key, codec: Onetime::Session::Codec.from_config)
   end
 
   def account_read(cookie_header = nil)
@@ -108,7 +108,7 @@ RSpec.describe 'Session-id renewal at second-factor setup (#4466)', :full_auth_m
 
   def expect_old_id_ended(old_sid)
     expect(blob_key(old_sid)).to be_nil
-    expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+    expect(Onetime::Session::Ended.ended?(old_sid)).to be(true)
     clear_cookies
     expect(account_read("onetime.session=#{old_sid}").status).to eq(401), last_response.body
     expect(last_response.body).not_to include(email)
@@ -124,7 +124,7 @@ RSpec.describe 'Session-id renewal at second-factor setup (#4466)', :full_auth_m
     confirm_otp_setup(secret, raw_secret)
     expect(last_response.status).to eq(200), last_response.body
     new_sid = current_sid
-    expect(new_sid).to match(Onetime::SessionSidecar::SID_FORMAT)
+    expect(new_sid).to match(Onetime::Session::Sidecar::SID_FORMAT)
     expect(new_sid).not_to eq(old_sid)
 
     expect(blob_for(new_sid)).to include(
@@ -176,11 +176,11 @@ RSpec.describe 'Session-id renewal at second-factor setup (#4466)', :full_auth_m
     old_sid            = current_sid
 
     allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_call_original
-    allow(Onetime::SessionEnded).to receive(:mark).and_return(false)
+    allow(Onetime::Session::Ended).to receive(:mark).and_return(false)
     confirm_otp_setup(secret, raw_secret)
     expect(last_response.status).to eq(500), last_response.body
     expect(last_response.body).not_to include('recovery_codes')
-    allow(Onetime::SessionEnded).to receive(:mark).and_call_original
+    allow(Onetime::Session::Ended).to receive(:mark).and_call_original
 
     # The setup rolled back: no factor, no recovery codes, no "enabled" email.
     expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email).with(:mfa_enabled, any_args)
@@ -189,7 +189,7 @@ RSpec.describe 'Session-id renewal at second-factor setup (#4466)', :full_auth_m
 
     # Same id, still signed in, without the factor.
     expect(current_sid).to eq(old_sid)
-    expect(Onetime::SessionEnded.ended?(old_sid)).to be(false)
+    expect(Onetime::Session::Ended.ended?(old_sid)).to be(false)
     expect(Array(blob_for(old_sid)['authenticated_by'])).to eq(%w[password])
     expect(account_read.status).to eq(200), last_response.body
   end

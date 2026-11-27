@@ -274,7 +274,7 @@ RSpec.describe 'API v3 PASETO bearer tokens', type: :integration do
       csrf        = sign_in!
       session_key = Onetime.session_config.fetch('key')
       expect(rack_mock_session.cookie_jar[session_key]).to be_a(String)
-      allow(Onetime::SessionImpersonation).to receive(:active).and_return({ 'target_extid' => customer.extid })
+      allow(Onetime::Session::Impersonation).to receive(:active).and_return({ 'target_extid' => customer.extid })
 
       request(:post, '/api/v3/token', body: {}, csrf: csrf)
       expect(last_response.status).to eq(403)

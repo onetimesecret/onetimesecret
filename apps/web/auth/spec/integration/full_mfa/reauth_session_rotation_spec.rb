@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Session-id renewal at re-authentication (#4466, RISK-2026-09-19-02).
-# POST /auth/reauth records a single-use Onetime::RecentReauth proof, which
+# POST /auth/reauth records a single-use Onetime::Session::RecentReauth proof, which
 # lets the session make one Connect attempt. Auth::Operations::Reauthenticate
 # renews the id before it records the proof: the old id is ended the way a
 # logout ends it and the session data is written back under a new id, so a
@@ -31,7 +31,7 @@ RSpec.describe 'Session-id renewal at re-authentication (#4466)', :full_auth_mod
 
   let(:email) { "reauth-rotation-#{SecureRandom.hex(6)}@example.com" }
   let(:account_id) { seed_account_with_password(email) }
-  let(:proof_key) { Onetime::RecentReauth::KEY }
+  let(:proof_key) { Onetime::Session::RecentReauth::KEY }
 
   before { account_id }
 
@@ -47,7 +47,7 @@ RSpec.describe 'Session-id renewal at re-authentication (#4466)', :full_auth_mod
     key = blob_key(sid)
     return nil if key.nil?
 
-    Onetime::Operations::Sessions::Store.load_data(Familia.dbclient, key, codec: Onetime::SessionCodec.from_config)
+    Onetime::Operations::Sessions::Store.load_data(Familia.dbclient, key, codec: Onetime::Session::Codec.from_config)
   end
 
   def account_read(cookie_header = nil)
@@ -64,7 +64,7 @@ RSpec.describe 'Session-id renewal at re-authentication (#4466)', :full_auth_mod
     csrf_json_post('/auth/login', login: email, password: AuthTestConstants::TEST_PASSWORD)
     expect(last_response.status).to eq(200), last_response.body
     expect(json_body['mfa_required']).to be_nil
-    Onetime::SessionSidecar.delete(current_sid, proof_key)
+    Onetime::Session::Sidecar.delete(current_sid, proof_key)
   end
 
   def reauth(params = {})
@@ -82,19 +82,19 @@ RSpec.describe 'Session-id renewal at re-authentication (#4466)', :full_auth_mod
     expect(json_body).to eq('success' => 'Re-authentication complete')
 
     new_sid = current_sid
-    expect(new_sid).to match(Onetime::SessionSidecar::SID_FORMAT)
+    expect(new_sid).to match(Onetime::Session::Sidecar::SID_FORMAT)
     expect(new_sid).not_to eq(old_sid)
 
     # The proof is under the new id, and only there.
-    expect(Onetime::SessionSidecar.read(new_sid, proof_key)).to include(
+    expect(Onetime::Session::Sidecar.read(new_sid, proof_key)).to include(
       'account_id' => account_id,
       'methods' => %w[password],
     )
-    expect(Onetime::SessionSidecar.exists?(old_sid, proof_key)).to be(false)
+    expect(Onetime::Session::Sidecar.exists?(old_sid, proof_key)).to be(false)
 
     # The old id is ended.
     expect(blob_key(old_sid)).to be_nil
-    expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+    expect(Onetime::Session::Ended.ended?(old_sid)).to be(true)
 
     # The session data crossed.
     expect(blob_for(new_sid)).to include(
@@ -103,7 +103,7 @@ RSpec.describe 'Session-id renewal at re-authentication (#4466)', :full_auth_mod
       'email' => email,
       'active_session_id_hmac' => old_blob.fetch('active_session_id_hmac'),
       'csrf' => old_blob.fetch('csrf'),
-      Onetime::SessionSurface::KEY => old_blob.fetch(Onetime::SessionSurface::KEY),
+      Onetime::Session::Surface::KEY => old_blob.fetch(Onetime::Session::Surface::KEY),
     )
 
     # The new id is signed in; the old one is refused and exposes nothing.
@@ -119,18 +119,18 @@ RSpec.describe 'Session-id renewal at re-authentication (#4466)', :full_auth_mod
   it 'signals the completed rotation when the proof write fails', :aggregate_failures do
     sign_in
     old_sid = current_sid
-    allow(Onetime::SessionSidecar).to receive(:write).and_call_original
-    allow(Onetime::SessionSidecar).to receive(:write).with(anything, proof_key, anything).and_return(nil)
+    allow(Onetime::Session::Sidecar).to receive(:write).and_call_original
+    allow(Onetime::Session::Sidecar).to receive(:write).with(anything, proof_key, anything).and_return(nil)
 
     reauth
     expect(last_response.status).to eq(503), last_response.body
     expect(json_body['error_code']).to eq('reauth_not_recorded')
     new_sid = current_sid
     expect(new_sid).not_to eq(old_sid)
-    expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+    expect(Onetime::Session::Ended.ended?(old_sid)).to be(true)
     expect(blob_key(old_sid)).to be_nil
-    expect(Onetime::SessionSidecar.exists?(old_sid, proof_key)).to be(false)
-    expect(Onetime::SessionSidecar.exists?(new_sid, proof_key)).to be(false)
+    expect(Onetime::Session::Sidecar.exists?(old_sid, proof_key)).to be(false)
+    expect(Onetime::Session::Sidecar.exists?(new_sid, proof_key)).to be(false)
     expect(json_body['session_rotated']).to be(true)
     expect(account_read.status).to eq(200), last_response.body
     clear_cookies
@@ -144,37 +144,37 @@ RSpec.describe 'Session-id renewal at re-authentication (#4466)', :full_auth_mod
     expect(json_body['mfa_required']).to be(true)
     csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(secret).now)
     expect(last_response.status).to eq(200), last_response.body
-    Onetime::SessionSidecar.delete(current_sid, proof_key)
+    Onetime::Session::Sidecar.delete(current_sid, proof_key)
     signed_in_sid = current_sid
 
     reauth
     expect(last_response.status).to eq(200), last_response.body
     expect(json_body).to include('mfa_required' => true)
     expect(current_sid).to eq(signed_in_sid)
-    expect(Onetime::SessionSidecar.exists?(signed_in_sid, proof_key)).to be(false)
+    expect(Onetime::Session::Sidecar.exists?(signed_in_sid, proof_key)).to be(false)
 
     allow_immediate_otp_reuse!(account_id)
     reauth(otp_code: ROTP::TOTP.new(secret).now)
     expect(last_response.status).to eq(200), last_response.body
     expect(current_sid).not_to eq(signed_in_sid)
-    expect(Onetime::SessionSidecar.read(current_sid, proof_key)).to include('methods' => %w[password totp])
+    expect(Onetime::Session::Sidecar.read(current_sid, proof_key)).to include('methods' => %w[password totp])
   end
 
   it 'records no proof and keeps the session when the old id cannot be ended', :aggregate_failures do
     sign_in
     old_sid = current_sid
 
-    allow(Onetime::SessionEnded).to receive(:mark).and_return(false)
+    allow(Onetime::Session::Ended).to receive(:mark).and_return(false)
     reauth
     expect(last_response.status).to eq(503), last_response.body
     expect(json_body['error_code']).to eq('session_not_rotated')
     expect(json_body).not_to have_key('session_rotated')
-    allow(Onetime::SessionEnded).to receive(:mark).and_call_original
+    allow(Onetime::Session::Ended).to receive(:mark).and_call_original
 
     # Nothing was touched: same id, still signed in, no proof.
     expect(current_sid).to eq(old_sid)
-    expect(Onetime::SessionEnded.ended?(old_sid)).to be(false)
-    expect(Onetime::SessionSidecar.exists?(old_sid, proof_key)).to be(false)
+    expect(Onetime::Session::Ended.ended?(old_sid)).to be(false)
+    expect(Onetime::Session::Sidecar.exists?(old_sid, proof_key)).to be(false)
     expect(account_read.status).to eq(200), last_response.body
   end
 end

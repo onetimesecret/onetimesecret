@@ -119,7 +119,7 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
       expect(logger).not_to have_received(:info).with('Bootstrap verification', anything)
     end
 
-    # `authenticated?` runs the full CustomerSessionEvaluator (customer load
+    # `authenticated?` runs the full Onetime::Session::CustomerSessionEvaluator (customer load
     # + active-session gate). Ruby always evaluates method arguments, so a
     # naive `logger.debug 'msg', { authenticated_check: authenticated? }`
     # would fire that evaluator on every request even when the logger is

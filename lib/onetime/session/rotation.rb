@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require_relative 'namespace'
 require_relative 'ended'
 require_relative 'sidecar'
 
@@ -23,7 +24,7 @@ module Onetime
   # completed field values where possible and do not grant the new capability.
   # A session without the Rack store interface returns nil. A Rack session
   # without an old ID returns an incomplete result.
-  module SessionRotation
+  module Session::Rotation
     extend self
 
     # Raised by a caller that refuses to continue on an unrotated session.
@@ -52,7 +53,7 @@ module Onetime
 
       # Step 1: end the old id before touching anything. A marker that cannot
       # be written means the old session stays exactly as it is.
-      unless old_sid && SessionEnded.mark(old_sid, dbclient: db)
+      unless old_sid && Session::Ended.mark(old_sid, dbclient: db)
         OT.le '[session_rotation] session not rotated: ended marker could not be written ' \
               "(session_handle=#{handle(old_sid)})"
         return Result.new(old_sid: old_sid, new_sid: old_sid, complete: false, reason: :marker_not_written)
@@ -119,12 +120,12 @@ module Onetime
     def take_completed_fields(old_sid, fields, db)
       fields.each_with_object({}) do |field, values|
         value         = begin
-          SessionSidecar.read(old_sid, field, dbclient: db)
+          Session::Sidecar.read(old_sid, field, dbclient: db)
         rescue StandardError
           nil
         end
         values[field] = value unless value.nil?
-        SessionSidecar.delete(old_sid, field, dbclient: db)
+        Session::Sidecar.delete(old_sid, field, dbclient: db)
       rescue StandardError => ex
         OT.lw "[session_rotation] completed field #{field} not deleted on the old id " \
               "(session_handle=#{handle(old_sid)}): #{ex.class}: #{ex.message}"
@@ -136,7 +137,7 @@ module Onetime
     # either way.
     def restore_completed_fields(old_sid, values, db)
       values.each do |field, value|
-        SessionSidecar.write(old_sid, field, value, dbclient: db)
+        Session::Sidecar.write(old_sid, field, value, dbclient: db)
       rescue StandardError => ex
         OT.le "[session_rotation] completed field #{field} not restored on the surviving old id " \
               "(session_handle=#{handle(old_sid)}): #{ex.class}: #{ex.message}"
@@ -147,7 +148,7 @@ module Onetime
     # refused without it, so its presence is the one signal that the old id
     # is ended for in-flight writers as well as for the next request.
     def old_ended?(old_sid, db)
-      SessionEnded.ended?(old_sid, dbclient: db)
+      Session::Ended.ended?(old_sid, dbclient: db)
     rescue StandardError => ex
       OT.le '[session_rotation] could not confirm the old id ended ' \
             "(session_handle=#{handle(old_sid)}): #{ex.class}: #{ex.message}"
@@ -184,7 +185,7 @@ module Onetime
     end
 
     def handle(sid)
-      SessionEnded.handle_for(sid)
+      Session::Ended.handle_for(sid)
     end
 
     # Loaded at first use, not at the top of this file: store.rb uses

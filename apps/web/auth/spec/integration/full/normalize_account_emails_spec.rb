@@ -520,7 +520,7 @@ RSpec.describe 'Account email normalization repair (#4726)', type: :integration 
 
   describe 'sessions' do
     # RevokeAllForCustomer clears Customer#active_sessions, marks each tracked
-    # sid ended (SessionEnded.mark), and deletes the account's Rodauth
+    # sid ended (Onetime::Session::Ended.mark), and deletes the account's Rodauth
     # account_active_session_keys rows. A case-only repair must do none of it.
     it 'does not revoke the repaired customer\'s sessions' do
       customer   = create_customer(target)
@@ -533,7 +533,7 @@ RSpec.describe 'Account email normalization repair (#4726)', type: :integration 
 
       expect(row_for(result, account_id)[:outcome]).to eq(:normalized)
       expect(customer.active_sessions.member?(sid)).to be(true)
-      expect(Onetime::SessionEnded.ended?(sid)).to be(false)
+      expect(Onetime::Session::Ended.ended?(sid)).to be(false)
       expect(db[:account_active_session_keys].where(account_id: account_id).count).to eq(1)
     end
   end

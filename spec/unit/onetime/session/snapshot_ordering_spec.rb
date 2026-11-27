@@ -12,7 +12,7 @@ require 'securerandom'
 require 'onetime/session/snapshot_ordering'
 require 'onetime/models/session_metadata'
 
-RSpec.describe Onetime::SnapshotOrdering do
+RSpec.describe Onetime::Session::SnapshotOrdering do
   let(:sid) { SecureRandom.hex(32) }
   let(:other_sid) { SecureRandom.hex(32) }
 
@@ -83,7 +83,7 @@ RSpec.describe Onetime::SnapshotOrdering do
     let(:session) { double('session', id: double('sid', public_id: sid)) }
 
     before do
-      allow(Onetime::SessionSidecar).to receive(:allocate_counter).and_return('1758236400000001')
+      allow(Onetime::Session::Sidecar).to receive(:allocate_counter).and_return('1758236400000001')
     end
 
     it 'returns the epoch, the version as a string, and a fixed-width UTC timestamp' do
@@ -98,7 +98,7 @@ RSpec.describe Onetime::SnapshotOrdering do
     it 'allocates on the counter field with the session lifetime it was given' do
       described_class.allocate(session, ttl: 3600)
 
-      expect(Onetime::SessionSidecar).to have_received(:allocate_counter).with(sid, 'snapshot_version', ttl: 3600)
+      expect(Onetime::Session::Sidecar).to have_received(:allocate_counter).with(sid, 'snapshot_version', ttl: 3600)
     end
 
     it 'never puts the session id in its result' do
@@ -106,16 +106,16 @@ RSpec.describe Onetime::SnapshotOrdering do
     end
 
     it 'raises rather than returning an unversioned result' do
-      allow(Onetime::SessionSidecar).to receive(:allocate_counter).and_raise(Redis::CannotConnectError)
+      allow(Onetime::Session::Sidecar).to receive(:allocate_counter).and_raise(Redis::CannotConnectError)
 
       expect { described_class.allocate(session) }.to raise_error(Redis::CannotConnectError)
     end
 
     it 'raises for a session without a usable id' do
-      allow(Onetime::SessionSidecar).to receive(:allocate_counter).and_call_original
+      allow(Onetime::Session::Sidecar).to receive(:allocate_counter).and_call_original
 
       expect { described_class.allocate(double('session', id: nil)) }
-        .to raise_error(Onetime::SessionSidecar::CounterAllocationError)
+        .to raise_error(Onetime::Session::Sidecar::CounterAllocationError)
     end
   end
 

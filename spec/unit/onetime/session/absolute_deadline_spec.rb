@@ -12,7 +12,7 @@ require 'onetime/session'
 
 RSpec.describe Onetime::Session, '.absolute_deadline' do
   let(:signed_in) { 1_800_000_000 }
-  let(:lifetime) { Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE }
+  let(:lifetime) { Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE }
 
   before do
     allow(Onetime).to receive(:session_config).and_wrap_original do |original|

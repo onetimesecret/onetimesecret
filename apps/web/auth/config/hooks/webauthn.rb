@@ -149,14 +149,14 @@ module Auth::Config::Hooks
 
         # Stamp the surface_scope column with the descriptor of the surface
         # this credential was registered against (#4414). This is the SAME
-        # {Onetime::SessionSurface} classifier the login-side surface binding
+        # {Onetime::Session::Surface} classifier the login-side surface binding
         # (#4409) uses, so the two markers agree at ceremony time. Stored as
         # JSON so a NULL is distinguishable from a legitimate descriptor and
         # so read-side parsing can be tolerant. An :invalid request is
         # classified again, so a datastore blip still stamps the real
         # surface. A nil descriptor (a host we do not serve, an unresolved
         # :custom) is stored as NULL — the same value legacy rows carry —
-        # which {Onetime::ReauthPolicy} treats as :platform. An outage that
+        # which {Onetime::Session::ReauthPolicy} treats as :platform. An outage that
         # leaves the surface unreadable does not get here: the session
         # evaluator refuses the registration request first. That is
         # the right refusal shape here too: if we cannot classify the
@@ -169,7 +169,7 @@ module Auth::Config::Hooks
         # A failure here must not fail the registration ceremony the user
         # just completed.
         begin
-          surface_descriptor = Onetime::SessionSurface.for_env(request.env)
+          surface_descriptor = Onetime::Session::Surface.for_env(request.env)
           surface_payload    = surface_descriptor.nil? ? nil : JSON.generate(surface_descriptor)
           db[webauthn_keys_table]
             .where(webauthn_keys_account_id_column => account_id,
@@ -353,7 +353,7 @@ module Auth::Config::Hooks
       # transaction, after the row is deleted.
       #
       auth.after_webauthn_remove do
-        Onetime::RecentReauth.clear(session)
+        Onetime::Session::RecentReauth.clear(session)
       end
         end
   end

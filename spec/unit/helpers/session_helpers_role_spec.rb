@@ -35,7 +35,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   let(:env)       { { 'onetime.domain_strategy' => :canonical } }
 
   let(:verdict) do
-    Onetime::CustomerSessionEvaluator::Verdict.new(
+    Onetime::Session::CustomerSessionEvaluator::Verdict.new(
       status:        :authenticated,
       reason:        :authenticated,
       principal:     principal,
@@ -56,7 +56,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     allow(target).to receive(:role?).with(:colonel).and_return(false)
     allow(target).to receive(:role?).with(:customer).and_return(true)
 
-    allow(Onetime::CustomerSessionEvaluator).to receive(:evaluate).and_return(verdict)
+    allow(Onetime::Session::CustomerSessionEvaluator).to receive(:evaluate).and_return(verdict)
   end
 
   it 'answers has_role?(:colonel) about the principal during an impersonation overlay' do
@@ -80,7 +80,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
 
   context 'when no principal is available (unauthenticated verdict)' do
     let(:verdict) do
-      Onetime::CustomerSessionEvaluator::Verdict.new(
+      Onetime::Session::CustomerSessionEvaluator::Verdict.new(
         status: :anonymous,
         reason: :not_authenticated,
       )
@@ -95,7 +95,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     before { allow(OT).to receive(:conf).and_return(OT::Config.wrap({ 'site' => { 'authentication' => nil } })) }
 
     it 'refuses role checks without touching the evaluator' do
-      expect(Onetime::CustomerSessionEvaluator).not_to receive(:evaluate)
+      expect(Onetime::Session::CustomerSessionEvaluator).not_to receive(:evaluate)
       expect(helper.has_role?(:colonel)).to be(false)
     end
   end

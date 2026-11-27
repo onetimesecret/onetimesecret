@@ -137,7 +137,7 @@ module Onetime
         # admin-surface idle window, where it was: a session gate refused it
         # (the #4331 admin bounds or the shared customer-session evaluator),
         # or its route only verifies the session on a timer (#4455). The rule
-        # lives in Onetime::SessionActivity, which Onetime::Session#write_session
+        # lives in Onetime::Session::Activity, which Onetime::Session#write_session
         # asks too, so the sidecar and the Rack session blob cannot disagree
         # about what counted. A request nobody evaluated carries no refusal and
         # keeps the existing behaviour.
@@ -147,7 +147,7 @@ module Onetime
         # refresh, while stamping it could slide an idle window that a gate
         # just enforced.
         def unindexed_passive?
-          return false if Onetime::SessionActivity.refused?(@env)
+          return false if Onetime::Session::Activity.refused?(@env)
 
           !Onetime::SessionMetadata.exists?(@session_id)
         rescue StandardError => ex
@@ -156,7 +156,7 @@ module Onetime
         end
 
         def not_activity?
-          !Onetime::SessionActivity.counts?(@env)
+          !Onetime::Session::Activity.counts?(@env)
         rescue StandardError => ex
           OT.ld "[Sessions::TrackMetadata] activity check failed, upsert skipped: #{ex.class}"
           true

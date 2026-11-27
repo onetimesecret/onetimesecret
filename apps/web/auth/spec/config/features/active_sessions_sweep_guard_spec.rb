@@ -6,7 +6,7 @@
 #
 # The feature overrides Rodauth's PRIVATE `inactive_session_cond` so that
 # `remove_inactive_sessions` (the sessions-page sweep) deletes on
-# Onetime::ActiveSessionGate.expired_condition, which knows about a
+# Onetime::Session::ActiveSessionGate.expired_condition, which knows about a
 # remembered row's `remember_until` (migration 011). That is a private seam
 # of rodauth's active_sessions feature, pinned here so a gem upgrade that
 # renames the hook or stops routing the sweep through it fails this spec
@@ -78,7 +78,7 @@ RSpec.describe 'Auth::Config::Features::ActiveSessions sweep guard' do
     before do
       # The gate reads the remember-me switch when it builds the condition;
       # a feature spec has no booted Onetime config, so pin it on.
-      allow(Onetime::RememberMe).to receive(:enabled?).and_return(true)
+      allow(Onetime::Session::RememberMe).to receive(:enabled?).and_return(true)
 
       rodauth.session[rodauth.session_key] = account_id
 
@@ -93,7 +93,7 @@ RSpec.describe 'Auth::Config::Features::ActiveSessions sweep guard' do
     end
 
     it "returns the gate's expired_condition" do
-      expect(rodauth.send(:inactive_session_cond)).to eq(Onetime::ActiveSessionGate.expired_condition)
+      expect(rodauth.send(:inactive_session_cond)).to eq(Onetime::Session::ActiveSessionGate.expired_condition)
     end
 
     it "sweeps on the gate's rule: idle default rows and lapsed remembered rows go, remembered idle rows stay", :aggregate_failures do

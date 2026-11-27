@@ -302,7 +302,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
               'authenticated_at' => Familia.now.to_i,
               'external_id' => test_customer.extid,
               'email' => test_customer.email,
-              Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+              Onetime::Session::Surface::KEY => { 'kind' => 'canonical' },
             },
             'onetime.domain_strategy' => :canonical,
             'REMOTE_ADDR' => '127.0.0.1',
@@ -333,7 +333,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
     # says exactly what the message already does.
     # -----------------------------------------------------------------
     context 'stable failure code' do
-      let(:env_key) { Onetime::SessionFailureCode::ENV_KEY }
+      let(:env_key) { Onetime::Session::FailureCode::ENV_KEY }
 
       def stashed_reason_for(env)
         basic_auth_strategy.authenticate(env, nil)
@@ -350,7 +350,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
         env = env_basic_auth_invalid
         stashed_reason_for(env)
 
-        expect(Onetime::SessionFailureCode.scheme(env)).to eq(Onetime::SessionFailureCode::SCHEME_BASIC)
+        expect(Onetime::Session::FailureCode.scheme(env)).to eq(Onetime::Session::FailureCode::SCHEME_BASIC)
       end
 
       it 'stashes api_key_invalid for an unknown account, the same as a wrong key' do
@@ -382,7 +382,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
       it 'stashes nothing when the header is missing (not a rejected credential)' do
         env = env_basic_auth_missing
         expect(stashed_reason_for(env)).to be_nil
-        expect(Onetime::SessionFailureCode.scheme(env)).to be_nil
+        expect(Onetime::Session::FailureCode.scheme(env)).to be_nil
       end
 
       it 'stashes nothing on valid credentials' do
@@ -399,7 +399,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
             'authenticated_at' => Familia.now.to_i,
             'external_id' => test_customer.extid,
             'email' => test_customer.email,
-            Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+            Onetime::Session::Surface::KEY => { 'kind' => 'canonical' },
           },
           'onetime.domain_strategy' => :canonical,
           'REMOTE_ADDR' => '127.0.0.1',

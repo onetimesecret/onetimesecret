@@ -23,7 +23,7 @@ RSpec.describe Onetime::Middleware::IdentityResolution do
   end
 
   def lifetime
-    Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE
+    Onetime::Session::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE
   end
 
   def long_ago

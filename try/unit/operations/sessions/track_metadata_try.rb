@@ -112,7 +112,7 @@ SM.load(@sid).last_activity_at.to_i >= @ts
 ## a PASSIVE request (route option activity=passive, the /bootstrap/me poll)
 ## does not stamp activity, however often it is repeated: a tab that only polls
 ## cannot hold the admin idle window open
-@verdict_key = Onetime::CustomerSessionEvaluator::ENV_KEY
+@verdict_key = Onetime::Session::CustomerSessionEvaluator::ENV_KEY
 @passive_env = { 'otto.route_options' => { activity: 'passive' } }
 @polled = SM.load(@sid)
 @polled.last_activity_at = @ts - 7_200
@@ -155,7 +155,7 @@ SM.load(@unindexed_sid)&.destroy!
 ## a REFUSED passive request indexes nothing
 @refused_sid = "tryrefusedpassive_#{@nonce}"
 SM.load(@refused_sid)&.destroy!
-@refused_verdict = Onetime::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
+@refused_verdict = Onetime::Session::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
 @r = TM.new(session_id: @refused_sid, session_data: @auth_session, env: @declared_env.merge(@verdict_key => @refused_verdict)).call
 [@r, SM.load(@refused_sid).nil?]
 #=> [nil, true]
@@ -163,14 +163,14 @@ SM.load(@refused_sid)&.destroy!
 ## a request the shared evaluator REJECTED does not stamp activity, even though
 ## the Rack session blob still says authenticated (suspension, revocation, stale
 ## credentials and surface mismatch all leave the blob as it was)
-@rejected = Onetime::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
+@rejected = Onetime::Session::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
 TM.new(session_id: @sid, session_data: @auth_session, env: { @verdict_key => @rejected }).call
 SM.load(@sid).last_activity_at.to_i
 #=> @ts - 7_200
 
 ## nor does one refused because verification was UNAVAILABLE: an outage must not
 ## be able to extend a session it could not check
-@unavailable = Onetime::CustomerSessionEvaluator::Verdict.new(status: :unavailable, reason: :active_session_unavailable)
+@unavailable = Onetime::Session::CustomerSessionEvaluator::Verdict.new(status: :unavailable, reason: :active_session_unavailable)
 TM.new(session_id: @sid, session_data: @auth_session, env: { @verdict_key => @unavailable }).call
 SM.load(@sid).last_activity_at.to_i
 #=> @ts - 7_200
@@ -178,7 +178,7 @@ SM.load(@sid).last_activity_at.to_i
 ## an ANONYMOUS verdict does not suppress the write: a login that completes
 ## inside the request writes authenticated session_data, and that login-time
 ## stamp must land
-@anonymous = Onetime::CustomerSessionEvaluator::Verdict.new(status: :anonymous, reason: :not_authenticated)
+@anonymous = Onetime::Session::CustomerSessionEvaluator::Verdict.new(status: :anonymous, reason: :not_authenticated)
 TM.new(session_id: @sid, session_data: @auth_session, env: { @verdict_key => @anonymous }).call
 SM.load(@sid).last_activity_at.to_i >= @ts
 #=> true
@@ -187,7 +187,7 @@ SM.load(@sid).last_activity_at.to_i >= @ts
 @aged = SM.load(@sid)
 @aged.last_activity_at = @ts - 7_200
 @aged.save
-@authenticated = Onetime::CustomerSessionEvaluator::Verdict.new(
+@authenticated = Onetime::Session::CustomerSessionEvaluator::Verdict.new(
   status: :authenticated, reason: :authenticated, principal: @cust, customer: @cust,
 )
 TM.new(

@@ -9,7 +9,7 @@ require 'onetime/helpers/session_helpers'
 # Where the overlay actually bites.
 #
 # Three call sites resolve identity from `session['external_id']`, and all three
-# now go through Onetime::SessionImpersonation.resolve. These examples pin the
+# now go through Onetime::Session::Impersonation.resolve. These examples pin the
 # two properties that make the feature safe rather than merely working:
 #
 #   1. The AUTHORITATIVE resolution (BaseSessionAuthStrategy) yields the TARGET
@@ -42,7 +42,7 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
       'target_email' => 'alice@example.com',
       'reason' => 'ticket #123',
       'started_at' => now,
-      'expires_at' => now + Onetime::SessionImpersonation::TTL,
+      'expires_at' => now + Onetime::Session::Impersonation::TTL,
     }
   end
 
@@ -55,8 +55,8 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
       # #4409: the strategy's surface-bound check runs BEFORE the customer
       # load and impersonation resolution, so the session needs a matching
       # marker for that check to pass on the canonical env below.
-      Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
-      Onetime::SessionImpersonation::SESSION_KEY => marker,
+      Onetime::Session::Surface::KEY => { 'kind' => 'canonical' },
+      Onetime::Session::Impersonation::SESSION_KEY => marker,
     }
   end
 
@@ -109,7 +109,7 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
     end
 
     it 'authenticates as the colonel once the overlay is gone' do
-      session.delete(Onetime::SessionImpersonation::SESSION_KEY)
+      session.delete(Onetime::Session::Impersonation::SESSION_KEY)
 
       expect(strategy.authenticate(env, nil).user).to be(colonel)
     end
@@ -141,7 +141,7 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
 
       expect(result.user).to be(colonel)
       expect(result.metadata[:user_roles]).to eq(['colonel'])
-      expect(session).not_to have_key(Onetime::SessionImpersonation::SESSION_KEY)
+      expect(session).not_to have_key(Onetime::Session::Impersonation::SESSION_KEY)
     end
   end
 
@@ -166,7 +166,7 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
 
     before do
       allow(helper).to receive(:session_auth_enforced?).and_return(true)
-      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:active)
+      allow(Onetime::Session::ActiveSessionGate).to receive(:verdict).and_return(:active)
       allow(Onetime::Customer).to receive(:find_by_extid)
         .with('ur_colonel').and_return(colonel)
       allow(Onetime::Customer).to receive(:load_by_extid_or_email)
@@ -188,7 +188,7 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
     end
 
     it 'refreshes the cached role from the principal when not impersonating' do
-      session.delete(Onetime::SessionImpersonation::SESSION_KEY)
+      session.delete(Onetime::Session::Impersonation::SESSION_KEY)
       session['role'] = 'customer'
 
       expect(helper.current_customer).to be(colonel)

@@ -127,20 +127,20 @@ module Auth::Config::Hooks
       env     = rodauth.request.env
 
       unless rodauth.logged_in? && rodauth.request.params['connect'].to_s == '1'
-        Onetime::SessionSidecar.delete(sid, 'sso_connect_intent')
+        Onetime::Session::Sidecar.delete(sid, 'sso_connect_intent')
         return
       end
 
       account_id      = rodauth.session_value
-      reauthenticated = Onetime::RecentReauth.satisfied?(
+      reauthenticated = Onetime::Session::RecentReauth.satisfied?(
         session,
         env,
         account_id: account_id,
-        max_age: Onetime::RecentReauth::CONNECT_MAX_AGE,
+        max_age: Onetime::Session::RecentReauth::CONNECT_MAX_AGE,
       )
 
       unless reauthenticated
-        Onetime::SessionSidecar.delete(sid, 'sso_connect_intent')
+        Onetime::Session::Sidecar.delete(sid, 'sso_connect_intent')
         Auth::Logging.log_auth_event(
           :omniauth_connect_reauth_required,
           level: :warn,
@@ -152,13 +152,13 @@ module Auth::Config::Hooks
 
       intent             = {
         'account_id' => account_id,
-        'surface' => Onetime::SessionSurface.for_env(env),
+        'surface' => Onetime::Session::Surface.for_env(env),
         'at' => Time.now.utc.to_i,
       }
       return_path        = OT::Utils.internal_path_or_nil(rodauth.request.params['redirect'])
       intent['redirect'] = return_path if return_path
 
-      Onetime::SessionSidecar.write(sid, 'sso_connect_intent', intent)
+      Onetime::Session::Sidecar.write(sid, 'sso_connect_intent', intent)
     end
 
     # rubocop:disable Metrics/PerceivedComplexity
@@ -780,7 +780,7 @@ module Auth::Config::Hooks
         #
         # SINGLE-USE (#3859): the nonce is a SHORT-TTL SIDECAR KEY
         # (sidecar:<sid>:sso_connect_intent, ~5 min — one IdP round-trip; see
-        # SessionSidecar::FIELDS), not a session-blob field, so an abandoned
+        # Onetime::Session::Sidecar::FIELDS), not a session-blob field, so an abandoned
         # connect needs no cleanup — the key expires whatever the browser does
         # next. The else branch closes the residual in-TTL window: every SSO
         # callback's flow passes through this request phase first (it mints the
@@ -793,8 +793,8 @@ module Auth::Config::Hooks
         # session plus connect=1 is intent, not proof. Attaching a login
         # identity is a change to the account's authenticators, so the intent
         # is minted ONLY when the session carries a fresh, single-use
-        # RecentReauth proof for THIS account on THIS surface —
-        # `Onetime::RecentReauth.satisfied?` is the one gate, and it CONSUMES
+        # Onetime::Session::RecentReauth proof for THIS account on THIS surface —
+        # `Onetime::Session::RecentReauth.satisfied?` is the one gate, and it CONSUMES
         # the proof (one ceremony authorizes one Connect initiation; a
         # concurrent or later initiation on the same proof is refused). The
         # proof is only ever recorded by a completed local ceremony (password
@@ -802,7 +802,7 @@ module Auth::Config::Hooks
         # a magic-link login, an SSO callback, or a password step that
         # stopped short of required MFA never records one, so none of them
         # can reach the write below. A remembered session
-        # (Onetime::RememberMe) is the session its login created, not one
+        # (Onetime::Session::RememberMe) is the session its login created, not one
         # restored from a credential; it holds only the proof that login
         # recorded, on the same clock.
         #

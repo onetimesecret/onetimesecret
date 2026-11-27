@@ -103,7 +103,7 @@ RSpec.describe 'auth and account route failure-code coverage (#4469)' do
 
     it 'uses only codes from the one vocabulary' do
       every_code = declaration::STRATEGY_CODES.values.flatten + declaration::HANDLER_CODES.values.flatten
-      expect(every_code.uniq - Onetime::SessionFailureCode::CODES.keys).to be_empty
+      expect(every_code.uniq - Onetime::Session::FailureCode::CODES.keys).to be_empty
     end
   end
 
@@ -153,7 +153,7 @@ RSpec.describe 'auth and account route failure-code coverage (#4469)' do
     it 'derives a code set from every declaration' do
       declaration::RODAUTH_ROUTES.each do |route, entry|
         codes = declaration.codes_for_declaration(entry)
-        expect(codes - Onetime::SessionFailureCode::CODES.keys).to be_empty, "#{route} declares an unknown code"
+        expect(codes - Onetime::Session::FailureCode::CODES.keys).to be_empty, "#{route} declares an unknown code"
         expect(codes).to include(:invalid_credentials) if entry[:credential]
         expect(codes).to include(:session_missing) unless entry[:requirement] == :anonymous
       end
@@ -192,7 +192,7 @@ RSpec.describe 'auth and account route failure-code coverage (#4469)' do
     it 'derives a code set from every declaration' do
       declaration::CUSTOM_AUTH_ROUTES.each do |route, entry|
         codes = declaration.codes_for_declaration(entry)
-        expect(codes - Onetime::SessionFailureCode::CODES.keys).to be_empty, "#{route} declares an unknown code"
+        expect(codes - Onetime::Session::FailureCode::CODES.keys).to be_empty, "#{route} declares an unknown code"
       end
     end
   end

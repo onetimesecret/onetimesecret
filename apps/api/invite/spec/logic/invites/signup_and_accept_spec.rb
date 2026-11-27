@@ -445,7 +445,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
       logic.send(:setup_session, 123, { id: 123, external_id: 'ext-invitee' })
 
       expect(session['authenticated']).to be(true)
-      expect(session[Onetime::SessionSurface::KEY]).to eq(Onetime::SessionSurface::CANONICAL)
+      expect(session[Onetime::Session::Surface::KEY]).to eq(Onetime::Session::Surface::CANONICAL)
     end
 
     it 'stamps a custom surface keyed by the custom-domain identifier' do
@@ -457,15 +457,15 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
       )
       logic.send(:setup_session, 123, { id: 123, external_id: 'ext-invitee' })
 
-      expect(session[Onetime::SessionSurface::KEY]).to eq({ 'kind' => 'custom', 'id' => 'cd_abc123' })
+      expect(session[Onetime::Session::Surface::KEY]).to eq({ 'kind' => 'custom', 'id' => 'cd_abc123' })
     end
 
     it 'stamps nil (fail closed) when the metadata carries no resolvable surface' do
       logic = logic_for(ip: client_ip)
       logic.send(:setup_session, 123, { id: 123, external_id: 'ext-invitee' })
 
-      expect(session).to have_key(Onetime::SessionSurface::KEY)
-      expect(session[Onetime::SessionSurface::KEY]).to be_nil
+      expect(session).to have_key(Onetime::Session::Surface::KEY)
+      expect(session[Onetime::Session::Surface::KEY]).to be_nil
     end
   end
 
@@ -642,7 +642,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
       end
 
       # #4391 — the auto-login session must carry the active_session_id_hmac
-      # join key (stringified) so Onetime::ActiveSessionGate can join it to the
+      # join key (stringified) so Onetime::Session::ActiveSessionGate can join it to the
       # account_active_session_keys row instead of exempting it forever. The
       # symbol-keyed Rodauth defaults are stringified so the persisted (JSON)
       # blob matches a browser login's.
@@ -694,7 +694,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
 
       it 'degrades to a gate-exempt session with no active-session join key' do
         logic.process
-        # No join key means ActiveSessionGate#applicable? returns false
+        # No join key means Onetime::Session::ActiveSessionGate#applicable? returns false
         # (verdict :skipped) rather than refusing the request — the pre-#4391
         # shape, self-healing on the invitee's next real login.
         expect(session).not_to have_key('active_session_id_hmac')

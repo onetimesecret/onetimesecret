@@ -4,7 +4,7 @@
 
 #
 # Session-based authentication helpers. Identity and role answers come from
-# Onetime::CustomerSessionEvaluator, whose verdict is memoized per request, so
+# Onetime::Session::CustomerSessionEvaluator, whose verdict is memoized per request, so
 # repeated calls in one request cost one evaluation.
 #
 # Session Data Stored:
@@ -60,7 +60,7 @@ module Onetime
 
       # There is deliberately no `authenticate!(customer)` here. Every path that
       # marks a Rack session authenticated must also mint its active-session
-      # row and join key (Onetime::ActiveSessionGate), which only a Rodauth
+      # row and join key (Onetime::Session::ActiveSessionGate), which only a Rodauth
       # login-session does; the simple-mode controller writes its own session
       # and the invite flow runs a real login_session. A helper that set
       # `authenticated` without the join key would mint a session the gate
@@ -74,19 +74,19 @@ module Onetime
 
         # Close the impersonation FIRST. session.clear would take the marker
         # with it and leave the audit trail holding a start with no end.
-        Onetime::SessionImpersonation.stop!(
+        Onetime::Session::Impersonation.stop!(
           session,
-          ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT,
+          ended_by: Onetime::Session::Impersonation::ENDED_BY_LOGOUT,
         )
 
         # The row before the blob: a concurrent request can write the blob
         # back, and only the missing row makes that copy refusable.
-        Onetime::ActiveSessionGate.end_session(session, env: rack_env_for_impersonation)
+        Onetime::Session::ActiveSessionGate.end_session(session, env: rack_env_for_impersonation)
 
         session.clear
 
         # Renew the id, as Web Core's #logout does. The store then deletes the
-        # old blob and sets its ended-marker (Onetime::SessionEnded), so a
+        # old blob and sets its ended-marker (Onetime::Session::Ended), so a
         # request still in flight under the old id cannot write the session
         # back (RISK-2026-09-19-01). Clearing alone leaves the id live, and a
         # live id cannot carry a marker: its own next write would be refused.
@@ -101,7 +101,7 @@ module Onetime
 
       def customer_session_verdict
         env                         = rack_env_for_impersonation
-        @customer_session_verdict ||= Onetime::CustomerSessionEvaluator.evaluate(session, env: env)
+        @customer_session_verdict ||= Onetime::Session::CustomerSessionEvaluator.evaluate(session, env: env)
       end
 
       # The session identity just changed inside this request (login or logout):
@@ -109,8 +109,8 @@ module Onetime
       def forget_customer_session_verdict
         @customer_session_verdict = nil
         env                       = rack_env_for_impersonation
-        Onetime::CustomerSessionEvaluator.forget(env)
-        Onetime::ActiveSessionGate.forget(env)
+        Onetime::Session::CustomerSessionEvaluator.forget(env)
+        Onetime::Session::ActiveSessionGate.forget(env)
       end
 
       def load_current_customer

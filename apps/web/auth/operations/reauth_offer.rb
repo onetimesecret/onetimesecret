@@ -11,7 +11,7 @@ require_relative '../signin_enabled'
 
 module Auth
   module Operations
-    # Assemble the four inputs {Onetime::ReauthPolicy.eligible_methods}
+    # Assemble the four inputs {Onetime::Session::ReauthPolicy.eligible_methods}
     # needs and return the offer for THIS account on THIS request's
     # surface (#4414, epic #4408).
     #
@@ -40,7 +40,7 @@ module Auth
     # - Do NOT re-derive `methods` from the other keys; the policy is
     #   the ONLY place that decides which paths may be offered, and a
     #   caller that intersects the credentials against the surface on
-    #   its own reproduces the very drift {Onetime::ReauthPolicy} exists
+    #   its own reproduces the very drift {Onetime::Session::ReauthPolicy} exists
     #   to eliminate.
     # - Do NOT pass `webauthn_credentials` back to a client whose account
     #   the caller has not verified. The projection carries only
@@ -71,7 +71,7 @@ module Auth
       # @param env [Hash] Rack env for the current request
       # @return [Hash] the frozen offer payload
       def call(account_id:, env:)
-        surface     = Onetime::SessionSurface.for_env(env)
+        surface     = Onetime::Session::Surface.for_env(env)
         credentials = safe_read_credentials(account_id)
         related     = safe_related_origins(env)
         origin      = safe_current_origin(env)
@@ -83,7 +83,7 @@ module Auth
         # whose account is unknown.
         password    = !account_id.nil? && safe_password_enabled?(account_id, env)
 
-        methods = Onetime::ReauthPolicy.eligible_methods(
+        methods = Onetime::Session::ReauthPolicy.eligible_methods(
           surface,
           password_enabled: password,
           webauthn_credentials: credentials,

@@ -41,7 +41,7 @@ module Onetime
     #
     # `/colonel*` and `/api/colonel/*`: no admin powers while presenting as a
     # non-admin. The effective-customer role check would 403 these anyway
-    # (Onetime::SessionImpersonation.resolve makes the TARGET the strategy's
+    # (Onetime::Session::Impersonation.resolve makes the TARGET the strategy's
     # user), so this is defense-in-depth — but it is also the difference
     # between "403 for a reason we can point at" and "403 by accident".
     #
@@ -153,20 +153,20 @@ module Onetime
       def call(env)
         # Defensive: state leaked by a previous request on this fiber must not
         # bleed into this one.
-        Onetime::SessionImpersonation.clear_context
+        Onetime::Session::Impersonation.clear_context
 
         session = env['rack.session']
-        marker  = Onetime::SessionImpersonation.active(session)
+        marker  = Onetime::Session::Impersonation.active(session)
 
         if marker
-          Onetime::SessionImpersonation.set_context(
+          Onetime::Session::Impersonation.set_context(
             marker,
             impersonator_extid: session['external_id'],
           )
 
           # One target load for the whole request: every identity call site
           # downstream reads this memo (see TARGET_ENV_KEY).
-          Onetime::SessionImpersonation.preload_target(env, marker)
+          Onetime::Session::Impersonation.preload_target(env, marker)
 
           # Normalized ONCE per request: it is the input to both the
           # verdict and the denial's content negotiation, and re-deriving it
@@ -178,7 +178,7 @@ module Onetime
 
         @app.call(env)
       ensure
-        Onetime::SessionImpersonation.clear_context
+        Onetime::Session::Impersonation.clear_context
       end
 
       private

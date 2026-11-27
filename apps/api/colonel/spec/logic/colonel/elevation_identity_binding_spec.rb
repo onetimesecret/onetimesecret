@@ -137,7 +137,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::Elevation do
     # externalized so the capability carries its own short TTL rather than
     # riding the 24h session blob.
     it 'is registered with the policy the design requires' do
-      policy = Onetime::SessionSidecar::FIELDS[described_class::SESSION_KEY]
+      policy = Onetime::Session::Sidecar::FIELDS[described_class::SESSION_KEY]
 
       expect(policy).to include(
         encrypted: true, merge_on_read: true, externalize: true, absent_when_falsy: true,

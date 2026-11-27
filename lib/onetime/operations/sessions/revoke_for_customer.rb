@@ -93,14 +93,14 @@ module Onetime
           # the operator still intends the sid dead: an in-flight request that
           # loaded the blob earlier may commit after this and re-SET it under the
           # same id. Set the ended-marker unconditionally so the writer's
-          # post-SET {Onetime::SessionEnded.ended?} check takes that copy back out
+          # post-SET {Onetime::Session::Ended.ended?} check takes that copy back out
           # (RISK-2026-09-19-01).
           blob_deleted = false
           if key
             Store.destroy_blob(db, key)
             blob_deleted = true
           else
-            Onetime::SessionEnded.mark(@session_id, dbclient: db)
+            Onetime::Session::Ended.mark(@session_id, dbclient: db)
           end
 
           # Per-value sidecar keys are purged UNCONDITIONALLY (idempotent,
@@ -110,7 +110,7 @@ module Onetime
           # on the bare-hex sid format, so extract it from the resolved key (or
           # the raw input when no live blob existed) — a full `session:<sid>`
           # would otherwise fail the guard and leave the sidecars orphaned.
-          Onetime::SessionSidecar.purge(Store.extract_id(key || @session_id), dbclient: db)
+          Onetime::Session::Sidecar.purge(Store.extract_id(key || @session_id), dbclient: db)
 
           # Tidy the sidecar + the per-customer index (both idempotent). Capture the
           # sidecar's recorded owner BEFORE destroying it so a mismatch — the sid

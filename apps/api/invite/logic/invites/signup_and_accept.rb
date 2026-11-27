@@ -368,7 +368,7 @@ module InviteAPI::Logic
       # Manually populates session fields since we don't have direct access to the
       # Rack request object from the logic layer. This mirrors what SyncSession does.
       #
-      # LOAD-BEARING (Onetime::ActiveSessionGate, #4391). The account is created
+      # LOAD-BEARING (Onetime::Session::ActiveSessionGate, #4391). The account is created
       # via Rodauth's internal_request (create_rodauth_account), which never runs
       # a login path, so nothing stamps the active-session JOIN KEY into the Rack
       # session and nothing INSERTs the account_active_session_keys row. In full
@@ -402,7 +402,7 @@ module InviteAPI::Logic
         # auto-login into pre-existing accounts, #3856) and must NOT be weakened,
         # so instead we contain the failure here: log LOUDLY and degrade to a
         # hand-written session with account_id but no join key. That is the
-        # pre-#4391 shape the gate still exempts (ActiveSessionGate#applicable?
+        # pre-#4391 shape the gate still exempts (Onetime::Session::ActiveSessionGate#applicable?
         # returns false without a join key, verdict :skipped), so the invitee
         # gets a working session, POST /accept proceeds, and a proper gated
         # session (with the join key + active-session row) is minted on their
@@ -444,7 +444,7 @@ module InviteAPI::Logic
         # invitee's very next request — the frontend's POST /accept — is
         # refused. surface_env is rebuilt from the strategy metadata
         # (Logic::Base), the same classification the request resolved.
-        Onetime::SessionSurface.record(sess, surface_env)
+        Onetime::Session::Surface.record(sess, surface_env)
 
         if rodauth_session
           # Carry the Rodauth-produced auth keys onto the Rack session. Keys are

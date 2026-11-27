@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Unit tryouts for the per-value session sidecar primitive (issue #3858):
-#   Onetime::SessionSidecar
+#   Onetime::Session::Sidecar
 #
 # The session blob is one encrypted value with one TTL; this primitive stores a
 # REGISTERED subset of session fields as independent STRING keys
@@ -13,7 +13,7 @@
 # - key derivation + the closed-registry gate (unregistered -> ArgumentError)
 # - the sid format guard (malformed sid -> nil/no-op, no key ever created)
 # - encrypted envelope round-trips (true/false/complex values), at-rest format
-#   is the canonical SessionCodec blob binding sid + field
+#   is the canonical Onetime::Session::Codec blob binding sid + field
 # - plaintext envelope round-trips; garbage reads as absent
 # - tamper + sid/field binding: unauthentic values read as absent (nil)
 # - TTL clamp: a sidecar key never outlives the session blob (remaining blob
@@ -38,10 +38,10 @@ OT.boot! :test
 require 'securerandom'
 require 'onetime/session/sidecar'
 
-SC = Onetime::SessionSidecar
+SC = Onetime::Session::Sidecar
 DB = Familia.dbclient
 
-@codec    = Onetime::SessionCodec.from_config
+@codec    = Onetime::Session::Codec.from_config
 @sid      = SecureRandom.hex(32) # 64 hex chars, matches SC::SID_FORMAT
 @sid2     = SecureRandom.hex(32)
 @blob_key = "session:#{@sid}"
@@ -110,7 +110,7 @@ SC.read(@sid, 'awaiting_mfa', codec: @codec)
 #=> true
 
 ## at rest the value is a canonical codec blob (base64(...)--hmac) whose
-## envelope binds the sid and field — decodable by the SAME SessionCodec the
+## envelope binds the sid and field — decodable by the SAME Onetime::Session::Codec the
 ## session blob uses (no new crypto)
 @envelope = @codec.decode(DB.get(@key_mfa))
 [DB.get(@key_mfa).include?('--'), @envelope['sid'] == @sid, @envelope['f'], @envelope['v']]
@@ -536,7 +536,7 @@ SC.allocate_counter(@sid, 'unregistered_field', ttl: 60)
 ## a sid that fails the format guard RAISES: allocation never answers nil the
 ## way the generic API does, so an unversioned payload is never labelled ordered
 SC.allocate_counter('not-a-sid', 'snapshot_version', ttl: 60)
-#=!> Onetime::SessionSidecar::CounterAllocationError
+#=!> Onetime::Session::Sidecar::CounterAllocationError
 
 ## ...and creates no key
 DB.keys('sidecar:not-a-sid:*')

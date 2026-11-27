@@ -30,7 +30,7 @@ module Onetime
       #      identity check is needed and no keyspace walk is involved.
       #   b. BEST-EFFORT — a bounded {Store.scan_keys} SCAN then sweeps for
       #      genuinely UNTRACKED blobs (pre-sidecar sessions the index never saw),
-      #      decrypting each with the shared {Onetime::SessionCodec} and deleting
+      #      decrypting each with the shared {Onetime::Session::Codec} and deleting
       #      those whose identity matches. This closes the sidecar's forward-only
       #      backfill gap — but only within the scan cap.
       #
@@ -290,9 +290,9 @@ module Onetime
               # No live blob today, but the operator still intends the sid dead:
               # an in-flight request that loaded the blob earlier can re-SET it
               # under the same id. Set the ended-marker so the writer's post-SET
-              # {Onetime::SessionEnded.ended?} check takes that copy back out
+              # {Onetime::Session::Ended.ended?} check takes that copy back out
               # (RISK-2026-09-19-01).
-              Onetime::SessionEnded.mark(sid, dbclient: db)
+              Onetime::Session::Ended.mark(sid, dbclient: db)
               next false
             end
 
@@ -300,7 +300,7 @@ module Onetime
             # A revoked sid's per-value sidecar keys must die with the blob —
             # exact registry-derived names, format-gated (legacy non-hex ids
             # no-op).
-            Onetime::SessionSidecar.purge(sid, dbclient: db)
+            Onetime::Session::Sidecar.purge(sid, dbclient: db)
             true
           end
         end
@@ -322,7 +322,7 @@ module Onetime
           extid = customer.extid.to_s
           return [0, false] if extid.empty?
 
-          codec   = Onetime::SessionCodec.from_config
+          codec   = Onetime::Session::Codec.from_config
           keys    = Store.scan_keys(db)
           deleted = 0
 
@@ -337,7 +337,7 @@ module Onetime
             Store.destroy_blob(db, key)
             # Untracked (pre-sidecar-index) sessions can still own per-value
             # sidecar keys; those must not survive the blob either.
-            Onetime::SessionSidecar.purge(sid, dbclient: db)
+            Onetime::Session::Sidecar.purge(sid, dbclient: db)
             deleted += 1
           end
 

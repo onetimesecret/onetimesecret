@@ -43,7 +43,7 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
     env 'rack.session', {
       'authenticated' => true,
       # #4409: hand-seeded sessions need the surface marker the login hooks record.
-      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+      Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
       'external_id' => customer.extid,
     }
   end
@@ -183,7 +183,7 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
 
       env 'rack.session', {
         'authenticated' => true,
-        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+        Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
         'external_id' => other_customer.extid,
       }
 
@@ -314,7 +314,7 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
 
       env 'rack.session', {
         'authenticated' => true,
-        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
+        Onetime::Session::Surface::KEY => Onetime::Session::Surface::CANONICAL,
         'external_id' => other_customer.extid,
       }
 

@@ -440,7 +440,7 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
           return nil unless key
 
           Onetime::Operations::Sessions::Store.load_data(
-            db, key, codec: Onetime::SessionCodec.from_config
+            db, key, codec: Onetime::Session::Codec.from_config
           )
         end
 
