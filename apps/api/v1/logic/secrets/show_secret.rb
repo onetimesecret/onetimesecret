@@ -15,6 +15,7 @@ module V1::Logic
     class ShowSecret < V1::Logic::Base
       include Onetime::Security::PassphraseRateLimiter
       include ActorAttribution
+      include AccessTelemetry
 
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
@@ -151,6 +152,12 @@ module V1::Logic
         # now stays :new until a genuine reveal/burn. Downstream guards
         # (viewable?, burned!, win_reveal_claim!) already accept :new, so no
         # behavior depends on the removed transition.
+
+        # Record the fetch on the receipt's access timeline, as V2 ShowSecret
+        # does: anything that did not consume the secret (a metadata-only
+        # request, a wrong passphrase, a lost reveal race) is a 'secret_get'.
+        # A won reveal is recorded by the revealed! transition instead.
+        record_access_telemetry('secret_get') unless show_secret
       end
 
       def success_data

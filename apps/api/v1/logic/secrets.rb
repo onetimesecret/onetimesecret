@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'secrets/actor_attribution'
+require_relative 'secrets/access_telemetry'
 require_relative 'secrets/burn_secret'
 require_relative 'secrets/conceal_secret'
 require_relative 'secrets/generate_secret'
