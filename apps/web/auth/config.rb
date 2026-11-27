@@ -160,7 +160,7 @@ module Auth
         Features::ActiveSessions.configure(self)
       end
 
-      # Remember me: the checkbox makes this session last a fixed 14 days
+      # Remember me: the checkbox makes this session last a fixed 30 days
       if Onetime.auth_config.remember_me_enabled?
         Features::RememberMe.configure(self)
       end

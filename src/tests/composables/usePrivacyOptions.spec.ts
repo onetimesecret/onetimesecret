@@ -29,6 +29,7 @@ vi.mock('vue-i18n', () => ({
 }));
 
 import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
+import { useSecretForm } from '@/shared/composables/useSecretForm';
 
 const MINUTE = 60;
 const HOUR = 3600;
@@ -232,6 +233,18 @@ describe('usePrivacyOptions', () => {
 
       expect(values()).toEqual([MINUTE, 90]);
     });
+
+    /** An odd lifetime reaches the form, and the payload, unrounded. */
+    it('keeps an odd ceiling and default lifetime exact in the form', () => {
+      const bootstrap = setupStore({ ttl_max_anonymous: HOUR + 2 });
+      bootstrap.secret_options!.default_ttl = HOUR + 2;
+      const { form, operations } = useSecretForm();
+
+      expect(form.ttl).toBe(HOUR + 2);
+      expect(values()).toEqual([MINUTE, HOUR, HOUR + 2]);
+      operations.updateField('ttl', HOUR + 2);
+      expect(form.ttl).toBe(HOUR + 2);
+    });
   });
 
   describe('ttlCeiling', () => {
@@ -255,12 +268,14 @@ describe('usePrivacyOptions', () => {
   });
 
   describe('formatDuration', () => {
-    it('formats using the largest whole unit', () => {
+    // Exact compound display; see useDurationFormat.spec.ts for the parts.
+    it('formats whole units as one part and odd values exactly', () => {
       setupStore();
       const { formatDuration } = usePrivacyOptions();
 
       expect(formatDuration(DAY)).toBe('1:web.UNITS.ttl.duration');
-      expect(formatDuration(90)).toBe('90:web.UNITS.ttl.duration');
+      expect(formatDuration(120)).toBe('2:web.UNITS.ttl.duration');
+      expect(formatDuration(90)).toBe('1:web.UNITS.ttl.duration, 30:web.UNITS.ttl.duration');
     });
   });
 });

@@ -20,7 +20,9 @@
    */
   import { ref } from 'vue';
   import { useI18n } from 'vue-i18n';
+  import { useDurationFormat } from '@/shared/composables/useDurationFormat';
   import { useIncomingSecret } from '@/shared/composables/useIncomingSecret';
+  import { usePassphraseRules } from '@/shared/composables/usePassphraseRules';
   import { useUnsavedInputGuard } from '@/shared/composables/useUnsavedInputGuard';
   import IncomingMemoInput from '@/apps/secret/components/incoming/IncomingMemoInput.vue';
   import IncomingRecipientDropdown from '@/apps/secret/components/incoming/IncomingRecipientDropdown.vue';
@@ -36,6 +38,7 @@
   });
 
   const { t } = useI18n();
+  const { formatDuration } = useDurationFormat();
   const {
     form,
     errors,
@@ -57,6 +60,18 @@
   // "Forced page load"). Registered only while there is content; a successful
   // submit navigates in-app and unmounts this component, which removes it.
   useUnsavedInputGuard(() => form.value.secret.trim().length > 0);
+
+  // The same passphrase rules, hints and messages as the secret forms.
+  const {
+    errorText: passphraseError,
+    minimumLengthHint,
+    complexityHint,
+    markInteracted: markPassphraseInteracted,
+  } = usePassphraseRules(() => form.value.passphrase, { required: () => passphraseRequired.value });
+
+  const handlePassphraseInput = (event: Event) => {
+    markPassphraseInteracted((event.target as HTMLInputElement).value);
+  };
 
   const secretContentRef = ref<InstanceType<typeof SecretContentInputArea> | null>(null);
 
@@ -133,11 +148,35 @@
         <input
           v-model="form.passphrase"
           type="password"
-autocomplete="new-password"
-required
+          autocomplete="new-password"
+          required
+          data-testid="incoming-passphrase-input"
           :disabled="isSubmitting"
-          class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700" />
-        <span class="mt-1 block font-normal">{{ t('incoming.share_passphrase_separately') }}</span>
+          :aria-invalid="passphraseError ? 'true' : undefined"
+          aria-describedby="incoming-passphrase-hints"
+          class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+          @input="handlePassphraseInput"
+          @blur="markPassphraseInteracted()" />
+        <span
+          id="incoming-passphrase-hints"
+          class="mt-1 block font-normal">
+          <span
+            v-if="minimumLengthHint"
+            class="block"
+            data-testid="incoming-passphrase-min-hint">{{ minimumLengthHint }}</span>
+          <span
+            v-if="complexityHint"
+            class="block"
+            data-testid="incoming-passphrase-complexity-hint">{{ complexityHint }}</span>
+          <span class="block">{{ t('incoming.share_passphrase_separately') }}</span>
+        </span>
+        <span
+          v-if="passphraseError"
+          class="mt-1 block text-sm font-normal text-red-600 dark:text-red-400"
+          role="alert"
+          data-testid="incoming-passphrase-error">
+          {{ passphraseError }}
+        </span>
       </label>
 
       <IncomingMemoInput
@@ -149,7 +188,7 @@ required
 
       <!-- Action Buttons -->
       <p v-if="defaultTtl" class="text-sm text-gray-600 dark:text-gray-300">
-        {{ t('incoming.expires_after_seconds', { seconds: defaultTtl }) }}
+        {{ t('incoming.expires_after_duration', { duration: formatDuration(defaultTtl) }) }}
       </p>
       <div
         class="flex flex-col gap-4 border-t border-gray-200 pt-8 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">

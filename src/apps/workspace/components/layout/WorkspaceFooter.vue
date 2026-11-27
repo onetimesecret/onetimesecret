@@ -201,6 +201,7 @@
   <!-- prettier-ignore-attribute class -->
   <nav
     ref="mobileNavEl"
+    data-viewport-bottom-bar
     class="
       fixed inset-x-0 bottom-0 z-20
       border-t border-gray-200
@@ -242,6 +243,7 @@
   <!-- prettier-ignore-attribute class -->
   <footer
     ref="footerEl"
+    data-viewport-bottom-bar
     class="
       z-10 w-full
       min-w-[320px]

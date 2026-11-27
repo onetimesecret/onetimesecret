@@ -81,8 +81,10 @@ const handleSubmit = () => {
   }
 };
 
-// Handle cancel action
+// Handle cancel action. Escape and a backdrop click land here too, so do
+// nothing mid-request, matching the disabled Cancel button.
 const handleCancel = () => {
+  if (props.loading) return;
   emit('cancel');
   closeModal();
 };

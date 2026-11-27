@@ -4,11 +4,12 @@
 
 # "Remember me" deadline per active-session row.
 #
-# A login with the remember-me box ticked stays signed in for a fixed 14 days
-# from sign-in (lib/onetime/session/remember_me.rb). The row carries that
-# deadline so the two readers of the inactivity deadline,
-# Onetime::ActiveSessionGate on every request and Rodauth's sweep on the
-# sessions page, can exempt the row from it until then and end it after.
+# A login with the remember-me box ticked stays signed in for a fixed period
+# from sign-in (Onetime::RememberMe::DURATION, 30 days;
+# lib/onetime/session/remember_me.rb). The row carries that deadline so the
+# two readers of the inactivity deadline, Onetime::ActiveSessionGate on every
+# request and Rodauth's sweep on the sessions page, can exempt the row from
+# it until then and end it after.
 #
 #   NULL       the session was not remembered (every row before this ships):
 #              the 72-hour inactivity deadline applies, as today

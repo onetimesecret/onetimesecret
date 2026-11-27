@@ -153,47 +153,15 @@
         </div>
       </div>
 
-      <!-- Confirmation modal for removing all sessions -->
-      <div
+      <!-- Confirmation dialog for removing all other sessions -->
+      <ConfirmDialog
         v-if="showRemoveAllConfirm"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        @click.self="showRemoveAllConfirm = false">
-        <div
-          class="mx-4 max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="remove-all-sessions-title">
-          <div class="mb-4 flex items-center">
-            <OIcon
-              collection="heroicons"
-              name="exclamation-triangle"
-              class="mr-3 size-7 text-yellow-500"
-              aria-hidden="true" />
-            <h3
-              id="remove-all-sessions-title"
-              class="text-lg font-semibold dark:text-white">
-              {{ t('web.auth.sessions.remove_all') }}
-            </h3>
-          </div>
-          <p class="mb-6 text-gray-600 dark:text-gray-400">
-            {{ t('web.auth.sessions.confirm_remove_all') }}
-          </p>
-          <div class="flex justify-end gap-3">
-            <button
-              @click="showRemoveAllConfirm = false"
-              type="button"
-              class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-              {{ t('web.LABELS.cancel') }}
-            </button>
-            <button
-              @click="handleRemoveAllSessions"
-              type="button"
-              class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-              {{ t('web.auth.sessions.remove_all') }}
-            </button>
-          </div>
-        </div>
-      </div>
+        @confirm="handleRemoveAllSessions"
+        @cancel="showRemoveAllConfirm = false"
+        :title="t('web.auth.sessions.remove_all')"
+        :message="t('web.auth.sessions.confirm_remove_all')"
+        confirm-text="web.auth.sessions.remove_all"
+        type="danger" />
 
       <!-- Confirmation dialog for individual session removal -->
       <ConfirmDialog

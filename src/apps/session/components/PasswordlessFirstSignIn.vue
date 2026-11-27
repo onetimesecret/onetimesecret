@@ -8,6 +8,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useMagicLink } from '@/shared/composables/useMagicLink';
 import { useWebAuthn } from '@/shared/composables/useWebAuthn';
+import { isRememberMeEnabled } from '@/utils/features';
 import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -173,6 +174,7 @@ const currentMode = computed<AuthMode>(() => tabs.value[selectedTabIndex.value]?
 // Password mode state
 const password = ref('');
 const rememberMe = ref(false);
+const rememberMeOffered = isRememberMeEnabled();
 const showPassword = ref(false);
 
 // Auth composables
@@ -671,7 +673,9 @@ data-testid="passkey-panel">
           </div>
 
           <!-- Remember me -->
-          <div class="flex items-center">
+          <div
+            v-if="rememberMeOffered"
+            class="flex items-center">
             <input
               id="remember-me"
               name="remember-me"

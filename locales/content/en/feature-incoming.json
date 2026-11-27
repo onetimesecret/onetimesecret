@@ -167,8 +167,8 @@
     "text": "Share this passphrase with your recipient separately.",
     "content_hash": "e357a729"
   },
-  "incoming.expires_after_seconds": {
-    "text": "This secret expires after {seconds} seconds.",
-    "content_hash": "6046b4ce"
+  "incoming.expires_after_duration": {
+    "text": "This secret expires after {duration}.",
+    "content_hash": "019ae2a0"
   }
 }

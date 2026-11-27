@@ -1183,6 +1183,14 @@
     "text": "Recipients",
     "content_hash": "1e8568a8"
   },
+  "web.domains.incoming.recipients_list_heading": {
+    "text": "Configured",
+    "content_hash": "84aebc69"
+  },
+  "web.domains.incoming.recipients_usage": {
+    "text": "{count} / {max} recipients",
+    "content_hash": "2d925fc0"
+  },
   "web.domains.incoming.recipients_description": {
     "text": "Define who can receive incoming secrets on this domain. Recipients will receive email notifications when a secret is sent to them.",
     "content_hash": "026f9d9d"
@@ -1904,6 +1912,18 @@
   "web.domains.sso.enforce_moved_notice": {
     "text": "To require SSO for all sign-ins on this domain, configure it in the domain's sign-in settings. SSO-only mode restricts the login page to the SSO provider configured here.",
     "content_hash": "d26627a5"
+  },
+  "web.domains.incoming.passphrase_required_by_instance": {
+    "text": "This installation requires a passphrase for every secret, so this cannot be turned off here.",
+    "content_hash": "ab0202aa"
+  },
+  "web.domains.incoming.passphrase_required_by_organization": {
+    "text": "The organization's sharing controls require a passphrase, so this cannot be turned off here.",
+    "content_hash": "5f55b315"
+  },
+  "web.domains.incoming.passphrase_required_by_domain": {
+    "text": "This domain's brand settings require a passphrase for every secret, so this cannot be turned off here.",
+    "content_hash": "14827767"
   },
   "web.domains.incoming.max_ttl": {
     "text": "Maximum secret lifetime in seconds",

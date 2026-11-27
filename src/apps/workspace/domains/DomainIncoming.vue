@@ -150,7 +150,7 @@ watch(canManageIncoming, allowed => {
          so there's no separate Back row above it. Recipients + the enabled
          toggle auto-save, so there's no header Save (the in-form Save is a
          retry affordance after a failed auto-save). -->
-    <div class="sticky top-0 z-30">
+    <div class="sticky top-[var(--stale-session-notice-height,0px)] z-30">
       <DomainHeader
         :domain="customDomainRecord"
         :has-unsaved-changes="hasUnsavedChanges"
@@ -269,6 +269,8 @@ watch(canManageIncoming, allowed => {
               :has-unsaved-changes="hasUnsavedChanges"
               :max-recipients="maxRecipients"
               :error="incomingError?.message"
+              :orgid="props.orgid"
+              :domain-passphrase-required="customDomainRecord?.brand?.passphrase_required === true"
               @save="saveConfig"
               @delete="deleteConfig"
               @discard="discardChanges"

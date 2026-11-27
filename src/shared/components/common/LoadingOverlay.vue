@@ -8,9 +8,12 @@ defineProps<{
 </script>
 
 <template>
+  <!-- z-40: above sticky page headers (the domain pages' z-30 header with its
+       Save button) so nothing under the overlay stays clickable, and below
+       the z-50 app notices and header menus. -->
   <div
     v-if="show"
-    class="fixed inset-0 flex items-center justify-center bg-gray-900/50 dark:bg-gray-900/70"
+    class="fixed inset-0 z-40 flex items-center justify-center bg-gray-900/50 dark:bg-gray-900/70"
     role="alert"
     aria-busy="true"
     :aria-label="message">

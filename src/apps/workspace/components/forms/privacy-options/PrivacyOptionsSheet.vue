@@ -8,8 +8,8 @@
    * Uses Headless UI Dialog for accessibility and focus management.
    * Slides up from bottom with iOS safe area support.
    */
-  import { computed, ref } from 'vue';
-  import { useSharingControls } from '@/shared/composables/useSharingControls';
+  import { ref } from 'vue';
+  import { usePassphraseRules } from '@/shared/composables/usePassphraseRules';
   import { useI18n } from 'vue-i18n';
   import {
     Dialog,
@@ -20,11 +20,8 @@
   } from '@headlessui/vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
-  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
-  const { passphraseRequired } = useSharingControls();
 
   interface Props {
     /** v-model for open state */
@@ -49,33 +46,18 @@
 
   const { lifetimeOptions } = usePrivacyOptions(undefined, () => props.currentTtl);
 
-  // Get passphrase config for validation hints
-  const bootstrapStore = useBootstrapStore();
-  const { secret_options } = storeToRefs(bootstrapStore);
-  const passphraseConfig = computed(() => secret_options.value?.passphrase);
-
   // Passphrase visibility toggle
   const passphraseVisible = ref(false);
 
-  // Passphrase validation
-  const minPassphraseLength = computed(
-    () => passphraseConfig.value?.minimum_length || 0
-  );
-
-  const isPassphraseValid = computed(() => {
-    if (!props.currentPassphrase) return true;
-    if (minPassphraseLength.value > 0) {
-      return props.currentPassphrase.length >= minPassphraseLength.value;
-    }
-    return true;
-  });
-
-  const passphraseValidationError = computed(() => {
-    if (!props.currentPassphrase || isPassphraseValid.value) return '';
-    return t('web.secrets.passphraseMinimumLength', {
-      length: minPassphraseLength.value,
-    });
-  });
+  // The same rules the form enforces on submit (minimum and maximum length,
+  // complexity, required), shared with the desktop passphrase chip.
+  const {
+    passphraseRequired,
+    errorText: passphraseValidationError,
+    minimumLengthHint,
+    complexityHint,
+    markInteracted,
+  } = usePassphraseRules(() => props.currentPassphrase);
 
   // Handlers
   const closeSheet = () => {
@@ -89,6 +71,7 @@
 
   const handlePassphraseInput = (event: Event) => {
     const value = (event.target as HTMLInputElement).value;
+    markInteracted(value);
     emit('update:passphrase', value);
   };
 
@@ -97,6 +80,7 @@
   };
 
   const clearPassphrase = () => {
+    markInteracted('');
     emit('update:passphrase', '');
   };
 </script>
@@ -202,7 +186,10 @@
                   :disabled="disabled"
                   autocomplete="new-password"
                   :placeholder="t('web.secrets.enterPassphrase')"
+                  :aria-invalid="!!passphraseValidationError"
+                  :aria-describedby="passphraseValidationError ? 'sheet-passphrase-error' : undefined"
                   @input="handlePassphraseInput"
+                  @blur="markInteracted()"
                   class="w-full rounded-lg border bg-white px-4 py-3 pr-20 text-base
                     text-gray-900 placeholder:text-gray-400 transition-colors
                     focus:outline-none focus:ring-2
@@ -254,14 +241,19 @@
               <!-- Validation feedback -->
               <p
                 v-if="passphraseValidationError"
+                id="sheet-passphrase-error"
                 class="mt-2 text-sm text-red-500 dark:text-red-400"
-                role="alert">
+                role="alert"
+                data-testid="sheet-passphrase-error">
                 {{ passphraseValidationError }}
               </p>
               <p
-                v-else-if="minPassphraseLength > 0 && !currentPassphrase"
-                class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('web.secrets.passphraseMinimumLength', { length: minPassphraseLength }) }}
+                v-else-if="!currentPassphrase && (minimumLengthHint || complexityHint)"
+                class="mt-2 text-sm text-gray-500 dark:text-gray-400"
+                data-testid="sheet-passphrase-hint">
+                <span v-if="minimumLengthHint">{{ minimumLengthHint }}</span>
+                <span v-if="minimumLengthHint && complexityHint"> • </span>
+                <span v-if="complexityHint">{{ complexityHint }}</span>
               </p>
             </form>
 

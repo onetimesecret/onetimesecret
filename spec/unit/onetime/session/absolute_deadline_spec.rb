@@ -25,7 +25,9 @@ RSpec.describe Onetime::Session, '.absolute_deadline' do
   end
 
   it 'is the remember deadline when that is nearer' do
-    stamp = signed_in + Onetime::RememberMe::DURATION
+    # RememberMe::DURATION equals the default lifetime, so use a stamp that
+    # is actually nearer.
+    stamp = signed_in + lifetime - 86_400
     data  = { 'authenticated_at' => signed_in, 'remember_until' => stamp }
     expect(described_class.absolute_deadline(data)).to eq(stamp)
   end

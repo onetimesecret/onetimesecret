@@ -6,7 +6,7 @@ require 'onetime/session/remember_me'
 require 'onetime/session/active_session_gate'
 
 module Auth::Config::Features
-  # Remember me: the login form's checkbox makes THIS session last a fixed 14
+  # Remember me: the login form's checkbox makes THIS session last a fixed 30
   # days from sign-in instead of the rolling 24 hours. The mechanism, and why
   # it is not Rodauth's remember feature, is described in
   # lib/onetime/session/remember_me.rb.
@@ -15,7 +15,7 @@ module Auth::Config::Features
   # Disabled, the `remember-me` parameter is ignored, and a session stamped
   # while it was on is held to the default lifetime again: the blob and
   # cookie stop being sized to the stamp and the row loses its inactivity
-  # exemption. Its stamp still ends it when the 14 days are up.
+  # exemption. Its stamp still ends it when the 30 days are up.
   #
   # The switch is checked twice: at boot, where config.rb configures this
   # feature only when it is on (off, the hooks below are not defined and the
@@ -44,7 +44,7 @@ module Auth::Config::Features
   # The parameter arrives with the password, but the session is not signed in
   # until the second factor. So a login that still owes a second factor only
   # records the choice (`remember_me_pending`), and the session is
-  # remembered when after_two_factor_authentication completes it; the 14
+  # remembered when after_two_factor_authentication completes it; the 30
   # days run from then. A login abandoned at the second factor stays a
   # default session and its choice expires with it. The active-session row
   # exists from the first phase (login_session inserts it), so the second

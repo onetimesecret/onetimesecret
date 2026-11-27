@@ -131,6 +131,24 @@ export function isActiveSessionsEnabled(): boolean {
 }
 
 /**
+ * Pure predicate: the sign-in forms offer "Remember me". Mirrors
+ * AUTH_REMEMBER_ME_ENABLED; only an explicit false turns it off, so a
+ * bootstrap without the key keeps the checkbox.
+ */
+export function isRememberMeEnabledOf(state: { features?: Features }): boolean {
+  return state.features?.remember_me !== false;
+}
+
+/**
+ * Checks if the sign-in forms should offer "Remember me"
+ */
+export function isRememberMeEnabled(): boolean {
+  if (typeof window === 'undefined') return true;
+
+  return isRememberMeEnabledOf({ features: getBootstrapValue('features') });
+}
+
+/**
  * Checks if account lockout (after failed login attempts) is enabled
  */
 export function isLockoutEnabled(): boolean {

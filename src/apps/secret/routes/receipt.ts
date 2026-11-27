@@ -27,6 +27,16 @@ const isReceiptCapabilityEnabled = (): boolean => {
 };
 
 /**
+ * Checks if the burn capability is enabled (ui.capabilities.burn). Unset
+ * counts as enabled, like the receipt capability. It only gates the UI;
+ * the API's guest_routes.burn gates the endpoint.
+ */
+const isBurnCapabilityEnabled = (): boolean => {
+  const bootstrapStore = useBootstrapStore();
+  return bootstrapStore.uiCapabilities?.burn !== false;
+};
+
+/**
  * Shared route configuration for receipt-related routes.
  * Handles validation and type safety for the receiptIdentifier parameter.
  *
@@ -102,6 +112,12 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Burn secret',
     component: BurnSecret,
     ...withValidatedReceiptKey,
+    // The receipt page hides its Burn action when the capability is off, so
+    // the burn page must not stay reachable by URL.
+    beforeEnter: (to: RouteLocationNormalized) => {
+      if (!isBurnCapabilityEnabled()) return { name: 'NotFound' };
+      return withValidatedReceiptKey.beforeEnter(to);
+    },
     meta: {
       title: 'web.TITLES.burn_secret',
       layout: SecretLayout,

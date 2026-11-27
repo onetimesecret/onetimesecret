@@ -191,6 +191,19 @@ describe('PasswordConfirmModal', () => {
       expect(confirmButton.attributes('disabled')).toBeUndefined();
     });
 
+    it('ignores Escape and backdrop close while loading', async () => {
+      wrapper = mountComponent({ loading: true });
+      await wrapper.findComponent({ name: 'Dialog' }).vm.$emit('close');
+      expect(wrapper.emitted('cancel')).toBeUndefined();
+      expect(wrapper.emitted('update:open')).toBeUndefined();
+    });
+
+    it('cancels on Escape and backdrop close when idle', async () => {
+      wrapper = mountComponent();
+      await wrapper.findComponent({ name: 'Dialog' }).vm.$emit('close');
+      expect(wrapper.emitted('cancel')).toHaveLength(1);
+    });
+
     it('disables all buttons during loading', async () => {
       wrapper = mountComponent({ loading: true });
       const input = wrapper.find('input');

@@ -199,9 +199,10 @@
 
   const { hostsPrompt, promptOpen } = useElevationPromptHost(() => props.open);
 
-  /** headlessui `@close` (backdrop / Escape): never while the step-up prompt is up. */
+  /** headlessui `@close` (backdrop / Escape): never while the step-up prompt
+   *  is up or a request is running (the Cancel button is disabled then too). */
   function onDialogClose(): void {
-    if (promptOpen.value) return;
+    if (promptOpen.value || props.loading) return;
     handleCancel();
   }
 

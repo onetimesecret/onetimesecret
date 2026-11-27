@@ -178,7 +178,7 @@ watch(canFetchSsoConfig, (allowed) => {
     <!-- Header Section. Back folded into the header row (opt-in affordance),
          so there's no separate Back row above it. Signin auto-saves each field,
          so there's no header Save. -->
-    <div class="sticky top-0 z-30">
+    <div class="sticky top-[var(--stale-session-notice-height,0px)] z-30">
       <DomainHeader
         :domain="customDomainRecord"
         :has-unsaved-changes="hasUnsavedChanges"

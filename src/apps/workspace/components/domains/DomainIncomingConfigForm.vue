@@ -16,6 +16,7 @@ import { z } from 'zod';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import type { IncomingConfigFormState } from '@/shared/composables/useIncomingConfig';
+import { useInheritedPassphraseRequirement } from '@/shared/composables/useInheritedPassphraseRequirement';
 
 const emailSchema = z.string().email();
 
@@ -28,6 +29,10 @@ interface Props {
   hasUnsavedChanges?: boolean;
   maxRecipients?: number;
   error?: string;
+  /** The organization that owns the domain, whose sharing controls apply above this form. */
+  orgid?: string;
+  /** Whether the domain's brand settings require a passphrase for every secret on it. */
+  domainPassphraseRequired?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -51,6 +56,27 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+// The installation, the owning organization or the domain's brand settings
+// can already require a passphrase. The incoming config's stored value is
+// left as it is; only its display is locked.
+const inheritedPassphrase = useInheritedPassphraseRequirement(
+  () => props.orgid,
+  () => props.domainPassphraseRequired
+);
+
+const inheritedPassphraseHint = computed(() => {
+  switch (inheritedPassphrase.value) {
+    case 'instance':
+      return t('web.domains.incoming.passphrase_required_by_instance');
+    case 'organization':
+      return t('web.domains.incoming.passphrase_required_by_organization');
+    case 'domain':
+      return t('web.domains.incoming.passphrase_required_by_domain');
+    default:
+      return '';
+  }
+});
 
 // ---------------------------------------------------------------------------
 // Local state for the add-recipient row
@@ -209,8 +235,10 @@ function updateMaxTtl(event: Event): void {
         <h3 class="text-base font-semibold text-gray-900 dark:text-white">
           {{ t('web.domains.incoming.recipients_title') }}
         </h3>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.domains.incoming.empty_state_description') }}
+        <p
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400"
+          data-testid="incoming-recipients-description">
+          {{ t('web.domains.incoming.recipients_description') }}
         </p>
       </div>
 
@@ -218,8 +246,10 @@ function updateMaxTtl(event: Event): void {
       <div
         v-if="hasAnyRecipients"
         class="space-y-2">
-        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.domains.incoming.badge_configured') }}
+        <h4
+          class="text-sm font-medium text-gray-700 dark:text-gray-300"
+          data-testid="incoming-recipients-list-heading">
+          {{ t('web.domains.incoming.recipients_list_heading') }}
           <span class="ml-1 text-gray-500 dark:text-gray-400">
             ({{ recipientCount }})
           </span>
@@ -359,26 +389,37 @@ function updateMaxTtl(event: Event): void {
       <!-- Recipient Count -->
       <p
         v-if="hasAnyRecipients"
-        class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-        {{ recipientCount }} / {{ maxRecipients }}
-        {{ t('web.domains.incoming.recipients_title').toLowerCase() }}
+        class="mt-4 text-sm text-gray-500 dark:text-gray-400"
+        data-testid="incoming-recipients-usage">
+        {{ t('web.domains.incoming.recipients_usage', { count: recipientCount, max: maxRecipients }) }}
       </p>
     </div>
 
     <!-- Enabled Toggle -->
     <fieldset :disabled="isSaving || isDeleting" class="space-y-4">
-      <div class="flex items-center gap-3">
-        <input
-          id="incoming-passphrase-required"
-          type="checkbox"
-          :checked="formState.passphrase_required"
-          class="field-check rounded"
-          @change="emit('update:passphraseRequired', ($event.target as HTMLInputElement).checked)" />
-        <label
-          for="incoming-passphrase-required"
-          class="field-label">
-          {{ t('web.domains.passphrase_required_label') }}
-        </label>
+      <div>
+        <div class="flex items-center gap-3">
+          <input
+            id="incoming-passphrase-required"
+            type="checkbox"
+            :checked="formState.passphrase_required || inheritedPassphrase !== null"
+            :disabled="inheritedPassphrase !== null"
+            :aria-describedby="inheritedPassphrase ? 'incoming-passphrase-required-hint' : undefined"
+            class="field-check rounded"
+            @change="emit('update:passphraseRequired', ($event.target as HTMLInputElement).checked)" />
+          <label
+            for="incoming-passphrase-required"
+            class="field-label">
+            {{ t('web.domains.passphrase_required_label') }}
+          </label>
+        </div>
+        <p
+          v-if="inheritedPassphrase"
+          id="incoming-passphrase-required-hint"
+          class="mt-1 field-hint"
+          data-testid="incoming-passphrase-inherited">
+          {{ inheritedPassphraseHint }}
+        </p>
       </div>
       <div class="sm:max-w-md">
         <label

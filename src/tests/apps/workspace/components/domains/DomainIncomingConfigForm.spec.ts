@@ -9,6 +9,9 @@ import { mount, type VueWrapper, flushPromises, DOMWrapper } from '@vue/test-uti
 import { describe, it, expect, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { createTestI18n } from '@tests/setup';
+import { createI18n } from 'vue-i18n';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import DomainIncomingConfigForm from '@/apps/workspace/components/domains/DomainIncomingConfigForm.vue';
 import {
   emptyFormState,
@@ -397,5 +400,167 @@ describe('DomainIncomingConfigForm field labelling', () => {
     expect(wrapper.get(`#${lifetime.attributes('aria-describedby')}`).text()).toBe(
       'web.domains.incoming.max_ttl_hint',
     );
+  });
+});
+
+describe('DomainIncomingConfigForm when a higher level already requires a passphrase', () => {
+  const checkbox = '#incoming-passphrase-required';
+  const note = '[data-testid="incoming-passphrase-inherited"]';
+
+  function mountInherited(levels: {
+    instance?: boolean;
+    organization?: boolean;
+    domain?: boolean;
+    orgid?: string;
+  }) {
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    useBootstrapStore().$patch({
+      secret_options: {
+        default_ttl: 3600,
+        ttl_options: [3600],
+        passphrase: { required: !!levels.instance, minimum_length: 4, maximum_length: 128 },
+      },
+    });
+    useOrganizationStore().$patch({
+      organizations: [
+        {
+          extid: 'on-owner',
+          sharing_policy: {
+            recipient_email_mode: 'unrestricted',
+            recipient_email_domains: [],
+            passphrase_required: !!levels.organization,
+            max_ttl: null,
+          },
+        },
+      ] as never,
+    });
+    return mount(DomainIncomingConfigForm, {
+      props: {
+        formState: emptyFormState,
+        savedFormState: null,
+        ...(levels.orgid === undefined ? {} : { orgid: levels.orgid }),
+        ...(levels.domain === undefined ? {} : { domainPassphraseRequired: levels.domain }),
+      },
+      global: { plugins: [pinia, i18n] },
+    });
+  }
+
+  it('shows the box checked and disabled with the installation note', () => {
+    const wrapper = mountInherited({ instance: true, orgid: 'on-owner' });
+    const box = wrapper.get<HTMLInputElement>(checkbox);
+
+    expect(emptyFormState.passphrase_required).toBe(false);
+    expect(box.element.checked).toBe(true);
+    expect(box.element.disabled).toBe(true);
+    // The test i18n renders keys.
+    expect(wrapper.get(note).text()).toBe('web.domains.incoming.passphrase_required_by_instance');
+    expect(box.attributes('aria-describedby')).toBe(wrapper.get(note).attributes('id'));
+    expect(wrapper.emitted('update:passphraseRequired')).toBeUndefined();
+  });
+
+  it('shows the box checked and disabled with the organization note', () => {
+    const wrapper = mountInherited({ organization: true, orgid: 'on-owner' });
+    const box = wrapper.get<HTMLInputElement>(checkbox);
+
+    expect(box.element.checked).toBe(true);
+    expect(box.element.disabled).toBe(true);
+    expect(wrapper.get(note).text()).toBe(
+      'web.domains.incoming.passphrase_required_by_organization'
+    );
+  });
+
+  it('names the installation when both levels require one', () => {
+    const wrapper = mountInherited({ instance: true, organization: true, orgid: 'on-owner' });
+    expect(wrapper.get(note).text()).toBe('web.domains.incoming.passphrase_required_by_instance');
+  });
+
+  it("shows the box checked and disabled with the domain note when the domain's brand requires one", () => {
+    const wrapper = mountInherited({ domain: true, orgid: 'on-owner' });
+    const box = wrapper.get<HTMLInputElement>(checkbox);
+
+    expect(box.element.checked).toBe(true);
+    expect(box.element.disabled).toBe(true);
+    expect(wrapper.get(note).text()).toBe('web.domains.incoming.passphrase_required_by_domain');
+  });
+
+  it('names the organization when both the organization and the domain require one', () => {
+    const wrapper = mountInherited({ organization: true, domain: true, orgid: 'on-owner' });
+    expect(wrapper.get(note).text()).toBe(
+      'web.domains.incoming.passphrase_required_by_organization'
+    );
+  });
+
+  it('applies the domain level even when no organization is given', () => {
+    const wrapper = mountInherited({ domain: true });
+    expect(wrapper.get<HTMLInputElement>(checkbox).element.disabled).toBe(true);
+  });
+
+  it('leaves the box editable when neither level requires one', () => {
+    const wrapper = mountInherited({ orgid: 'on-owner' });
+    const box = wrapper.get<HTMLInputElement>(checkbox);
+
+    expect(box.element.checked).toBe(false);
+    expect(box.element.disabled).toBe(false);
+    expect(wrapper.find(note).exists()).toBe(false);
+  });
+
+  it('ignores the organization level for an organization the store has not loaded', () => {
+    const wrapper = mountInherited({ organization: true, orgid: 'on-other' });
+    expect(wrapper.get<HTMLInputElement>(checkbox).element.disabled).toBe(false);
+  });
+
+  it('ignores the organization level when no organization is given', () => {
+    const wrapper = mountInherited({ organization: true });
+    expect(wrapper.get<HTMLInputElement>(checkbox).element.disabled).toBe(false);
+  });
+});
+
+describe('DomainIncomingConfigForm recipients section copy', () => {
+  it('describes the section with the section description, not the empty-state text', () => {
+    const wrapper = mountForm({ formState: singleRecipientFormState });
+
+    // The test i18n renders keys.
+    expect(wrapper.get('[data-testid="incoming-recipients-description"]').text()).toBe(
+      'web.domains.incoming.recipients_description'
+    );
+    expect(wrapper.text()).not.toContain('web.domains.incoming.empty_state_description');
+  });
+
+  it('heads the list with a heading key, not the status badge key', () => {
+    const wrapper = mountForm({ formState: singleRecipientFormState });
+
+    expect(wrapper.get('[data-testid="incoming-recipients-list-heading"]').text()).toContain(
+      'web.domains.incoming.recipients_list_heading'
+    );
+    expect(wrapper.text()).not.toContain('web.domains.incoming.badge_configured');
+  });
+
+  it('renders the usage line from one key with count and max, without lower-casing a translation', () => {
+    // Pass-through like the test i18n, with real text for the one key under test.
+    const usageI18n = createI18n({
+      legacy: false,
+      locale: 'en',
+      missingWarn: false,
+      fallbackWarn: false,
+      missing: (_, key) => key,
+      // `never`: the generated message schema expects every key (see createTestI18n).
+      messages: {
+        en: { web: { domains: { incoming: { recipients_usage: '{count} OF {max} Recipients' } } } },
+      } as never,
+    });
+    const wrapper = mount(DomainIncomingConfigForm, {
+      props: { formState: singleRecipientFormState, savedFormState: null, maxRecipients: 20 },
+      global: { plugins: [createTestingPinia({ createSpy: vi.fn }), usageI18n] },
+    });
+
+    // Capitals survive: the text is the translator's, not passed through toLowerCase().
+    expect(wrapper.get('[data-testid="incoming-recipients-usage"]').text()).toBe(
+      '1 OF 20 Recipients'
+    );
+  });
+
+  it('shows no usage line without recipients', () => {
+    const wrapper = mountForm({ formState: emptyFormState });
+    expect(wrapper.find('[data-testid="incoming-recipients-usage"]').exists()).toBe(false);
   });
 });

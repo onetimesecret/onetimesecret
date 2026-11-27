@@ -1037,6 +1037,7 @@ describe('OrganizationSettings', () => {
   describe.each([true, false])('tenant SSO permissions with billing enabled=%s', billingEnabled => {
     beforeEach(() => { mockOrgsSsoEnabled.value = true; mockRouteParams.tab = 'sso'; });
     const panel = () => wrapper.get('#org-panel-sso');
+
     function permissions(role: string, ...domains: ReturnType<typeof ssoDomain>[]) {
       mockGetPermissions.mockResolvedValue({ data: { organizations: [{
         ...permissionRecord(false, role), domains,

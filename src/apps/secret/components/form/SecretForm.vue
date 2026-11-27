@@ -223,10 +223,15 @@
 
 <template>
   <div class="mx-auto min-w-[320px] max-w-2xl space-y-6">
-    <!-- Enhanced Alert Display -->
+    <!--
+      Alert Display. Kept below the header menus (UserMenu and ScopeSwitcher,
+      z-50) and the footer language menu (z-[49]) so an open menu is not
+      covered by the banner, and above the form card as the page scrolls.
+    -->
     <BasicFormAlerts
       :errors="Array.from(validation.errors.values())"
-      class="sticky top-4 z-50" />
+      class="sticky top-4 z-[5]"
+      data-testid="secret-form-alerts" />
 
     <form
       ref="form1"
@@ -241,6 +246,11 @@
         removed) still reads as an over-rounded blob on this large container. The
         corner token belongs on the controls inside (inputs, select, button),
         matching BaseSecretDisplay's fixed-card / branded-controls split.
+
+        No z-index on this card: raising it while the Create Link menu is open
+        makes it paint over the sticky alert banner, so the error text shows
+        through the fields. The menu opens below its button, so a banner that
+        could cover the menu already covers the button.
       -->
       <div
         ref="div1"
@@ -333,7 +343,7 @@
                 <span
                   v-if="isPassphraseRequired"
                   class="ml-1 text-red-500"
-                  aria-label="Required"
+                  :aria-label="t('web.LABELS.required')"
                   >*</span
                 >
               </label>
@@ -342,11 +352,21 @@
                 <div
                   v-if="passphraseConfig"
                   class="text-xs text-gray-500 dark:text-gray-400">
-                  <span v-if="passphraseConfig.minimum_length">
+                  <!--
+                    "(Optional)" only while the field is optional and has no
+                    error: once a passphrase was entered and refused, the
+                    minimum applies to it.
+                  -->
+                  <span
+                    v-if="passphraseConfig.minimum_length"
+                    data-testid="secret-passphrase-minimum-hint">
                     {{
-                      t('web.secrets.passphraseMinimumLength', {
-                        length: passphraseConfig.minimum_length,
-                      })
+                      t(
+                        isPassphraseRequired || getError('passphrase')
+                          ? 'web.secrets.passphraseMinimumLengthRequired'
+                          : 'web.secrets.passphraseMinimumLength',
+                        { length: passphraseConfig.minimum_length }
+                      )
                     }}
                   </span>
                   <span
@@ -378,7 +398,11 @@
                 <button
                   type="button"
                   @click="togglePassphraseVisibility"
-                  :aria-label="state.passphraseVisibility ? 'Hide passphrase' : 'Show passphrase'"
+                  :aria-label="
+                    state.passphraseVisibility
+                      ? t('web.LABELS.hide_passphrase')
+                      : t('web.LABELS.show_passphrase')
+                  "
                   :aria-pressed="state.passphraseVisibility"
                   class="absolute inset-y-0 right-3 flex items-center
                     focus:outline-none focus:ring-2 focus:ring-blue-500"

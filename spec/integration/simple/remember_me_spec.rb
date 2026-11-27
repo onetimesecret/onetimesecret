@@ -10,7 +10,7 @@
 require_relative '../integration_spec_helper'
 require_relative '../../support/customer_session_failure_matrix'
 
-RSpec.describe 'Remember me: a fixed 14-day session (simple mode)', type: :integration do
+RSpec.describe 'Remember me: a fixed 30-day session (simple mode)', type: :integration do
   include_context 'auth_rack_test'
   include CustomerSessionFailureMatrix
 
@@ -69,7 +69,7 @@ RSpec.describe 'Remember me: a fixed 14-day session (simple mode)', type: :integ
     expect(session_cookie_header).not_to match(/max-age/i)
   end
 
-  it 'gives a checked login a blob and cookie that end 14 days from sign-in', :aggregate_failures do
+  it 'gives a checked login a blob and cookie that end 30 days from sign-in', :aggregate_failures do
     login!('remember-me' => true)
 
     expect(session_blob.fetch('remember_until')).to be_within(5).of(Time.now.to_i + duration)
@@ -84,7 +84,7 @@ RSpec.describe 'Remember me: a fixed 14-day session (simple mode)', type: :integ
     login!('remember-me' => true)
     remember_until = session_blob.fetch('remember_until')
 
-    # Age the session, not just its Redis TTL: a fresh 14-day renewal must fail.
+    # Age the session, not just its Redis TTL: a fresh 30-day renewal must fail.
     # Keep Ruby's clock fixed through the write and assertion so Redis's rounded
     # TTL is not compared with a remaining lifetime from a later second.
     allow(Time).to receive(:now).and_return(signed_in_at + 7200)
@@ -224,7 +224,7 @@ RSpec.describe 'Remember me: a fixed 14-day session (simple mode)', type: :integ
       expect(session_cookie_header.to_s).not_to match(/max-age/i)
     end
 
-    it 'caps a deadline beyond 14 days at 14 days' do
+    it 'caps a deadline beyond 30 days at 30 days' do
       login!
       rewrite_session_blob { |data| data['remember_until'] = Time.now.to_i + (duration * 10) }
 

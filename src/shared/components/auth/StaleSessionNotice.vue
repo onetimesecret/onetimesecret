@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useAuthStore } from '@/shared/stores/authStore';
+  import { onUnmounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -31,11 +32,58 @@
   // A user-initiated reload: not bounded, and the browser still prompts if a
   // view holds unsubmitted input.
   const reload = () => window.location.reload();
+
+  // A page that sticks its own bar to the viewport top (the domain pages'
+  // headers) has to sit below this notice instead of under it. The notice
+  // wraps on narrow screens, so publish its measured height on the root
+  // element as --stale-session-notice-height. The property is absent while
+  // the notice is not shown; consumers fall back to 0px.
+  const HEIGHT_PROPERTY = '--stale-session-notice-height';
+  const noticeEl = ref<HTMLElement | null>(null);
+  let resizeObserver: ResizeObserver | null = null;
+
+  const publishHeight = () => {
+    const el = noticeEl.value;
+    if (el) {
+      document.documentElement.style.setProperty(HEIGHT_PROPERTY, `${el.offsetHeight}px`);
+    } else {
+      document.documentElement.style.removeProperty(HEIGHT_PROPERTY);
+    }
+  };
+
+  const stopMeasuring = () => {
+    resizeObserver?.disconnect();
+    resizeObserver = null;
+    window.removeEventListener('resize', publishHeight);
+  };
+
+  // The element exists only while the state holds (v-if), so follow the ref.
+  watch(
+    noticeEl,
+    (el) => {
+      stopMeasuring();
+      publishHeight();
+      if (!el) return;
+      if (typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(publishHeight);
+        resizeObserver.observe(el);
+      } else {
+        window.addEventListener('resize', publishHeight);
+      }
+    },
+    { flush: 'post' }
+  );
+
+  onUnmounted(() => {
+    stopMeasuring();
+    document.documentElement.style.removeProperty(HEIGHT_PROPERTY);
+  });
 </script>
 
 <template>
   <div
     v-if="authStore.staleSession"
+    ref="noticeEl"
     role="alert"
     data-testid="stale-session-notice"
     class="sticky top-0 z-50 border-b-2 border-amber-500 bg-amber-100 px-4 py-2 text-amber-900 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-100">

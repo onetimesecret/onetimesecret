@@ -3,8 +3,15 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
+  import { computed } from 'vue';
 
   const { t } = useI18n();
+
+  // Explain burning only where the Burn action is offered.
+  const { uiCapabilities } = storeToRefs(useBootstrapStore());
+  const burnEnabled = computed(() => uiCapabilities.value?.burn !== false);
 
   interface Props {
     record: Receipt;
@@ -62,6 +69,7 @@
         </template>
 
         <div
+          v-if="burnEnabled"
           class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
           <h5 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
             {{
@@ -127,6 +135,7 @@
       </div>
 
       <div
+        v-if="burnEnabled"
         class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
         <h5 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
           {{

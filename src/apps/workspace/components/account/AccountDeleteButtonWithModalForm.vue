@@ -5,6 +5,7 @@
   import { type Customer } from '@/schemas/shapes/v3';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useAuth } from '@/shared/composables/useAuth';
+  import { Dialog, DialogPanel, DialogTitle } from '@headlessui/vue';
   import { ref } from 'vue';
 
   const { t } = useI18n();
@@ -34,7 +35,9 @@
     showDeleteModal.value = true;
   };
 
+  // Escape and a backdrop click close the dialog too, except mid-request.
   const closeDeleteModal = () => {
+    if (isDeleting.value) return;
     clearErrors();
     showDeleteModal.value = false;
     deletePassword.value = '';
@@ -81,17 +84,19 @@
   </p>
 
   <!-- Delete Account Confirmation Modal -->
-  <div
-    v-if="showDeleteModal"
+  <Dialog
+    :open="showDeleteModal"
     data-testid="account-delete-modal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-    <form
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    @close="closeDeleteModal">
+    <DialogPanel
+      as="form"
       @submit.prevent="submitDeleteAccount"
       class="w-full max-w-md">
       <div class="rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-        <h3 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+        <DialogTitle as="h3" class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
           {{ t('web.account.confirm_account_deletion') }}
-        </h3>
+        </DialogTitle>
         <p class="mb-4 text-gray-700 dark:text-gray-300">
           {{ t('web.account.are_you_sure_you_want_to_permanently_delete_your') }}
         </p>
@@ -108,7 +113,7 @@
             type="password"
             data-testid="account-delete-password-input"
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            autocomplete="confirmation"
+            autocomplete="current-password"
             :placeholder="t('web.account.confirm_with_your_password')" />
         </div>
 
@@ -122,8 +127,9 @@
           <button
             @click="closeDeleteModal"
             type="button"
+            :disabled="isDeleting"
             data-testid="account-delete-cancel-btn"
-            class="rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 focus:ring-2 focus:ring-gray-400 focus:outline-none dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+            class="rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 focus:ring-2 focus:ring-gray-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
             {{ t('web.COMMON.word_cancel') }}
           </button>
           <button
@@ -148,6 +154,6 @@
           </button>
         </div>
       </div>
-    </form>
-  </div>
+    </DialogPanel>
+  </Dialog>
 </template>

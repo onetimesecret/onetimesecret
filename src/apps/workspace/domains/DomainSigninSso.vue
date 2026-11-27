@@ -236,7 +236,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Return to settings the current member can open. -->
-    <div class="sticky top-0 z-30">
+    <div class="sticky top-[var(--stale-session-notice-height,0px)] z-30">
       <DomainHeader
         :display-domain="domainHost"
         :has-unsaved-changes="ssoHasUnsavedChanges"

@@ -186,8 +186,11 @@
   // Initialize TTL on mount: restore the user's last-used value when it is
   // still a valid option, otherwise fall back to the configured default.
   // Persisted as a minor preference via localReceiptStore (localStorage).
-  const { lifetimeOptions } = usePrivacyOptions();
+  // The stored value is passed as the selection so that a lifetime outside
+  // the presets (a non-preset ceiling picked earlier, e.g. 3602 s) counts as
+  // an option while it is within the ceiling, instead of resetting.
   const preferredTtl = localReceiptStore.preferredTtl;
+  const { lifetimeOptions } = usePrivacyOptions(undefined, () => preferredTtl ?? 0);
   const isValidPreferredTtl =
     preferredTtl != null && lifetimeOptions.value.some((opt) => opt.value === preferredTtl);
   operations.updateField('ttl', isValidPreferredTtl ? preferredTtl : defaultTtl.value);
@@ -300,10 +303,13 @@
 
 <template>
   <div class="mx-auto min-w-[320px] max-w-full space-y-6">
-    <!-- Alert Display -->
+    <!--
+      Alert Display. Kept below the PrivacyOptionsBar (z-10) so an open TTL or
+      passphrase popover is not covered by the banner, and above the form card.
+    -->
     <BasicFormAlerts
       :errors="Array.from(validation.errors.values())"
-      class="sticky top-4 z-50" />
+      class="sticky top-4 z-[5]" />
 
     <form
       @submit.prevent="handleSubmit"

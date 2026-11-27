@@ -10,6 +10,8 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { isActiveSessionsEnabledOf } from '@/utils/features';
   import { formatDisplayDateTime } from '@/utils/format';
+  import { onKeyStroke } from '@vueuse/core';
+  import { useBackdropClose } from '@/shared/composables/useBackdropClose';
   import { computed, onMounted, ref } from 'vue';
 
   const { t } = useI18n();
@@ -25,6 +27,16 @@
   const showDisableConfirm = ref(false);
   const disablePassword = ref('');
   const isDisabling = ref(false);
+
+  // Escape and a backdrop click close the disable dialog, except mid-request.
+  const closeDisableConfirm = () => {
+    if (isDisabling.value) return;
+    showDisableConfirm.value = false;
+  };
+  onKeyStroke('Escape', () => {
+    if (showDisableConfirm.value) closeDisableConfirm();
+  });
+  const { onBackdropMousedown, onBackdropClick } = useBackdropClose(closeDisableConfirm);
 
   onMounted(async () => {
     await fetchMfaStatus();
@@ -254,7 +266,8 @@
       <div
         v-if="showDisableConfirm"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        @click.self="showDisableConfirm = false">
+        @mousedown="onBackdropMousedown"
+        @click="onBackdropClick">
         <div
           class="mx-4 max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
           role="dialog"
@@ -303,7 +316,7 @@
             <!-- Action buttons -->
             <div class="flex justify-end gap-3">
               <button
-                @click="showDisableConfirm = false"
+                @click="closeDisableConfirm"
                 type="button"
                 :disabled="isDisabling"
                 class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">

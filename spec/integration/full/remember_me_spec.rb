@@ -17,7 +17,7 @@
 require 'spec_helper'
 require_relative '../../support/customer_session_failure_matrix'
 
-RSpec.describe 'Remember me: a fixed 14-day session (full mode)', type: :integration do
+RSpec.describe 'Remember me: a fixed 30-day session (full mode)', type: :integration do
   include_context 'auth_rack_test'
   include CustomerSessionFailureMatrix
 
@@ -65,7 +65,7 @@ RSpec.describe 'Remember me: a fixed 14-day session (full mode)', type: :integra
   end
 
   describe 'a checked login' do
-    it 'stamps the Rack session and the active-session row, and fixes the blob and cookie at 14 days', :aggregate_failures do
+    it 'stamps the Rack session and the active-session row, and fixes the blob and cookie at 30 days', :aggregate_failures do
       before_login = Time.now.to_i
       login!('remember-me' => true)
 
@@ -107,7 +107,7 @@ RSpec.describe 'Remember me: a fixed 14-day session (full mode)', type: :integra
       expect(account_request).to eq(200)
     end
 
-    it 'loses its exemption and 14-day blob once remember-me is switched off', :aggregate_failures do
+    it 'loses its exemption and 30-day blob once remember-me is switched off', :aggregate_failures do
       login!('remember-me' => true)
       allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false)
 

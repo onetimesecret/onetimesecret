@@ -74,6 +74,69 @@ describe('sharing controls in the creation form', () => {
     __resetDomainContextForTesting();
   });
 
+  it.each([true, false])('labels the minimum length hint as optional only when passphrase required=%s is false', async required => {
+    const { bootstrap, render } = setup(organization('org', { ...unrestricted, passphrase_required: required }));
+    bootstrap.$patch({ secret_options: {
+      default_ttl: 3600, ttl_options: [60, 3600], passphrase: { minimum_length: 4 },
+    } });
+    render();
+    await flushPromises();
+    const hint = wrapper.get(passphrase).element.closest('.relative')!.parentElement!.textContent ?? '';
+    // The test i18n renders keys. The plain key's English text ends "(Optional)".
+    expect(hint.includes('web.secrets.passphraseMinimumLengthRequired')).toBe(required);
+    expect(/passphraseMinimumLength(?!Required)/.test(hint)).toBe(!required);
+  });
+
+  it('keeps the error banner below page menus and never raises the card over it', async () => {
+    const { render } = setup(organization('org'));
+    render();
+    await flushPromises();
+    // jsdom has no layout, so this pins the classes the stacking order relies on.
+    const banner = wrapper.get('[data-testid="secret-form-alerts"]');
+    expect(banner.classes()).toContain('z-[5]');
+    expect(banner.classes()).not.toContain('z-50');
+    const toggle = wrapper.get('[data-testid="split-button-dropdown-toggle"]');
+    const card = toggle.element.closest('.backdrop-blur-sm')!;
+    // A card z-index (even one applied only while the menu is open) paints the
+    // card over the sticky banner, so the error shows through the fields.
+    const raised = () => [...card.classList].filter((name) => /(^|:)z-/.test(name));
+    expect(raised()).toEqual([]);
+    await toggle.trigger('click');
+    expect(toggle.attributes('aria-expanded')).toBe('true');
+  });
+
+  it('drops "(Optional)" from the minimum length hint once an optional passphrase is refused', async () => {
+    const { bootstrap, render } = setup(organization('org'));
+    bootstrap.$patch({ secret_options: {
+      default_ttl: 3600, ttl_options: [60, 3600], passphrase: { minimum_length: 8 },
+    } });
+    render();
+    await flushPromises();
+    const hint = () => wrapper.get('[data-testid="secret-passphrase-minimum-hint"]').text();
+    // The test i18n renders keys. The plain key's English text ends "(Optional)".
+    expect(hint()).toBe('web.secrets.passphraseMinimumLength');
+
+    await wrapper.get('textarea').setValue('draft secret');
+    await wrapper.get(passphrase).setValue('short');
+    await wrapper.get('form').trigger('submit');
+    expect(wrapper.get(passphrase).attributes('aria-invalid')).toBe('true');
+    expect(hint()).toBe('web.secrets.passphraseMinimumLengthRequired');
+    expect(useSecretStore().conceal).not.toHaveBeenCalled();
+  });
+
+  it('labels the required marker and the passphrase toggle from locale keys', async () => {
+    const { render } = setup(organization('org', { ...unrestricted, passphrase_required: true }));
+    render();
+    await flushPromises();
+    // The test i18n renders keys.
+    const label = wrapper.get(passphrase).element.closest('.relative')!.parentElement!;
+    expect(label.querySelector('label span')!.getAttribute('aria-label')).toBe('web.LABELS.required');
+    const toggle = wrapper.get('[data-testid="secret-toggle-passphrase"]');
+    expect(toggle.attributes('aria-label')).toBe('web.LABELS.show_passphrase');
+    await toggle.trigger('click');
+    expect(toggle.attributes('aria-label')).toBe('web.LABELS.hide_passphrase');
+  });
+
   it.each([true, false])('replaces an edited host policy and keeps domain passphrase=%s', async required => {
     const { bootstrap, organizations, render } = setup(organization('host', {
       ...unrestricted, max_ttl: 90, passphrase_required: true, recipient_email_mode: 'disabled',

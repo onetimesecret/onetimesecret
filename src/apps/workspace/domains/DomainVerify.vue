@@ -167,7 +167,7 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header Section. Back folded into the header row (opt-in affordance),
          so there's no separate Back row above it. -->
-    <div class="sticky top-0 z-30">
+    <div class="sticky top-[var(--stale-session-notice-height,0px)] z-30">
       <DomainHeader
         :domain="domain"
         :has-unsaved-changes="false"

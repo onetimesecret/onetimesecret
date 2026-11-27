@@ -9,6 +9,7 @@
  * and ARIA support.
  */
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { useMenuPlacement, type ElementLike } from '@/shared/composables/useMenuPlacement';
 import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
 import {
   Listbox,
@@ -17,10 +18,15 @@ import {
   ListboxOption,
   ListboxOptions,
 } from '@headlessui/vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+
+// Opens upward near the bottom so the mobile nav and footer don't cover it.
+const triggerRef = ref<ElementLike>(null);
+const menuRef = ref<ElementLike>(null);
+const { placement } = useMenuPlacement(triggerRef, menuRef);
 
 interface Props {
   /** Current TTL value in seconds */
@@ -65,6 +71,7 @@ const displayText = computed(() => formatDuration(props.modelValue));
       </ListboxLabel>
 
       <ListboxButton
+        ref="triggerRef"
         class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium
           ring-1 ring-inset transition-all
           bg-brand-50 text-brand-700 ring-brand-600/20
@@ -91,7 +98,10 @@ const displayText = computed(() => formatDuration(props.modelValue));
         leave-from-class="opacity-100"
         leave-to-class="opacity-0">
         <ListboxOptions
-          class="absolute left-0 top-full z-50 mt-1 max-h-60 w-48 overflow-auto rounded-md
+          ref="menuRef"
+          :data-placement="placement"
+          :class="placement === 'above' ? 'bottom-full mb-1' : 'top-full mt-1'"
+          class="absolute left-0 z-50 max-h-60 w-48 overflow-auto rounded-md
             bg-white py-1 text-sm shadow-lg ring-1 ring-black/5
             focus:outline-none
             dark:bg-gray-800 dark:ring-gray-700">

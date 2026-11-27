@@ -5,10 +5,12 @@ import {
   secretDisplayTypeSchema,
 } from '@/schemas/contracts/secret';
 import { transforms } from '@/schemas/transforms';
+import { passphraseIssueMessage, reportedPassphraseIssue } from './usePassphraseRules';
 import { useSharingControls } from './useSharingControls';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
 import { reactive, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { z } from 'zod';
 
 export interface SecretFormState {
@@ -60,6 +62,7 @@ export type SecretFormData = z.infer<typeof formSchema>;
  */
 /* eslint-disable max-lines-per-function */
 export function useSecretForm(shareDomain?: () => string) {
+  const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
   const { secret_options } = storeToRefs(bootstrapStore);
 
@@ -98,43 +101,18 @@ export function useSecretForm(shareDomain?: () => string) {
     const allowedDomains = controls.recipientDomains.value;
     const domain = form.recipient.slice(form.recipient.lastIndexOf('@') + 1).toLowerCase();
     if (!controls.recipientEnabled.value || (allowedDomains && !allowedDomains.includes(domain))) {
-      errors.set('recipient', 'Recipient email is restricted by the organization');
+      errors.set('recipient', t('web.secrets.error_recipient_restricted'));
     }
   }
 
+  // The rules and their messages are shared with the dashboard passphrase
+  // chip and mobile sheet (usePassphraseRules).
   function validatePassphrase() {
-    const value = form.passphrase;
-    if (controls.passphraseRequired.value && !value.trim()) {
-      errors.set('passphrase', 'A passphrase is required for all secrets');
-      return;
-    }
-    const config = secret_options.value?.passphrase;
-    if (!config || !value) return;
-    if (config.minimum_length && value.length < config.minimum_length) {
-      errors.set('passphrase',
-        `Passphrase must be at least ${config.minimum_length} characters long`);
-    }
-    if (config.maximum_length && value.length > config.maximum_length) {
-      errors.set('passphrase',
-        `Passphrase must be no more than ${config.maximum_length} characters long`);
-    }
-    if (config.enforce_complexity) validatePassphraseComplexity(value);
-  }
-
-  function validatePassphraseComplexity(passphrase: string) {
-    const complexityErrors = [];
-    if (!/[A-Z]/.test(passphrase)) complexityErrors.push('uppercase letter');
-    if (!/[a-z]/.test(passphrase)) complexityErrors.push('lowercase letter');
-    if (!/\d/.test(passphrase)) complexityErrors.push('number');
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(passphrase))
-      complexityErrors.push('symbol');
-
-    if (complexityErrors.length > 0) {
-      errors.set(
-        'passphrase',
-        `Passphrase must contain at least one ${complexityErrors.join(', ')}`
-      );
-    }
+    const issue = reportedPassphraseIssue(form.passphrase, {
+      required: controls.passphraseRequired.value,
+      config: secret_options.value?.passphrase,
+    });
+    if (issue) errors.set('passphrase', passphraseIssueMessage(issue, t));
   }
 
   function validate(generate = false) {
@@ -146,7 +124,7 @@ export function useSecretForm(shareDomain?: () => string) {
       }
     }
     if (controls.ttlCeiling.value !== null && controls.ttlCeiling.value < 60) {
-      errors.set('ttl', 'Maximum secret lifetime is below 60 seconds');
+      errors.set('ttl', t('web.secrets.error_ttl_below_minimum'));
     }
     validateRecipientPolicy();
     validatePassphrase();
