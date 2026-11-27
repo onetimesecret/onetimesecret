@@ -6,7 +6,7 @@
 #   bin/ci toolchain                install the tools a lane job needs (GitLab CI only)
 #   bin/ci docker up                start a Docker daemon in the job unless one answers
 #   bin/ci services up <name>...    start test services from compose.test.yml
-#   bin/ci prepare [<step>...]      etc/ from etc/defaults, bundle and pnpm installs (GitLab CI only)
+#   bin/ci prepare [<step>...]      checkout modes, etc/, bundle and pnpm installs (GitLab CI only)
 #   bin/ci lane <lane> [<overlay>]  run tests/lanes/run <lane> with the CI log profile
 #   bin/ci rubocop                  RuboCop over the tree, results in tmp/rubocop_results.json
 #

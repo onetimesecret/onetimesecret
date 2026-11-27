@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 #
-# tools/ci/prepare.sh — bin/ci prepare [etc|bundle|pnpm]...: the job
+# tools/ci/prepare.sh — bin/ci prepare [checkout|etc|bundle|pnpm]...: the job
 # preparation a lane needs after its toolchain. What the setup-ruby-test-env
-# and setup-node-env actions do on GitHub beyond installing Ruby and Node:
+# and setup-node-env actions do on GitHub beyond installing Ruby and Node,
+# and one step GitHub's checkout does not need:
 #
-#   etc     etc/<name> from each etc/defaults/<name with .defaults>, where
-#           etc/<name> is missing;
-#   bundle  a frozen bundle install into vendor/bundle, in deployment mode,
-#           set in the checkout's .bundle/config (what ruby/setup-ruby's
-#           bundler-cache does);
-#   pnpm    a frozen pnpm install.
+#   checkout  group and other write access removed from the checkout's root
+#             and the directories above it (see private_checkout below);
+#   etc       etc/<name> from each etc/defaults/<name with .defaults>, where
+#             etc/<name> is missing;
+#   bundle    a frozen bundle install into vendor/bundle, in deployment mode,
+#             set in the checkout's .bundle/config (what ruby/setup-ruby's
+#             bundler-cache does);
+#   pnpm      a frozen pnpm install.
 #
-# With no argument it runs all three, in that order. A job that needs less
+# With no argument it runs all four, in that order. A job that needs less
 # names its steps: the RuboCop job runs `bin/ci prepare bundle`, the frontend
 # build `bin/ci prepare pnpm`.
 #
@@ -28,11 +31,11 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 for name in "$@"; do
   case "$name" in
-    etc | bundle | pnpm) ;;
-    *) ci_usage_error "usage: bin/ci prepare [etc|bundle|pnpm]... (not a step: ${name})" ;;
+    checkout | etc | bundle | pnpm) ;;
+    *) ci_usage_error "usage: bin/ci prepare [checkout|etc|bundle|pnpm]... (not a step: ${name})" ;;
   esac
 done
-[ "$#" -gt 0 ] || set -- etc bundle pnpm
+[ "$#" -gt 0 ] || set -- checkout etc bundle pnpm
 ci_require_gitlab_job "bin/ci prepare"
 cd "$CI_REPO_ROOT"
 unset GEM_HOME BUNDLE_APP_CONFIG
@@ -43,6 +46,24 @@ step() { # <id> <title> <function>
   "$3"
   ci_section_end "$1"
   printf 'bin/ci prepare: %s took %ss\n' "$1" "$((SECONDS - started))"
+}
+
+# GitLab's Docker executor fetches the sources with umask 0000, so the
+# checkout's root and the build directories above it are writable by every
+# user. `bin/setup --doctor --bundle` refuses to write under such a directory
+# (bundle_check_output_path in tools/setup/setup.sh), and the unit lane runs
+# it (spec/unit/setup/doctor_bundle_spec.rb). A GitHub runner's checkout and
+# a workstation's are writable by their owner only. A sticky directory is
+# left alone: that check accepts one.
+private_checkout() {
+  local path="$CI_REPO_ROOT"
+  while [ -n "$path" ] && [ "$path" != / ]; do
+    if [ -O "$path" ] && [ ! -k "$path" ]; then
+      chmod go-w "$path"
+    fi
+    printf '%s %s\n' "$(stat -c '%a %U' "$path")" "$path"
+    path="$(dirname "$path")"
+  done
 }
 
 seed_etc() {
@@ -75,6 +96,7 @@ pnpm_install() {
 
 for name in "$@"; do
   case "$name" in
+    checkout) step prepare_checkout "checkout writable by its owner only" private_checkout ;;
     etc) step prepare_etc "etc/ from etc/defaults" seed_etc ;;
     bundle) step prepare_bundle "bundle install (frozen, vendor/bundle)" bundle_install ;;
     pnpm) step prepare_pnpm "pnpm install (frozen)" pnpm_install ;;
