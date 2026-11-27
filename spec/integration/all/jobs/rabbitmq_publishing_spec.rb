@@ -263,6 +263,7 @@ RSpec.describe 'RabbitMQ Publishing', :rabbitmq, type: :integration do
         sender_domain_id: 'cd-rabbit',
         secret_shortid: 'a1b2c3d4',
         secret_expiration: expires_at,
+        unregister_from_expiration_notifications: true,
       )
       allow(Onetime::Receipt).to receive_messages(
         expiring_within: ['rcpt-rabbit'],

@@ -570,12 +570,26 @@ module Onetime
         hours * 3600
       end
 
-      # Find receipt IDs for secrets expiring within the given time window
+      # Find receipt IDs for secrets expiring within the given time window,
+      # soonest first. With offset and count, one page of them
+      # (ZRANGEBYSCORE ... LIMIT offset count), so a caller can walk a large
+      # window without loading all of it.
       # @param seconds [Integer] Time window in seconds from now
+      # @param offset [Integer, nil] entries to skip (paged read)
+      # @param count [Integer, nil] page size (paged read)
       # @return [Array<String>] Receipt identifiers
-      def expiring_within(seconds)
-        now = Familia.now.to_f
-        expiration_timeline.rangebyscore(now, now + seconds)
+      def expiring_within(seconds, offset: nil, count: nil)
+        now  = Familia.now.to_f
+        opts = count ? { limit: [offset.to_i, count] } : {}
+        expiration_timeline.rangebyscore(now, now + seconds, opts)
+      end
+
+      # Take one entry off the expiration timeline by identifier, without
+      # loading the receipt.
+      # @param receipt_id [String] Receipt identifier
+      # @return [Boolean] true when an entry was removed
+      def remove_from_expiration_timeline(receipt_id)
+        expiration_timeline.remove_element(receipt_id)
       end
 
       # Check if a warning has already been sent for this receipt

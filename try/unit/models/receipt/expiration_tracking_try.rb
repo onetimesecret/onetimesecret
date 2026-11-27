@@ -94,6 +94,22 @@ results = Onetime::Receipt.expiring_within(600)
 results.include?(@test_expiring_id)
 #=> false
 
+## expiring_within pages the window soonest first with offset and count
+@page_ids = Array.new(3) { |n| "test_page_#{n}_#{rand(100_000)}" }
+base = Familia.now.to_f + 60
+@page_ids.each_with_index { |id, n| Onetime::Receipt.expiration_timeline.add(id, base + n) }
+all   = Onetime::Receipt.expiring_within(120)
+mine  = all.select { |id| @page_ids.include?(id) }
+start = all.index(@page_ids.first)
+page  = Onetime::Receipt.expiring_within(120, offset: start + 1, count: 2)
+[mine, page]
+#=> [@page_ids, @page_ids[1, 2]]
+
+## remove_from_expiration_timeline takes one entry off by identifier
+Onetime::Receipt.remove_from_expiration_timeline(@page_ids[0])
+@page_ids.map { |id| Onetime::Receipt.expiration_timeline.member?(id) }
+#=> [false, true, true]
+
 ## warning_sent? returns false for new receipt
 test_id2 = "test_warning_#{rand(10000)}"
 Onetime::Receipt.warning_sent?(test_id2)
