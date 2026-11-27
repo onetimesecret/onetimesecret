@@ -481,8 +481,12 @@ module V1::Logic
       end
 
       def update_stats
+        # Best-effort, as in V2: a failing counter must not stop the link
+        # from returning or the 'created' event from recording.
         unless anonymous_creator?
-          cust.increment_field :secrets_created # cust.secrets_created.increment
+          Onetime::Receipt.creation_followup(:customer_stats, receipt) do
+            cust.increment_field :secrets_created
+          end
         end
         # TODO:
         # Onetime::Customer.global.increment_field :secrets_created # Customer.secrets_created.increment

@@ -106,6 +106,16 @@ RSpec.describe 'Secret Activity capture at creation', type: :integration do
       end
 
       context 'by an organization member' do
+        it 'records created and keeps the link when the customer counter fails' do
+          logic = send(builder, owner, org: organization)
+          logic.send(:create_secret_pair)
+          allow(owner).to receive(:increment_field).with(:secrets_created).and_raise(Redis::CannotConnectError)
+
+          expect { logic.send(:handle_success) }.not_to raise_error
+          expect(logic.receipt).not_to be_nil
+          expect(trail.count { |event| event['kind'] == 'created' }).to eq(1)
+        end
+
         it 'stamps the receipt, indexes it in the commit, and records created once' do
           logic   = send(creator, owner, org: organization, domain_record: domain)
           receipt = Onetime::Receipt.load(logic.receipt.identifier)
