@@ -7,22 +7,10 @@ require 'openssl'
 require_relative 'sidecar'
 
 module Onetime
-  # Server allocation of the bootstrap snapshot ordering fields (ADR-046).
-  #
-  # A complete bootstrap snapshot for an ORDERED session carries
-  #
-  #   snapshot_epoch         opaque identifier of the current session-ID
-  #                          lifetime (32 lowercase hex)
-  #   snapshot_version       positive sequence within that epoch, as a
-  #                          canonical decimal STRING
-  #   snapshot_generated_at  server time, for age and diagnostics ONLY
-  #
-  # so the client can refuse a stale snapshot instead of applying responses in
-  # arrival order. The acceptance rules are the client's (ADR-046, "Client
-  # acceptance"); this module only allocates.
-  #
-  # `snapshot_generated_at` orders nothing. No code here, in the serializer, or
-  # in the schema may branch on it (snapshot_ordering_spec.rb guards this).
+  # Allocates bootstrap snapshot ordering fields (ADR-046). The opaque epoch
+  # identifies a session-ID lifetime; the version is a positive canonical
+  # decimal string within it. The client decides whether to accept a snapshot.
+  # `snapshot_generated_at` is for age and diagnostics, never for ordering.
   module SnapshotOrdering
     extend self
 

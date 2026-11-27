@@ -7,28 +7,14 @@ require 'openssl'
 require 'familia'
 
 module Onetime
-  # Canonical session-blob codec — the SINGLE definition of the session at-rest
-  # format:
+  # Shared at-rest format for the Rack session store and session admin reader:
   #
   #   base64(iv[12] + auth_tag[16] + AES-256-GCM(JSON(data)))--hmac
   #
-  # Both the live Rack store ({Onetime::Session}, the writer) and the session
-  # admin read verbs ({Onetime::Operations::Sessions::Store}, the reader) build a
-  # SessionCodec from the same session secret, so encoder and decoder can never
-  # drift. That drift is exactly the defect this closes: the colonel Sessions
-  # console read every value with a plain `JSON.parse`, which fails on the
-  # encrypted blob, so it rendered every session — authenticated ones included —
-  # as an opaque `_raw` string with no identity fields.
-  #
-  # Standalone class (not nested under the Rack-subclass {Onetime::Session}) so
-  # it carries no request coupling and both sides can require it independently
-  # without a load cycle.
-  #
-  # Security posture (preserved from the original inline implementation):
-  # - HMAC is verified with a constant-time compare BEFORE any decrypt.
-  # - AES-256-GCM's auth tag is a second, independent tamper check.
-  # - {#decode} NEVER calls Marshal.load and NEVER raises — a value that is not
-  #   an authentic session blob returns nil so the caller can fall back.
+  # Both use the same session secret. Keep this class independent of the Rack
+  # store so either can load it. Verify the HMAC in constant time before
+  # decrypting, then verify the GCM tag. {#decode} returns nil for invalid
+  # blobs and never deserializes Marshal data.
   class SessionCodec
     # 12-byte IV + 16-byte GCM auth tag; anything shorter can't be a payload.
     MIN_ENCRYPTED_BYTES = 28

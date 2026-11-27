@@ -7,46 +7,13 @@ require 'securerandom'
 require_relative '../models/colonel_audit_event'
 
 module Onetime
-  # SessionImpersonation — the colonel-impersonation session marker primitive.
+  # Time-limited, read-only overlay for a colonel viewing the app as a customer.
+  # `external_id` stays the colonel's ID, so session indexes stay with the
+  # colonel and losing the marker restores the ordinary colonel session.
   #
-  # A colonel in the admin console opens a time-boxed, READ-ONLY view of the
-  # app as a target customer, in the SAME browser session. This module owns the
-  # marker that makes that true, the one resolver that decides the effective
-  # identity from it, and the request-scoped context the view layer reads.
-  #
-  # ## OVERLAY, NOT SWAP (the load-bearing decision)
-  #
-  # `session['external_id']` stays the COLONEL's extid for the whole
-  # impersonation. The marker at `session['impersonation']` OVERLAYS the
-  # effective customer on top of that principal. Three consequences, all
-  # deliberate:
-  #
-  #   1. ABSENCE IS THE SAFE STATE. If the marker is lost — a dropped write, a
-  #      truncated blob, a future refactor — the session degrades to an
-  #      ordinary colonel session. It can never degrade INTO an impersonation.
-  #   2. Session indexing (TrackMetadata / `active_sessions`) keeps filing the
-  #      session under the colonel, so nothing has to migrate into (and back
-  #      out of) the target's session list.
-  #   3. It is why the marker must NOT be a sidecar field: the sidecar's
-  #      admission rule (lib/onetime/session/sidecar.rb) admits only fields
-  #      whose absence is safe *and whose presence is not identity*. The marker
-  #      passes the first test but rides the blob anyway, because it must be
-  #      written and read atomically with `external_id`.
-  #
-  # ## Bounded lifetime, independent of the session cookie
-  #
-  # The marker carries its own `expires_at` ({TTL} seconds after start, fixed;
-  # no caller-supplied lifetime). {.active} treats an expired marker as ended:
-  # it stops it (which audits `ended_by: 'expired'`) and answers nil. So the
-  # impersonation window is bounded even in a session whose `expire_after` is
-  # 24h.
-  #
-  # ## Naming
-  #
-  # `Onetime::Session` is the Rack session store CLASS, so this cannot nest
-  # under it without a circular require. It follows the sibling convention in
-  # this directory instead: {Onetime::SessionCodec} (session/codec.rb),
-  # {Onetime::SessionSidecar} (session/sidecar.rb).
+  # Keep the marker in the blob, not the sidecar: it affects identity and must
+  # be read and written with `external_id`. Its fixed {TTL} is independent of
+  # the Rack session; {.active} stops and audits an expired marker.
   module SessionImpersonation
     extend self
 

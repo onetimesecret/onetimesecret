@@ -6,84 +6,15 @@ require_relative 'sidecar'
 require_relative 'surface'
 
 module Onetime
-  # Recent full re-authentication proof (#4410, epic #4408).
+  # Single-use proof of a completed local ceremony for sensitive actions such
+  # as identity attachment. Record only after the local primary and all
+  # required MFA complete. A passkey counts when Rodauth accepts it as meeting
+  # the MFA requirement; mailbox, SSO, and existing-session proof never count.
   #
-  # An authenticated session, on its own, does not prove that the account
-  # recently completed a full local authentication ceremony. Identity
-  # attachment (platform Connect, tenant Connect) needs a stronger, time-
-  # bounded proof: primary local credential plus every MFA factor required by
-  # account policy, completed on THIS session, on THIS surface, against THIS
-  # account, within an explicit window.
-  #
-  # This module is that proof, and the single gate that reads it. The gate
-  # is reused by both platform Connect (#4411) and tenant Connect (#3849).
-  #
-  # ## The four bindings
-  #
-  # A proof carries four values:
-  #
-  #     { 'account_id' => ..., 'at' => ..., 'surface' => ..., 'methods' => ... }
-  #
-  # - `account_id` — the numeric account id whose credentials were verified.
-  #   The gate refuses a proof intended for a different account.
-  # - `at` — the Unix time (integer UTC seconds) at which the ceremony
-  #   completed. The gate refuses a proof older than the caller-supplied
-  #   `max_age:`.
-  # - `surface` — the {Onetime::SessionSurface} descriptor of the surface on
-  #   which the ceremony completed. The gate refuses a proof for a
-  #   different surface, and refuses when the current request's surface is
-  #   unresolved. This is a strict equality check, independent of and
-  #   composed with the session's own surface binding.
-  # - `methods` — an ordered list of the factors that were completed
-  #   ('password', 'webauthn', 'totp', 'recovery_code'). The gate requires
-  #   the first entry to be an explicitly allowed local primary, and the list
-  #   also lets support distinguish password + MFA from WebAuthn primary.
-  #
-  # A session's proof lives in an encrypted {SessionSidecar} key under {KEY}.
-  # The envelope is bound to the session id and field name. The enforcement
-  # gate atomically consumes it, so one completed ceremony authorizes one
-  # sensitive admission attempt and cannot be replayed concurrently.
-  #
-  # ## What counts as a full ceremony
-  #
-  # Recording is done from the login-completion hooks in
-  # apps/web/auth/config/hooks/. Two call sites:
-  #
-  # - `after_login`, when the account requires no MFA (or the primary
-  #   credential is a passkey that Rodauth has accepted as covering the MFA
-  #   requirement — {WebAuthn as primary} in the epic's language).
-  # - `after_two_factor_authentication`, on every successful second factor
-  #   (OTP, recovery code, WebAuthn-as-2FA).
-  #
-  # Four cases MUST NOT record proof:
-  #
-  # - **Platform mailbox proof** (email_auth / magic link). Possession of an
-  #   inbox is not a local credential; it is a recovery-class ceremony. If
-  #   a magic link's after_login runs alone (no MFA required), no proof.
-  # - **Existing authenticated session**. Merely being signed in is not
-  #   proof — this module has no "extend on request" path. A proof ages
-  #   out; the session's own lifetime is independent.
-  # - **SSO callback** (omniauth). Federated proof is not local proof.
-  #   Neither the after_login of an omniauth login, nor the second factor
-  #   completion of an SSO account, records here.
-  # - **Password-only step that bypasses required MFA**. If the account has
-  #   MFA required and the login stopped at the password prompt, no proof
-  #   — the after_login branch skips recording precisely because the login
-  #   is incomplete; only after_two_factor_authentication may record.
-  #
-  # ## The gate is one function
-  #
-  # `Onetime::RecentReauth.satisfied?(session, env, account_id:, max_age:)`
-  # returns true iff every binding matches. Every caller in the auth,
-  # billing, and Connect stacks funnels through here; no bespoke checks.
-  #
-  # ## Fail-closed
-  #
-  # A missing marker, a nil surface (session or request), an account_id
-  # mismatch, or a stale `at` all return false. There is no soft outcome —
-  # the gate is called before minting a Connect intent or binding an
-  # identity, and both must refuse rather than proceed on an unanswered
-  # question.
+  # The encrypted sidecar binds the proof to the Rack session ID. {satisfied?}
+  # atomically consumes it and checks the account, exact resolved surface,
+  # allowed local primary, and caller-supplied age limit. Missing, invalid, or
+  # unverifiable proof fails closed.
   module RecentReauth
     KEY = 'recent_reauth'
 

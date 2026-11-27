@@ -6,67 +6,18 @@ require 'openssl'
 require 'familia'
 
 module Onetime
-  # A short-lived marker that a session id was ended on purpose
-  # (RISK-2026-09-19-01).
+  # Short-lived tombstone for an intentionally ended session ID. It prevents
+  # an in-flight request from restoring the old blob after logout or renewal,
+  # including sessions with no Rodauth active-session row.
   #
-  # The session store is last-writer-wins and every response re-sends the
-  # session cookie. A request that loaded a session BEFORE it was ended
-  # (logout, revocation, an id renewal) and commits AFTER writes the whole
-  # blob back under the old id and hands the browser the old cookie again. In
-  # full auth mode the missing active-session row makes that copy refusable
-  # ({Onetime::ActiveSessionGate.end_session}). Simple mode has no row, and
-  # neither has an anonymous or pre-#4452 session in full mode: there the copy
-  # was a complete, valid session, and the logout was undone.
+  # Mark before deleting the blob. Writers check after SET and delete their
+  # copy if marked. If the writer misses the marker, the ender's DEL follows
+  # the writer's SET. Checking only before SET would leave a race.
   #
-  # Every path that deletes a session blob calls {.mark} FIRST, and
-  # {Onetime::Session#write_session} asks {.ended?} AFTER its own SET, taking
-  # the blob back out when the answer is yes. The two orders together leave no
-  # interleaving in which the blob survives:
-  #
-  #     ender:   SET marker  ->  DEL blob
-  #     writer:  SET blob    ->  EXISTS marker  (-> DEL blob)
-  #
-  # If the writer's EXISTS misses the marker, the marker was set after it, so
-  # the ender's DEL runs after the writer's SET. If it sees the marker, the
-  # writer removes its own copy. A check BEFORE the write could not give this:
-  # the ender could run whole between the check and the SET.
-  #
-  # ## The key
-  #
-  # `ended_sid:<HMAC-SHA256(global secret, "session-ended:v1:<sid>")>`
-  #
-  # - A keyed digest, never the sid. The sid is a bearer credential whose only
-  #   server-side copies are the blob and sidecar key NAMES, all of which the
-  #   ender deletes; the marker must not keep a copy alive where they are
-  #   gone. Its own domain string, so it equals neither the colonel revoke
-  #   handle ({Onetime::SessionMetadata.handle_for}) nor the snapshot epoch
-  #   ({Onetime::SnapshotOrdering.epoch_for}), which is published to the tab.
-  # - The full 256 bits: a collision would refuse an unrelated session's
-  #   write.
-  # - The prefix must never contain "session":
-  #   {Onetime::Operations::Sessions::Store::SESSION_SCAN_PATTERN} matches
-  #   `*session*` string keys and would list the marker as a session.
-  #
-  # ## The lifetime
-  #
-  # The marker only has to outlive requests that were already in flight when
-  # the session ended: only they hold the ended session's data. The store
-  # never issues the id again (256 random bits), and a cookie still naming it
-  # finds no blob and loads an empty session (under a new id while the marker
-  # lives, see Onetime::Session#find_session), so a later write under it
-  # carries nothing of the ended session.
-  #
-  # {TTL} must reliably outlive the longest in-flight request that could
-  # still write the old blob after revocation. Puma has no built-in
-  # per-request deadline: `worker_timeout` (etc/puma.rb) is a worker-liveness
-  # check to the master, and a request that keeps the worker's reactor
-  # checking in can run indefinitely. In practice a real request finishes in
-  # well under a minute; one hour is a conservative upper bound that
-  # comfortably exceeds any realistic in-flight request.
-  # It is deliberately NOT the session lifetime: a marker per ended session
-  # for the 24 h+ session TTL would meaningfully re-consume the keyspace the
-  # blob delete just freed, and one hour is short enough relative to it to
-  # keep marker keyspace bounded.
+  # Use a full, domain-separated HMAC, never the bearer ID. Keep `session`
+  # out of the prefix so the admin session scan does not list tombstones.
+  # {TTL} must outlast potentially delayed writes, not the session itself.
+  # Puma's worker timeout is not a request deadline.
   module SessionEnded
     extend self
 

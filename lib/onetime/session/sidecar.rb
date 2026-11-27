@@ -8,46 +8,13 @@ require_relative 'codec'
 require_relative '../logger_methods'
 
 module Onetime
-  # Per-value session storage with independent TTLs (issue #3858).
+  # Stores registered session fields as Redis keys with independent TTLs.
+  # {#commit} externalizes configured fields; {#merge} restores them to the
+  # Rack hash. Explicit-use fields use the read/write/consume API instead.
   #
-  # The session blob at `session:<sid>` is one encrypted value with one TTL, so
-  # every field in it lives exactly as long as the session does. Some session
-  # state wants a SHORTER lifetime than the session itself (an MFA completion
-  # window, a UI context hint, a one-shot nonce). Redis TTLs are per-key, not
-  # per-hash-field, so independent lifetimes require one Redis key per
-  # (sid, field): the STRING key `sidecar:<sid>:<field>` — deliberately
-  # OUTSIDE the `session:` namespace (see {key_for} for why).
-  #
-  # This module is that primitive. A closed registry ({FIELDS}) declares which
-  # session fields may be externalized and under what policy. Registered
-  # `externalize: true` fields are handled transparently by the Rack store
-  # ({Onetime::Session}): {#commit} strips them out of the blob at write time
-  # and stores them as sibling keys; {#merge} overlays them back into the
-  # session hash at read time. Existing call sites (`sess['awaiting_mfa'] =
-  # true`, `sess.delete('awaiting_mfa')`) do not change. The explicit API
-  # ({#write}/{#read}/{#consume}/{#delete}/{#purge}) exists for cleanup
-  # surfaces, ops, and explicit-use fields.
-  #
-  # ## Failure posture
-  #
-  # Best-effort, like the two existing sidecars (SessionMetadata via
-  # TrackMetadata; the colonel entitlement-preview SETs): a sidecar failure
-  # must never fail the session write — {Onetime::Session}'s outer rescue
-  # returns false, which Rack reads as "not persisted" and may drop the
-  # cookie. The middleware therefore wraps every hook in its own rescue.
-  #
-  # ## The admission rule (the security contract)
-  #
-  # Best-effort storage is only safe for a field whose ABSENCE IS THE SAFE
-  # STATE: if a sidecar write is lost or the key expires early, the session
-  # must degrade to a state that grants nothing. See the registry comment.
-  #
-  # ## Why a plain module, not a Familia model
-  #
-  # A Horreum is one backing hash with one default_expiration for the whole
-  # record — the exact shape this primitive exists to escape. And a raw
-  # `SET key payload EX ttl` is atomic (no SET-then-EXPIRE gap), which
-  # Familia::StringKey's two-step set + update_expiration would reintroduce.
+  # Sidecar failures must not fail the Rack session write. Admit only fields
+  # whose absence grants nothing and whose presence is not identity. Use
+  # atomic SET with expiry rather than a separate expiry command.
   module SessionSidecar
     extend self
     extend Onetime::LoggerMethods

@@ -7,23 +7,15 @@ require_relative 'impersonation'
 require_relative 'surface'
 
 module Onetime
-  # Resolves the customer-session identity shared by protected routes, public
-  # routes, compatibility helpers, and bootstrap serialization.
+  # Resolves customer identity for routes, helpers, and bootstrap.
   #
-  # The order is policy and must remain stable:
-  # session, MFA, authenticated flag, external identity, tenant surface,
-  # customer load, suspension, credential watermark, the caller-owned admin
-  # boundary, active-session evaluation, then impersonation.
+  # Keep the checks in policy order: session, MFA, authenticated flag,
+  # external identity, surface, customer load, suspension, credential watermark,
+  # caller-owned admin boundary (`before_active`), active-session gate, then
+  # impersonation. Route authorization and organization context follow.
   #
-  # Admin expiry is deliberately not a customer-identity predicate. Protected
-  # strategies may supply +before_active+ to enforce it at its existing boundary.
-  # Route authorization and organization context run after this evaluator.
-  #
-  # Full-mode Rack sessions without +active_session_id_hmac+ retain the existing
-  # legacy exemption in ActiveSessionGate: the gate returns :skipped. That means
-  # only that membership could not be joined and checked; it does not prove an
-  # active-session row exists. The exemption is neither widened nor converted
-  # into verified membership here.
+  # A legacy Rack session without a join key can yield `:skipped` from the
+  # active-session gate. That is an exemption, not verified membership.
   class CustomerSessionEvaluator
     ENV_KEY = 'onetime.customer_session_verdict'
 

@@ -7,74 +7,14 @@ require 'uri'
 require_relative 'surface'
 
 module Onetime
-  # Tenant-surface-compatible re-authentication policy (#4414, epic #4408).
+  # Selects re-authentication methods to offer and accept on a resolved surface.
+  # Password eligibility comes from the caller. WebAuthn checks credential
+  # scope and RP ID; cross-surface use also requires a configured related
+  # origin. Credentials default to platform scope. An unresolved surface
+  # offers no methods.
   #
-  # Recent full re-authentication (#4410) is a proof of *what happened*.
-  # This module is the seam that answers *what a caller may offer* to make
-  # that proof happen on the surface this request lives on. The re-auth UI
-  # and the future re-auth POST endpoint both call {eligible_methods} and
-  # render/accept exactly what it returns — no bespoke checks anywhere else.
-  #
-  # ## Why a surface-aware policy at all
-  #
-  # WebAuthn credentials are cryptographically bound to the origin (rp_id)
-  # they were registered against. A passkey registered at the canonical
-  # host cannot verify at `tenant.customer.com` — the browser refuses to
-  # sign the challenge, and the server-side verify would reject even if it
-  # did. That is the *floor*: a platform-only credential on an unrelated
-  # tenant host is already unusable.
-  #
-  # The floor is not enough. A UI that renders a "Use security key" button
-  # on a tenant surface, then fails the ceremony, is a dead-end that the
-  # user reads as "the account has no valid path". So this module refuses
-  # to *offer* the method too, and does so on the same evidence the server
-  # would use to accept the ceremony:
-  #
-  #   - a credential is scoped to a surface at registration time (future
-  #     wiring; today, all credentials read as :platform scope, which
-  #     means "canonical-only");
-  #   - a tenant deployment may opt into *related origins* — the W3C
-  #     construct where an RP publishes /.well-known/webauthn declaring
-  #     additional origins that share the rp_id — and a credential is then
-  #     usable across the declared set;
-  #   - otherwise, WebAuthn is offered only when the request's surface is
-  #     canonical (the default rp_id).
-  #
-  # ## The four inputs
-  #
-  # {eligible_methods} takes a positional {SurfaceDescriptor}-shaped hash
-  # (as {Onetime::SessionSurface.for_env} returns) and a keyword bag of
-  # capability evidence:
-  #
-  #   surface:              — the request's resolved surface, or nil (invalid)
-  #   password_enabled:     — install-level password sign-in capability
-  #                           (already gated by AUTH_ENABLED / AUTH_SIGNIN
-  #                           and per-tenant SigninConfig; a false here is
-  #                           the ONE reason password is not offered)
-  #   webauthn_credentials: — an array of credential descriptors:
-  #                             { scope: :platform }
-  #                             { scope: :tenant, id: '<CustomDomain#identifier>' }
-  #                           (unknown scope symbols read as :platform)
-  #   related_origins:      — exact origin + resolved surface members of the
-  #                           configured related-origin set
-  #   current_origin:       — exact browser origin for this request
-  #
-  # ## Fail-closed
-  #
-  # A nil surface (a host we do not serve, an unresolved :custom, or an
-  # :invalid request whose surface could not be read; see
-  # {Onetime::SessionSurface}) reads as "no path here":
-  # {eligible_methods} returns []. A caller that gets [] must not offer
-  # re-authentication at all — the alternative is a login-page redirect,
-  # not a "click here and it will fail" UI.
-  #
-  # ## What this module does NOT decide
-  #
-  # It does not gate whether re-authentication is *required* (that is
-  # {Onetime::RecentReauth.satisfied?}), and it does not verify a
-  # completed ceremony (Rodauth does). It answers exactly one question:
-  # given this surface and this account, which credential paths are safe
-  # to *offer*?
+  # This policy does not verify the ceremony (Rodauth) or check the resulting
+  # proof ({Onetime::RecentReauth}).
   module ReauthPolicy
     # The credential-path tokens {eligible_methods} may return. Ordered by
     # UX preference — password last so the fallback is the last resort a

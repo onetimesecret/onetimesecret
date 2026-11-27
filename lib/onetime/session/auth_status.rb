@@ -5,26 +5,11 @@
 require_relative 'customer_session_evaluator'
 
 module Onetime
-  # The bootstrap payload's `auth_status` (#4462): the public projection of a
-  # CustomerSessionEvaluator verdict, emitted by HTML hydration and
-  # `GET /bootstrap/me`.
-  #
-  # Four values go on the wire. `checking` exists only in the client, which
-  # uses it before it has any server statement.
-  #
-  #   authenticated  The verdict is authenticated; `cust` is present.
-  #   mfa_pending    First factor passed, second factor outstanding.
-  #   anonymous      No customer session — including one the evaluator
-  #                  REJECTED. Bootstrap states identity, not diagnosis: the
-  #                  rejection reason reaches logs and the API `code`, never a
-  #                  public payload.
-  #   unavailable    The session could not be verified. The client must not
-  #                  read this as a sign-out.
-  #
-  # `authenticated` and `awaiting_mfa` stay in the payload as compatibility
-  # projections of this value (Core::Views::AuthenticationSerializer derives
-  # them from it), so the three fields cannot disagree. Every mapping here can
-  # only withhold: nothing but an authenticated verdict yields `authenticated`.
+  # Projects a CustomerSessionEvaluator verdict into the public bootstrap
+  # `auth_status`. Rejections appear as `anonymous` without a reason;
+  # `unavailable` is not a sign-out, and `checking` is client-only.
+  # AuthenticationSerializer derives the legacy `authenticated` and
+  # `awaiting_mfa` flags from this status.
   module SessionAuthStatus
     AUTHENTICATED = 'authenticated'
     ANONYMOUS     = 'anonymous'

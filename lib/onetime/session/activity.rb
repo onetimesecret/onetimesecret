@@ -3,66 +3,14 @@
 # frozen_string_literal: true
 
 module Onetime
-  # Whether the current request counts as session activity (#4455).
+  # Classifies requests for the session inactivity clocks: active-session
+  # `last_use`, admin `last_activity_at`, and the Rack session blob TTL.
   #
-  # A request is **activity** unless its route says otherwise. A route that
-  # only verifies the session on a timer, with no user action behind it,
-  # declares `activity=passive` in its routes file:
-  #
-  #     GET /bootstrap/me  Core::Controllers::Page#bootstrap_me auth=noauth activity=passive
-  #
-  # A passive request is verified exactly like any other: revocation, both
-  # active-session deadlines, suspension and the credential watermark all
-  # apply, and an expired active-session row is still removed. What it must
-  # not do is move an inactivity clock, or a tab left open would keep its own
-  # session alive forever by polling. Three writers read this predicate, one
-  # per clock:
-  #
-  # - {Onetime::ActiveSessionGate}: the active-session row's `last_use`
-  #   (Rodauth's inactivity deadline, full mode).
-  # - {Onetime::Operations::Sessions::TrackMetadata}: `last_activity_at` (the
-  #   admin-surface idle bound).
-  # - {Onetime::Session#write_session}: the Rack session blob's TTL (the only
-  #   inactivity clock in simple mode).
-  #
-  # ## Requests the client declares passive
-  #
-  # A route cannot say which of its requests a person asked for. The
-  # dashboard's receipt list is fetched by navigation and re-fetched by a
-  # five-minute timer through the same `GET`, and with only the route
-  # declaration a tab left on the dashboard never reached the inactivity
-  # deadline (RISK-2026-09-19-04). The client knows the difference, so it may
-  # say so:
-  #
-  #     X-Session-Activity: passive
-  #
-  # The header can only ever take activity away. It is read for nothing but
-  # the exact value `passive`, so no value makes a passive route count; it is
-  # honoured on `GET` and `HEAD` only, so a request that changes state always
-  # counts, whatever it declares; and it reaches nothing but this predicate,
-  # so authentication, the evaluator and both deadlines run exactly as they
-  # do without it. What a caller can do with it is let its own session end
-  # sooner. Nothing is gained by forging it and nothing needs to trust it.
-  #
-  # Otto parses `key=value` route tokens into Symbol keys and publishes them
-  # at `env['otto.route_options']` when the route matches, before the auth
-  # strategy runs. A request no Otto route matched (the Roda auth app, a
-  # static file, a 404) has no options and is therefore activity: the default
-  # is today's behaviour, and passive is something a route opts into.
-  #
-  # The predicate is read at each decision, never cached. If one Rack env is
-  # dispatched to a second route, the second route's declaration governs from
-  # that point on.
-  #
-  # ## Refused requests
-  #
-  # "A refused request is not activity" is the older half of the same rule
-  # (#4331): a request the session gates turned away must not advance the
-  # deadline it was turned away under, or the refusal would only ever cost
-  # one 401. {.refused?} reads the two places a refusal is recorded, and
-  # {.counts?} is the single question the two session-store writers ask.
-  # The gate does not ask it: it produces the refusal, and already refuses
-  # before it touches.
+  # Routes opt out with `activity=passive`. On GET or HEAD,
+  # `X-Session-Activity: passive` can only suppress activity, not enable it.
+  # Passive requests still undergo all authentication checks.
+  # Read the route options at each decision because Rack may redispatch the env.
+  # Refused requests do not refresh the session-store clocks.
   module SessionActivity
     extend self
 
