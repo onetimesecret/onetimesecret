@@ -368,22 +368,19 @@ RSpec.describe Onetime::Secret, 'reveal notice and expiration timeline' do
 
     it 'does not fail the reveal when the removal raises' do
       receipt, secret = spawn
-      # The sorted set is frozen; stub the class accessor that hands it out.
       # Only the first removal (the reveal's) fails; later ones, such as the
       # cleanup below and in the after hook, reach the real set.
-      real_timeline    = Onetime::Receipt.expiration_timeline
-      failing_timeline = double('expiration_timeline')
-      removals         = 0
-      allow(failing_timeline).to receive(:remove_element) do |id|
+      real_timeline = Onetime::Receipt.expiration_timeline
+      removals      = 0
+      allow(Onetime::Receipt).to receive(:remove_from_expiration_timeline).and_wrap_original do |original, id|
         removals += 1
         raise Redis::CannotConnectError, 'down' if removals == 1
 
-        real_timeline.remove_element(id)
+        original.call(id)
       end
-      allow(Onetime::Receipt).to receive(:expiration_timeline).and_return(failing_timeline)
 
       expect(secret.reveal!).to eq('reveal notice fixture')
-      expect(failing_timeline).to have_received(:remove_element).with(receipt.identifier)
+      expect(Onetime::Receipt).to have_received(:remove_from_expiration_timeline).with(receipt.identifier)
       expect(real_timeline.score(receipt.identifier)).not_to be_nil
       expect(Onetime::Receipt.load(receipt.identifier).state).to eq('revealed')
       expect(notices.size).to eq(1)
