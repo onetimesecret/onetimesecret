@@ -9,7 +9,7 @@
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 
@@ -165,6 +165,36 @@ describe('usePassphraseRules', () => {
 
     rules.markInteracted();
     expect(rules.issue.value).toEqual({ code: 'required' });
+    expect(rules.errorText.value).toBe('web.secrets.error_passphrase_required');
+  });
+
+  it('forgets the interaction when the form resets the field after a submit', async () => {
+    setup({ minimum_length: 4, maximum_length: 64, required: true });
+    const value = ref('');
+    const rules = usePassphraseRules(() => value.value);
+
+    rules.markInteracted('secret-pass');
+    value.value = 'secret-pass';
+    await nextTick();
+    rules.markInteracted(); // blur when the submit button takes focus
+    value.value = ''; // operations.reset()
+    await nextTick();
+
+    expect(rules.errorText.value).toBe('');
+  });
+
+  it('keeps the required error when the user clears the field', async () => {
+    setup({ minimum_length: 4, maximum_length: 64, required: true });
+    const value = ref('');
+    const rules = usePassphraseRules(() => value.value);
+
+    rules.markInteracted('ab');
+    value.value = 'ab';
+    await nextTick();
+    rules.markInteracted('');
+    value.value = '';
+    await nextTick();
+
     expect(rules.errorText.value).toBe('web.secrets.error_passphrase_required');
   });
 

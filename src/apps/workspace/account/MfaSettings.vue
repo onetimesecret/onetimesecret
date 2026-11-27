@@ -11,6 +11,7 @@
   import { isActiveSessionsEnabledOf } from '@/utils/features';
   import { formatDisplayDateTime } from '@/utils/format';
   import { onKeyStroke } from '@vueuse/core';
+  import { useBackdropClose } from '@/shared/composables/useBackdropClose';
   import { computed, onMounted, ref } from 'vue';
 
   const { t } = useI18n();
@@ -35,6 +36,7 @@
   onKeyStroke('Escape', () => {
     if (showDisableConfirm.value) closeDisableConfirm();
   });
+  const { onBackdropMousedown, onBackdropClick } = useBackdropClose(closeDisableConfirm);
 
   onMounted(async () => {
     await fetchMfaStatus();
@@ -264,7 +266,8 @@
       <div
         v-if="showDisableConfirm"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        @click.self="closeDisableConfirm">
+        @mousedown="onBackdropMousedown"
+        @click="onBackdropClick">
         <div
           class="mx-4 max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
           role="dialog"

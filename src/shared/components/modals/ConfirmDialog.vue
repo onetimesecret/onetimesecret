@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
 import { FocusTrap } from 'focus-trap-vue';
 import { ref } from 'vue';
+import { useBackdropClose } from '@/shared/composables/useBackdropClose';
 
 const { t } = useI18n();
 
@@ -37,6 +38,8 @@ const cancel = () => {
   isVisible.value = false;
   emit('cancel');
 };
+
+const { onBackdropMousedown, onBackdropClick } = useBackdropClose(cancel);
 </script>
 
 <template>
@@ -51,11 +54,13 @@ const cancel = () => {
       aria-describedby="confirm-dialog-message"
       role="dialog"
       aria-modal="true"
-      @click.self="cancel">
+      @mousedown="onBackdropMousedown"
+      @click="onBackdropClick">
       <FocusTrap
         :active="isVisible"
         :escape-deactivates="true"
         :click-outside-deactivates="false"
+        :allow-outside-click="true"
         @deactivate="cancel">
         <div
           class="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"

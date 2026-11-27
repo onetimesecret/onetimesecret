@@ -111,10 +111,24 @@ describe('AccountDeleteButtonWithModalForm', () => {
 
   it('closes on a backdrop click but not on a click inside the panel', async () => {
     const wrapper = await mountOpen();
+    await wrapper.get('form').trigger('mousedown');
     await wrapper.get('form').trigger('click');
     expect(modal(wrapper).exists()).toBe(true);
+    await modal(wrapper).trigger('mousedown');
     await modal(wrapper).trigger('click');
     expect(modal(wrapper).exists()).toBe(false);
+    wrapper.unmount();
+  });
+
+  it('stays open when a drag from the password field ends over the backdrop', async () => {
+    const wrapper = await mountOpen();
+    await wrapper.get('[data-testid="account-delete-password-input"]').setValue('current-password');
+    await wrapper.get('[data-testid="account-delete-password-input"]').trigger('mousedown');
+    await modal(wrapper).trigger('click');
+    expect(modal(wrapper).exists()).toBe(true);
+    expect(
+      (wrapper.get('[data-testid="account-delete-password-input"]').element as HTMLInputElement).value
+    ).toBe('current-password');
     wrapper.unmount();
   });
 
@@ -122,6 +136,7 @@ describe('AccountDeleteButtonWithModalForm', () => {
     const wrapper = await mountOpen();
     mockIsLoading.value = true;
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    await modal(wrapper).trigger('mousedown');
     await modal(wrapper).trigger('click');
     await nextTick();
     expect(modal(wrapper).exists()).toBe(true);

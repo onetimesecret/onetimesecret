@@ -71,7 +71,7 @@
 
   const handlePassphraseInput = (event: Event) => {
     const value = (event.target as HTMLInputElement).value;
-    markInteracted();
+    markInteracted(value);
     emit('update:passphrase', value);
   };
 
@@ -80,7 +80,7 @@
   };
 
   const clearPassphrase = () => {
-    markInteracted();
+    markInteracted('');
     emit('update:passphrase', '');
   };
 </script>
@@ -189,7 +189,7 @@
                   :aria-invalid="!!passphraseValidationError"
                   :aria-describedby="passphraseValidationError ? 'sheet-passphrase-error' : undefined"
                   @input="handlePassphraseInput"
-                  @blur="markInteracted"
+                  @blur="markInteracted()"
                   class="w-full rounded-lg border bg-white px-4 py-3 pr-20 text-base
                     text-gray-900 placeholder:text-gray-400 transition-colors
                     focus:outline-none focus:ring-2

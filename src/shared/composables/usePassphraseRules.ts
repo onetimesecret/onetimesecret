@@ -2,7 +2,7 @@
 
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { useSharingControls } from './useSharingControls';
@@ -130,10 +130,20 @@ export function usePassphraseRules(value: () => string) {
   const minLength = computed(() => config.value.minimum_length || 0);
   const complexityEnforced = computed(() => !!config.value.enforce_complexity);
 
+  // `next` is the value the caller is about to emit for a user edit. A change
+  // to '' that the user did not make (the form resetting after a submit)
+  // clears the flag, so a fresh, empty form is not flagged as required.
   const interacted = ref(false);
-  const markInteracted = () => {
+  let expectedUserValue: string | undefined;
+  const markInteracted = (next?: string) => {
     interacted.value = true;
+    if (next !== undefined) expectedUserValue = next;
   };
+  watch(value, (current) => {
+    const fromUser = current === expectedUserValue;
+    expectedUserValue = undefined;
+    if (!fromUser && current === '') interacted.value = false;
+  });
 
   const issue = computed<PassphraseIssue | null>(() => {
     const found = reportedPassphraseIssue(value(), {

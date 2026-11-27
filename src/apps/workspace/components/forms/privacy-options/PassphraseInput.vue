@@ -102,12 +102,12 @@
   // Handlers
   const handleInput = (event: Event) => {
     const value = (event.target as HTMLInputElement).value;
-    markInteracted();
+    markInteracted(value);
     emit('update:modelValue', value);
   };
 
   const clearPassphrase = () => {
-    markInteracted();
+    markInteracted('');
     emit('update:modelValue', '');
     inputRef.value?.focus();
   };
@@ -191,7 +191,7 @@
             :class="inputBorderClasses"
             :placeholder="t('web.secrets.enterPassphrase')"
             @input="handleInput"
-            @blur="markInteracted"
+            @blur="markInteracted()"
             @keydown.enter.prevent />
           <div class="absolute inset-y-0 right-0 flex items-center gap-0.5 pr-1.5">
             <button

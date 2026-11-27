@@ -11,7 +11,7 @@ vi.mock('focus-trap-vue', () => ({
   FocusTrap: {
     name: 'FocusTrap',
     template: '<div><slot /></div>',
-    props: ['active', 'escapeDeactivates', 'clickOutsideDeactivates'],
+    props: ['active', 'escapeDeactivates', 'clickOutsideDeactivates', 'allowOutsideClick'],
     emits: ['deactivate'],
   },
 }));
@@ -89,11 +89,33 @@ describe('ConfirmDialog', () => {
   it('emits cancel when the backdrop is clicked', async () => {
     mountInCard();
 
+    dialog()!.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     dialog()!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted('cancel')).toHaveLength(1);
     expect(dialog()).toBeNull();
+  });
+
+  it('lets clicks outside the panel through the focus trap', () => {
+    mountInCard();
+
+    // focus-trap swallows outside clicks unless allowed, so the backdrop
+    // handler would never run in a browser.
+    expect(wrapper.findComponent({ name: 'FocusTrap' }).props('allowOutsideClick')).toBe(true);
+  });
+
+  it('stays open when a press inside the panel is released over the backdrop', async () => {
+    mountInCard();
+
+    document.body
+      .querySelector<HTMLElement>('[data-testid="confirm-dialog"]')!
+      .dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    dialog()!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('cancel')).toBeUndefined();
+    expect(dialog()).not.toBeNull();
   });
 
   it('ignores clicks inside the panel', async () => {

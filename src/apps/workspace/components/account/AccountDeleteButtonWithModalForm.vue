@@ -6,6 +6,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useAuth } from '@/shared/composables/useAuth';
   import { onKeyStroke } from '@vueuse/core';
+  import { useBackdropClose } from '@/shared/composables/useBackdropClose';
   import { ref } from 'vue';
 
   const { t } = useI18n();
@@ -46,6 +47,7 @@
   onKeyStroke('Escape', () => {
     if (showDeleteModal.value) closeDeleteModal();
   });
+  const { onBackdropMousedown, onBackdropClick } = useBackdropClose(closeDeleteModal);
 </script>
 
 <template>
@@ -94,7 +96,8 @@
     role="dialog"
     aria-modal="true"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    @click.self="closeDeleteModal">
+    @mousedown="onBackdropMousedown"
+    @click="onBackdropClick">
     <form
       @submit.prevent="submitDeleteAccount"
       class="w-full max-w-md">
