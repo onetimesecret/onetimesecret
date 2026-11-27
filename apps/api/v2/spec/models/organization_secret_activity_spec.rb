@@ -65,9 +65,16 @@ RSpec.describe Onetime::Organization, type: :integration do
       coalesce_window: saved[:coalesce_window])
   end
 
+  # Everything the trail stores for an organization, as raw bytes: the
+  # detail JSON, the partition members (ids) and the legacy set.
   def raw_details(organization)
     detail = organization.secret_activity_detail
-    detail.dbclient.hvals(detail.dbkey).join
+    client = detail.dbclient
+    [
+      *client.hvals(detail.dbkey),
+      *[organization.secret_activity_member, organization.secret_activity_guest,
+        organization.secret_activity_events].flat_map { |zset| client.zrange(zset.dbkey, 0, -1) },
+    ].join("\n")
   end
 
   describe '#record_secret_activity_event (accuracy)' do
@@ -415,7 +422,8 @@ RSpec.describe Onetime::Organization, type: :integration do
       link_to_org!(receipt, org)
       receipt.record_access_event('secret_get')
 
-      raw = org.secret_activity_events.membersraw.join
+      raw = raw_details(org)
+      expect(raw).to include(receipt.shortid)
       expect(raw).not_to include(secret.identifier)
       expect(raw).not_to include(receipt.identifier)
     end
@@ -474,7 +482,8 @@ RSpec.describe Onetime::Organization, type: :integration do
           receipt.record_access_event('secret_get', context: real_context)
         end
 
-        raw = org.secret_activity_events.membersraw.join
+        raw = raw_details(org)
+        expect(raw).to include(receipt.shortid)
 
         # No raw dotted-quad IPv4, no full IPv6, no full UA, no version token.
         expect(raw).not_to include(raw_ip)
@@ -517,7 +526,8 @@ RSpec.describe Onetime::Organization, type: :integration do
         # Country is the COARSEST geo signal; capturing it must not relax the
         # IP stance -- the raw dotted-quad still never reaches the trail.
         expect(event.to_json).not_to include(raw_ip)
-        expect(org.secret_activity_events.membersraw.join).not_to include(raw_ip)
+        expect(raw_details(org)).to include(receipt.shortid)
+        expect(raw_details(org)).not_to include(raw_ip)
       end
 
       it 'records a stable, keyed correlation hash across two events from the same source' do
@@ -761,7 +771,8 @@ RSpec.describe Onetime::Organization, type: :integration do
       event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('creator')
       expect(event).not_to have_key('actor_id')
-      expect(org.secret_activity_events.membersraw.join).not_to include('person@example.com')
+      expect(raw_details(org)).to include(receipt.shortid)
+      expect(raw_details(org)).not_to include('person@example.com')
     end
 
     it 'drops a blank actor_id rather than storing an empty token' do
