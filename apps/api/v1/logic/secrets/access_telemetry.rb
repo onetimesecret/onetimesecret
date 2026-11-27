@@ -19,7 +19,8 @@ module V1::Logic
 
       # Best-effort by design: telemetry must never break or delay the read
       # path, so every failure is logged and swallowed. Secrets without a
-      # receipt (e.g. account-verification secrets) are skipped.
+      # receipt are skipped. Account-verification secrets do have one, but it
+      # carries no org_id, so their events never reach an organization trail.
       #
       # The creator opening their own link is the 'previewed' event, as in
       # V2. The anonymous guard comes first: Secret#owner? compares objids,

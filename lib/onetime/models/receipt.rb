@@ -49,7 +49,7 @@ module Onetime
     field :source
 
     # Organization and domain tracking for scoped receipt queries
-    field :org_id      # Organization objid (current context when created)
+    field :org_id      # Organization objid: the creator's context, or for a guest the custom domain's organization
     field :domain_id   # CustomDomain objid (when using registered custom domain)
 
     # Observability only (#3633): epoch seconds of the FIRST receipt/metadata

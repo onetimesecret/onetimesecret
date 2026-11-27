@@ -81,8 +81,9 @@ Key files:
   `access_telemetry.rb`, `base_secret_action.rb` — request-layer capture
 - `apps/api/v1/logic/secrets/actor_attribution.rb`, `access_telemetry.rb`,
   `base_secret_action.rb` — the v1 siblings (reveal / burn thread the same
-  actor context; v1 records `created` and `secret_get`/`previewed`, with no
-  network context and no status endpoint)
+  actor context; v1 records `created`, and `secret_get`/`previewed` only
+  for a fetch that did not reveal — the v1 controller always reveals when it
+  can — with no network context and no status endpoint)
 - `lib/onetime/security/request_context.rb` — network-context reduction
   (ADR-022)
 

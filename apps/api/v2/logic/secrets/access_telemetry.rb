@@ -21,7 +21,8 @@ module V2::Logic
 
       # Best-effort by design: telemetry must never break or delay the read
       # path, so every failure is logged and swallowed. Secrets without a
-      # receipt (e.g. account-verification secrets) are skipped.
+      # receipt are skipped. Account-verification secrets do have one, but it
+      # carries no org_id, so their events never reach an organization trail.
       #
       # Creator self-access is a DISTINCT signal from third-party access
       # (a creator opening their own link is not "the recipient saw it").

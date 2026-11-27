@@ -13,7 +13,8 @@ module Onetime::Organization::Features
   # expiry, orphaning) record at the model layer and receipt views record
   # from v1 and v2/v3 alike. All of these need the receipt's org_id, which
   # v1 and v2/v3 creation stamp from the creator's organization, or for a
-  # guest from the organization owning the custom domain.
+  # guest from the organization owning the custom domain (none when that
+  # organization is archived).
   # Creation and link fetch events come from the logic layer
   # (BaseSecretAction#record_created_activity and AccessTelemetry, each with
   # a v1 and a v2/v3 implementation; status fetches exist only in v2/v3).

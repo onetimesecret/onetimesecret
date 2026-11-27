@@ -154,9 +154,10 @@ module V1::Logic
         # behavior depends on the removed transition.
 
         # Record the fetch on the receipt's access timeline, as V2 ShowSecret
-        # does: anything that did not consume the secret (a metadata-only
-        # request, a wrong passphrase, a lost reveal race) is a 'secret_get'.
-        # A won reveal is recorded by the revealed! transition instead.
+        # does: anything that did not consume the secret is a 'secret_get'.
+        # The v1 controller always sends continue=true, so in practice that
+        # is a wrong passphrase or a lost reveal race. A won reveal is
+        # recorded by the revealed! transition instead.
         record_access_telemetry('secret_get') unless show_secret
       end
 

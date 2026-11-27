@@ -9,7 +9,8 @@ module OrganizationAPI::Logic
     # @api Returns a page of the organization's secret activity trail,
     #   newest first: secret creation, link/status fetches, reveals, burns
     #   and expiries recorded for receipts created in this organization's
-    #   context (see Organization::Features::SecretActivity). Requires the
+    #   context or by guests on its custom domains (see
+    #   Organization::Features::SecretActivity). Requires the
     #   `audit_logs` entitlement, which the role/plan intersection grants to
     #   admins and owners on plans that include it.
     #
