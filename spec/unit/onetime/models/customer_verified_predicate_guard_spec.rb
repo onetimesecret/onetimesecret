@@ -18,18 +18,26 @@
 #
 #   1. `.verified?` / `.email_verified?` on a receiver whose name ends in a
 #      customer word (cust, customer, owner, user, principal, member,
-#      colonel), with or without @ or a prefix (`invitee_customer`).
-#   2. `.email_verified?` on any receiver, and the symbol `:email_verified?`.
+#      colonel, candidate, target), with or without @ or a prefix
+#      (`invitee_customer`). `domain_owner` is not a customer word.
+#   2. A call chained off the Customer class, such as
+#      `Onetime::Customer.load(id).verified?` or
+#      `Customer.find_by_email(e)&.verified?`.
+#   3. `.email_verified?` on any receiver, and the symbol `:email_verified?`.
 #      No other model defines it (oidc_email_verified? is a different name).
-#   3. Dynamic forms of `:verified?`: `&:verified?`, send/public_send,
-#      method, respond_to?.
-#   4. Implicit-self `verified?` / `email_verified?` inside
-#      lib/onetime/models/customer/, where self is a Customer.
+#   4. Dynamic forms of `:verified?`: `&:verified?`, send/public_send,
+#      try, method, respond_to?.
+#   5. Implicit-self and `self.` calls to `verified?` / `email_verified?`
+#      inside lib/onetime/models/customer/, where self is a Customer.
 #
-# Limits: a Customer held in a variable with another name (`record`,
-# `account`, `target`) passes, as does an implicit-self call from a module
-# mixed into Customer outside lib/onetime/models/customer/. Comment lines
-# are skipped. A line that is not about a customer can carry the marker
+# Limits: the scan reads one line at a time and matches receiver names, so
+# these pass: a Customer in a variable with another name (`record`,
+# `account`, a block variable such as `|c|`), a call on an expression
+# (`customers.first.verified?`, `find_customer(id).verified?`), a call
+# split across lines, an implicit-self call from a module mixed into
+# Customer outside lib/onetime/models/customer/, and files other than .rb
+# under apps/ and lib/ (templates, bin/, scripts/). Comment lines are
+# skipped. A line that is not about a customer can carry the marker
 # `# verified-predicate: not a customer` to be skipped.
 #
 # =============================================================================
@@ -44,15 +52,21 @@ RSpec.describe 'Customer deprecated verification predicate guard' do
   CUSTOMER_DIR   = 'lib/onetime/models/customer/'
 
   RECEIVER_CALL = /
-    (?: \b | @ ) \w*? (?:cust|customer|owner|user|principal|member|colonel)
-    (?: \)? &? \. ) (?:email_)?verified\? (?![\w?])
+    (?: \b | @ ) \w*? (?<!domain_) (?:cust|customer|owner|user|principal|member|colonel|candidate|target)
+    &? \. (?:email_)?verified\? (?![\w?])
   /xi
+
+  CLASS_CHAIN = /
+    \bCustomer \. \w+[!?]? (?: \( [^()]* \) )? &? \. (?:email_)?verified\? (?![\w?])
+  /x
+
+  SELF_CALL = /\bself &? \. (?:email_)?verified\? (?![\w?])/x
 
   ANY_EMAIL_VERIFIED = /(?:\.|:)email_verified\?(?![\w?])/
 
   DYNAMIC_VERIFIED = /
     &:verified\? (?![\w?])
-    | \b(?:send|public_send|__send__|method|respond_to\?)\s*\(?\s*:verified\? (?![\w?])
+    | \b(?:send|public_send|__send__|try|method|respond_to\?)\s*\(?\s*:verified\? (?![\w?])
   /x
 
   IMPLICIT_SELF = /(?<![\w.:&@])(?:email_)?verified\?(?![\w?:])/
@@ -70,9 +84,9 @@ RSpec.describe 'Customer deprecated verification predicate guard' do
     return false if line.include?(GUARD_MARKER)
     # The definitions themselves.
     return false if in_customer_dir && stripped.match?(/\A(?:def|alias|alias_method)\s/)
-    return true if line.match?(RECEIVER_CALL) || line.match?(ANY_EMAIL_VERIFIED) || line.match?(DYNAMIC_VERIFIED)
+    return true if [RECEIVER_CALL, CLASS_CHAIN, ANY_EMAIL_VERIFIED, DYNAMIC_VERIFIED].any? { |re| line.match?(re) }
 
-    in_customer_dir && line.match?(IMPLICIT_SELF)
+    in_customer_dir && (line.match?(IMPLICIT_SELF) || line.match?(SELF_CALL))
   end
 
   it 'scans the customer model and the call sites (non-empty file set)' do
@@ -115,6 +129,12 @@ RSpec.describe 'Customer deprecated verification predicate guard' do
       'cust.public_send(:verified?)',
       'cust.respond_to?(:verified?)',
       'base.safe_dump_field :verified, ->(cust) { cust.verified? }',
+      'candidate.verified?',
+      'return false unless target.verified?',
+      'Onetime::Customer.load(id).verified?',
+      'Customer.find_by_email(e)&.verified?',
+      'Onetime::Customer.anonymous.verified?',
+      'cust.try(:verified?)',
     ]
     not_flagged_anywhere = [
       'cust.account_verified?',
@@ -130,10 +150,14 @@ RSpec.describe 'Customer deprecated verification predicate guard' do
       "cust.verified == 'true'",
       "cust.verified? # #{GUARD_MARKER}",
       '# cust.verified? in a comment',
+      'domain_owner.verified?',
+      'mailer_config_for(customer).verified?',
+      'target_domain.verified?',
     ]
     in_customer_dir_only = [
       'verified? && verified_by.to_s == "email"',
       '!anonymous? && !verified? && role?("customer")',
+      'self.verified?',
     ]
     customer_dir_definitions = [
       'def verified?',
