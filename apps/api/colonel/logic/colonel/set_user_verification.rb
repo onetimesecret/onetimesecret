@@ -99,7 +99,7 @@ module ColonelAPI
               user_id: user.objid,
               extid: user.extid,
               email: user.obscure_email,
-              verified: user.verified?,
+              verified: user.account_verified?,
               updated: user.updated,
             },
             details: {

@@ -19,7 +19,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::RemoveMembership do
       objid: 'cust_colonel',
       extid: 'ur_colonel',
       role: 'colonel',
-      verified?: true,
+      account_verified?: true,
       mailbox_verified?: true,
       anonymous?: false,
     )

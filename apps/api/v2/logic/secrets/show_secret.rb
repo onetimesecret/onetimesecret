@@ -177,7 +177,7 @@ module V2::Logic
       end
 
       def verify_owner(owner)
-        # Gated on mailbox_verified?, not verified?: following the emailed link
+        # Gated on mailbox_verified?, not account_verified?: following the emailed link
         # is mailbox proof, so an owner stamped by payment/autoverify/legacy
         # provenance acquires it here (#4735) — unless the secret is the
         # email-change confirmation, which went to the PROPOSED address and

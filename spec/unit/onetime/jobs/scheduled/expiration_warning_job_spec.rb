@@ -42,7 +42,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
   # Mock owner with email
   let(:owner_with_email) do
-    instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'de', verified?: true)
+    instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'de', notifiable?: true)
   end
 
   # Mock owner without email
@@ -265,7 +265,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
     # anonymous one, so the entry is dropped and stops taking a batch slot.
     context 'when the owner is not verified' do
       let(:unverified_owner) do
-        instance_double('Onetime::Customer', email: 'unverified@example.com', locale: 'de', verified?: false)
+        instance_double('Onetime::Customer', email: 'unverified@example.com', locale: 'de', notifiable?: false)
       end
 
       let(:unverified_receipt) do
@@ -291,7 +291,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
         described_class.send(:process_expiring_secrets)
 
-        expect(unverified_owner).to have_received(:verified?)
+        expect(unverified_owner).to have_received(:notifiable?)
         expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
         expect(Onetime::Receipt).not_to have_received(:mark_warning_sent)
         expect(unverified_receipt).to have_received(:unregister_from_expiration_notifications)
@@ -322,6 +322,52 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email)
 
       described_class.send(:process_expiring_secrets)
+    end
+
+    # A blank email on a verified account counts as missing: skipped, entry
+    # kept, and the owner is never asked notifiable? (which would drop it).
+    it 'skips a blank email on a verified owner and keeps the timeline entry' do
+      blank_owner = instance_double('Onetime::Customer', email: '', locale: nil,
+                                                         account_verified?: true, notifiable?: false)
+      allow(metadata_no_email).to receive(:load_owner).and_return(blank_owner)
+      allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta789'])
+      allow(Onetime::Receipt).to receive(:load).with('meta789').and_return(metadata_no_email)
+
+      described_class.send(:process_expiring_secrets)
+
+      expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+      expect(blank_owner).not_to have_received(:notifiable?)
+      expect(metadata_no_email).not_to have_received(:unregister_from_expiration_notifications)
+    end
+
+    it 'treats a whitespace-only email on a verified owner as blank' do
+      blank_owner = instance_double('Onetime::Customer', email: " \t", locale: nil,
+                                                         account_verified?: true, notifiable?: false)
+      allow(metadata_no_email).to receive(:load_owner).and_return(blank_owner)
+      allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta789'])
+      allow(Onetime::Receipt).to receive(:load).with('meta789').and_return(metadata_no_email)
+
+      described_class.send(:process_expiring_secrets)
+
+      expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+      expect(blank_owner).not_to have_received(:notifiable?)
+      expect(metadata_no_email).not_to have_received(:unregister_from_expiration_notifications)
+    end
+
+    # A blank email on an unverified (or anonymous) account is dropped, as
+    # it was before the blank-email check: it would otherwise take a batch
+    # slot on every scan until the secret expires.
+    it 'drops the timeline entry for a blank email on an unverified owner' do
+      blank_owner = instance_double('Onetime::Customer', email: '', locale: nil,
+                                                         account_verified?: false, notifiable?: false)
+      allow(metadata_no_email).to receive(:load_owner).and_return(blank_owner)
+      allow(Onetime::Receipt).to receive(:expiring_within).and_return(['meta789'])
+      allow(Onetime::Receipt).to receive(:load).with('meta789').and_return(metadata_no_email)
+
+      described_class.send(:process_expiring_secrets)
+
+      expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+      expect(metadata_no_email).to have_received(:unregister_from_expiration_notifications)
     end
 
     # The payload is an account notification: the secret's short id under
@@ -508,7 +554,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       end
 
       context 'with an owner locale' do
-        let(:owner) { instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'fr', verified?: true) }
+        let(:owner) { instance_double('Onetime::Customer', email: 'owner@example.com', locale: 'fr', notifiable?: true) }
 
         it 'passes the custom domain id and the owner locale' do
           expect(Onetime::Jobs::Publisher).to receive(:enqueue_email)
@@ -527,7 +573,7 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       end
 
       context 'with a blank owner locale' do
-        let(:owner) { instance_double('Onetime::Customer', email: 'owner@example.com', locale: '', verified?: true) }
+        let(:owner) { instance_double('Onetime::Customer', email: 'owner@example.com', locale: '', notifiable?: true) }
 
         it 'falls back to the default locale' do
           expect(Onetime::Jobs::Publisher).to receive(:enqueue_email)

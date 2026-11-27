@@ -102,7 +102,7 @@ module ColonelAPI
               secrets_created: this_cust.secrets_created.to_i,
               secrets_shared: this_cust.secrets_shared.to_i,
               emails_sent: this_cust.emails_sent.to_i,
-              verified: this_cust.verified?,
+              verified: this_cust.account_verified?,
               created: this_cust.created,
             }
           end.compact.reverse

@@ -43,7 +43,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
   def mock_customer(custid: 'test@example.com', anonymous: false)
     customer = double('Customer', custid: custid, role: 'customer')
     allow(customer).to receive(:anonymous?).and_return(anonymous)
-    allow(customer).to receive(:verified?).and_return(true)
+    allow(customer).to receive(:account_verified?).and_return(true)
     allow(customer).to receive(:increment_field)
     # The secret logs identify the caller by extid (never custid, which is
     # the email address on legacy records).

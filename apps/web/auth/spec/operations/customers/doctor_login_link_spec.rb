@@ -32,7 +32,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       objid: 'obj_c',
       extid: 'ur_c',
       obscure_email: 'li***@e***.com',
-      verified?: true,
+      account_verified?: true,
       verified_by: 'email',
       mailbox_verified?: true,
       provisioning_origin: 'canonical_signup',
@@ -119,7 +119,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     end
 
     it 'reports :auth_email_verification_drift when SQL is verified and the Customer is not' do
-      allow(customer).to receive_messages(verified?: false, verified_by: '', mailbox_verified?: false)
+      allow(customer).to receive_messages(account_verified?: false, verified_by: '', mailbox_verified?: false)
       stub_row(base_row)
 
       doctor.send(:check_auth_login_link, issues)
@@ -129,7 +129,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     end
 
     it "does not report drift for a Customer verified by an IdP claim ('sso' is not mailbox proof) and a NULL column" do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'sso', mailbox_verified?: false)
       stub_row(base_row(email_verified_at: nil, email_verified_by: nil))
 
       doctor.send(:check_auth_login_link, issues)
@@ -138,7 +138,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     end
 
     it 'reports drift when the column is set but the Customer provenance is not mailbox proof' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'sso', mailbox_verified?: false)
       stub_row(base_row(email_verified_by: 'sso'))
 
       doctor.send(:check_auth_login_link, issues)
@@ -199,7 +199,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     # proof has_system_role? requires (#4735), so the report never
     # prescribes it.
     it 'does not prescribe unverify, then verify when the accounts row has the proof' do
-      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
+      allow(customer).to receive_messages(account_verified?: true, verified_by: 'sso', mailbox_verified?: false)
       stub_row(base_row)
 
       doctor.send(:check_auth_login_link, issues)
@@ -215,7 +215,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     # record it was written for. Expected, not a failed write.
     it 'reports a Customer recreated at login beside a row with proof as medium, with a manual decision' do
       allow(customer).to receive_messages(
-        verified?: true, verified_by: 'legacy', mailbox_verified?: false, provisioning_origin: 'login_recovery',
+        account_verified?: true, verified_by: 'legacy', mailbox_verified?: false, provisioning_origin: 'login_recovery',
       )
       stub_row(base_row)
 
@@ -230,7 +230,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
     it 'leaves an unverified Customer recreated at login to :recovered_customer_unverified' do
       allow(customer).to receive_messages(
-        verified?: false, verified_by: '', mailbox_verified?: false, provisioning_origin: 'login_recovery',
+        account_verified?: false, verified_by: '', mailbox_verified?: false, provisioning_origin: 'login_recovery',
       )
       stub_row(base_row)
 
@@ -240,7 +240,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     end
 
     it 'treats a held, unverified row as consistent with an unverified Customer' do
-      allow(customer).to receive_messages(verified?: false, verified_by: '', mailbox_verified?: false)
+      allow(customer).to receive_messages(account_verified?: false, verified_by: '', mailbox_verified?: false)
       stub_row(base_row(email_verified_at: nil, email_verified_by: nil, email_verification_hold: 'idp_unverified'))
 
       doctor.send(:check_auth_login_link, issues)

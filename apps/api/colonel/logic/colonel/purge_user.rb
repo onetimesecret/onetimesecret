@@ -66,7 +66,7 @@ module ColonelAPI
           # gone, not merely stripped) and, being irreversible, one this op cannot
           # post-write roll back the way SetRole/SetVerification do. Refuse it at
           # the pre-check. An UNVERIFIED colonel-role target is not an active
-          # colonel (last_colonel_by_verification? requires verified?), so purging
+          # colonel (last_colonel_by_verification? requires mailbox_verified?), so purging
           # it cannot empty the roster and is allowed. The residual concurrent
           # double-purge (two colonels purging each other past this non-atomic
           # check) cannot be undone here — a purged account cannot be recreated —

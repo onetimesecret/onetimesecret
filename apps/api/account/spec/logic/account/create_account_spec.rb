@@ -204,7 +204,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
         # BooleanFieldType canonicalizes to the STRING 'false', never a
         # real Ruby boolean — mirror the real model contract here.
         verified: 'false',
-        verified?: false, mailbox_verified?: false,
+        account_verified?: false, mailbox_verified?: false,
         'verified=': nil,
         'verified_by=': nil,
         'role=': nil,
@@ -282,9 +282,9 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
           obscure_email: 'e***g@example.com',
           role: 'customer',
           # Stored form is the canonical STRING 'true' (BooleanFieldType);
-          # the predicate verified? is the correct read.
+          # the predicate account_verified? is the correct read.
           verified: 'true',
-          verified?: true, mailbox_verified?: true
+          account_verified?: true, mailbox_verified?: true
         )
       end
 
@@ -322,7 +322,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
             obscure_email: 'e***g@example.com',
             role: 'customer',
             verified: 'false',
-            verified?: false, mailbox_verified?: false
+            account_verified?: false, mailbox_verified?: false
           )
         end
 

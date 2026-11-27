@@ -29,8 +29,8 @@ module Onetime
         # its index member behind forever). Counting the index would make a
         # last-colonel guard FAIL OPEN — the exact failure mode #4328 exists to
         # prevent — so every member is re-checked against the authoritative
-        # `role` field. `verified?` matches has_system_role?, which refuses the
-        # colonel role to an unverified account; that is also why unverifying
+        # `role` field. `mailbox_verified?` matches has_system_role?, which refuses the
+        # colonel role to an account without mailbox proof; that is also why unverifying
         # the last colonel is itself an interlocked action.
         #
         # Bounded cost: the colonel bucket holds a handful of accounts in every
@@ -48,7 +48,7 @@ module Onetime
         #
         # Symmetric with {#last_colonel_by_verification?}: the target must itself
         # be an ACTIVE colonel (verified), because only active colonels count
-        # toward the roster this guard protects. Without the verified? gate an
+        # toward the roster this guard protects. Without the mailbox_verified? gate an
         # UNVERIFIED colonel-role account trips the guard whenever the roster is
         # empty — sole_active_colonel? returns true for anyone when active_colonels
         # is [] ([].none? is true) — so a stale, never-verified (or provenance-
@@ -71,7 +71,7 @@ module Onetime
         # Would UNVERIFYING this customer leave the install with no colonel?
         #
         # Unverification strips colonel eligibility through has_system_role?'s
-        # verified? check, so it is a demotion by another name — and it was
+        # mailbox_verified? check, so it is a demotion by another name — and it was
         # reachable straight past any last-colonel check on the role endpoint.
         #
         # @param customer [Onetime::Customer] the unverify target

@@ -33,7 +33,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
   def mock_customer(custid: 'test@example.com', anonymous: false)
     customer = double('Customer', custid: custid, role: 'customer')
     allow(customer).to receive(:anonymous?).and_return(anonymous)
-    allow(customer).to receive(:verified?).and_return(true)
+    allow(customer).to receive(:account_verified?).and_return(true)
     allow(customer).to receive(:increment_field)
     allow(customer).to receive(:objid).and_return(anonymous ? nil : 'cust_abc123')
     allow(customer).to receive(:organization_instances).and_return([])

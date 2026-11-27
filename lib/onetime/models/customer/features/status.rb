@@ -145,9 +145,22 @@ module Onetime::Customer::Features
       # Stored form is canonical 'true' / 'false' (see
       # Onetime::Models::FieldTypes::BooleanFieldType), so the predicate is a
       # plain string equality check — no truthy-table, no `to_s.downcase`.
-      def verified?
+      #
+      # True for any verified_by provenance. It says the account is open, not
+      # that anyone proved control of the mailbox: see #mailbox_verified?.
+      # It reads this Customer record's verified flag, not the Rodauth
+      # accounts row (accounts.status_id); the two are kept in step but are
+      # separate records and can differ.
+      def account_verified?
         !anonymous? && verified == 'true'
       end
+
+      # Deprecated: use #account_verified?. Kept so existing callers keep
+      # working. An alias is a copy: a stub on verified? does not reach code
+      # that calls account_verified?, so stub the new name. The static guard
+      # in spec/unit/onetime/models/customer_verified_predicate_guard_spec.rb
+      # flags new calls on customer-named receivers in lib/ and apps/.
+      alias verified? account_verified?
 
       # The verified flag as the datastore holds it now, read without
       # changing this object's fields (a #refresh! would replace every
@@ -155,7 +168,7 @@ module Onetime::Customer::Features
       # reads the field: Familia JSON-encodes the stored 'true' as
       # "\"true\"", so the raw bytes never equal 'true', and a legacy bare
       # value still counts. Never true for the anonymous customer, as with
-      # #verified?; that guard reads this object's in-memory `role`, not the
+      # #account_verified?; that guard reads this object's in-memory `role`, not the
       # stored one.
       #
       # @return [Boolean]
@@ -166,17 +179,62 @@ module Onetime::Customer::Features
         Onetime::Models::FieldTypes::BooleanFieldType.truthy?(stored)
       end
 
-      # Check if account was verified via email confirmation
-      def email_verified?
-        verified? && verified_by.to_s == 'email'
+      # Was the account verified by following an emailed verification link
+      # (verified_by 'email')? Narrower than #mailbox_verified?, which also
+      # accepts the other mailbox-proof provenances.
+      def verified_by_email_link?
+        account_verified? && verified_by.to_s == 'email'
       end
+
+      # Deprecated: use #verified_by_email_link?.
+      alias email_verified? verified_by_email_link?
 
       # Does the record carry proof that this person controls the mailbox?
       # True only for the provenances in Onetime::Customer::MAILBOX_VERIFIED_BY.
       # An IdP-asserted ('sso'), payment, autoverify or legacy stamp satisfies
-      # verified? but not this (#4735). Fail-closed on a blank provenance.
+      # account_verified? but not this (#4735). Fail-closed on a blank provenance.
       def mailbox_verified?
-        verified? && Onetime::Customer::MAILBOX_VERIFIED_BY.include?(verified_by.to_s)
+        account_verified? && Onetime::Customer::MAILBOX_VERIFIED_BY.include?(verified_by.to_s)
+      end
+
+      # May this customer receive owner notification mail (the reveal notice,
+      # Secret#notify_owner_of_reveal, and the expiration warning,
+      # Onetime::Jobs::Scheduled::ExpirationWarningJob)? True for a
+      # non-anonymous customer with an email that is not blank whose
+      # account is verified by any provenance.
+      #
+      # The gate is account_verified?, the account-level flag, not the
+      # stricter mailbox_verified?, so every provenance that sets the flag
+      # qualifies (sso, autoverify, stripe_payment, legacy and the mailbox
+      # proofs). That rule came from the reveal and expiration gates as
+      # !5006 left them. For IdP-asserted addresses it is the project
+      # owner's decision of 2026-11-26: such an address is sufficient for
+      # delivering owner notifications (ADR-051 decision 6). Keeping every
+      # verified provenance notifiable was confirmed by the project owner
+      # on 2026-11-27 (a decision in the project thread, not on GitLab).
+      # mailbox_verified? stays reserved for gates where holding the
+      # mailbox grants authority.
+      #
+      # An SSO account provisioned at sign-in (JIT) while its IdP reported
+      # the address (or its domain owner) as unverified, or whose
+      # email_verified claim could not be read, carries a
+      # verification_hold (one of Onetime::Customer::VERIFICATION_HOLDS).
+      # The OmniAuth JIT hook (apps/web/auth/config/hooks/omniauth.rb,
+      # where sso_verified is derived from the account status and the hold)
+      # leaves such an account unverified, so it is not notifiable until it
+      # is verified (for example by an operator; see #verification_held?).
+      # The hold lives only on the Customer record: a record rebuilt by
+      # login recovery has lost it and can come back verified 'sso'
+      # (apps/web/auth/operations/sync_session.rb).
+      #
+      # Per-notice preferences (notify_on_reveal?) and secret-side guards
+      # (an 'anon' owner_id) stay with the callers. A false answer never
+      # raises: the reveal notice skips silently, and the expiration job
+      # also takes the receipt off its timeline.
+      #
+      # @return [Boolean]
+      def notifiable?
+        !anonymous? && !email.to_s.strip.empty? && account_verified?
       end
 
       # Must a federated subscription wait for this customer's mailbox proof
@@ -197,7 +255,7 @@ module Onetime::Customer::Features
       #     for an address nobody had proven. The re-claim runs from
       #     after_verify_account through SetCustomerVerification.
       #
-      # Deliberately NOT deferred: a verified? record with a non-mailbox
+      # Deliberately NOT deferred: an account_verified? record with a non-mailbox
       # provenance ('autoverify', 'stripe_payment', 'legacy', blank). Rodauth
       # never re-verifies a Verified row, so such an account has no self-
       # service way to produce mailbox proof; deferring it would leave a new
@@ -219,7 +277,7 @@ module Onetime::Customer::Features
         return false if mailbox_verified?
         return true if provisioning_origin.to_s == 'sso_jit' || verified_by.to_s == 'sso'
 
-        !verified? && verification_step_pending?
+        !account_verified? && verification_step_pending?
       end
 
       # Does this deployment have an email-verification step that an
@@ -356,20 +414,20 @@ module Onetime::Customer::Features
 
       # Check if account was created via Stripe payment (not email verified)
       def payment_verified?
-        verified? && verified_by.to_s == 'stripe_payment'
+        account_verified? && verified_by.to_s == 'stripe_payment'
       end
 
       # Was verification deliberately withheld at SSO JIT provisioning?
       # True when verification_hold carries a reason (see
       # Onetime::Customer::VERIFICATION_HOLDS); nil / blank reads as not
-      # held. Independent of verified?: an operator who verifies a held
+      # held. Independent of account_verified?: an operator who verifies a held
       # record by hand leaves the hold in place as history.
       def verification_held?
         !verification_hold.to_s.empty?
       end
 
       # Reversible trust & safety pause. Stored form is canonical
-      # 'true' / 'false' (BooleanFieldType), so — like verified? — the
+      # 'true' / 'false' (BooleanFieldType), so — like account_verified? — the
       # predicate is a plain string equality check. nil (records that
       # predate the field) reads as not suspended.
       def suspended?
@@ -423,14 +481,14 @@ module Onetime::Customer::Features
         # account is never active: suspension is a reversible trust & safety
         # pause enforced consistently at every access gate (auth strategies,
         # org/workspace behavior), so anything gating on active? honors it too.
-        verified? && role?('customer') && !suspended?
+        account_verified? && role?('customer') && !suspended?
       end
 
       def pending?
         # A customer is considered pending if they are not anonymous, not verified,
         # and have a role of 'customer'. If any one of these conditions is changes
         # then the customer is no longer pending.
-        !anonymous? && !verified? && role?('customer') # we modify the role when destroying
+        !anonymous? && !account_verified? && role?('customer') # we modify the role when destroying
       end
 
       private

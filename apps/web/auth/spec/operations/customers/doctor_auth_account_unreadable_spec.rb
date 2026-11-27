@@ -42,7 +42,7 @@ RSpec.describe Auth::Operations::Customers::Doctor, 'with an unreadable accounts
       objid: 'obj_c',
       extid: 'ur_c',
       obscure_email: 'li***@e***.com',
-      verified?: verified,
+      account_verified?: verified,
       mailbox_verified?: verified,
       verified_by: verified ? 'email' : nil,
       verification_hold: nil,

@@ -211,20 +211,22 @@ module Onetime
             return drop(receipt) if receipt.anonymous?
 
             # The owner record is gone (purged, or expired after deletion):
-            # nobody can ever be mailed, so the entry is dropped. An owner
-            # with no email yet is kept, since they can still add one.
+            # nobody can ever be mailed, so the entry is dropped. A missing
+            # email is kept, since the owner can still add one. So is a blank
+            # one (empty or whitespace only) on a verified account. A blank
+            # email on an anonymous or unverified account falls through to
+            # the notifiable? check below and is dropped.
             owner = receipt.load_owner
             return drop(receipt) if owner.nil?
-            return :kept unless owner.email
+            return :kept if owner.email.nil?
+            return :kept if owner.email.to_s.strip.empty? && owner.account_verified?
 
-            # Mail goes only to a verified account (Customer#verified?;
-            # same rule as the reveal notice, so IdP-asserted SSO
-            # addresses qualify; see Secret#notify_owner_of_reveal). The
+            # Who may get owner mail at all: see Customer#notifiable?. The
             # entry is dropped so later runs do not read it again for an
             # owner who never verifies. Unlike anonymity this can change: an
             # owner who verifies after the scan gets no warning for an entry
             # already dropped.
-            return drop(receipt) unless owner.verified?
+            return drop(receipt) unless owner.notifiable?
 
             # Skip when the secret is already gone, or is account mechanics
             # (Secret#account_mechanics?: a verification, password-reset or

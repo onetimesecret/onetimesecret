@@ -179,7 +179,7 @@ module V2::Logic
               # Following a link delivered to the address IS mailbox proof, so
               # this also upgrades an owner whose stamp carried none (payment,
               # autoverify, legacy) — the gate above is mailbox_verified?, not
-              # verified? (#4735). EXCEPT the email-change confirmation secret,
+              # account_verified? (#4735). EXCEPT the email-change confirmation secret,
               # which was delivered to the PROPOSED address: revealing it here
               # proves nothing about the current one, so it is shown without
               # a stamp (Customer#mailbox_proof_secret?).

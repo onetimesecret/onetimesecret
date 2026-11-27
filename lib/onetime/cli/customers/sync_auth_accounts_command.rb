@@ -297,7 +297,7 @@ module Onetime
               stats[:created] += 1
             else
               # Determine status based on customer state
-              status_id = customer.verified? ? 2 : 1  # 2=Verified, 1=Unverified
+              status_id = customer.account_verified? ? 2 : 1  # 2=Verified, 1=Unverified
 
               # Create account using raw SQL to match Rodauth schema
               account_id = db[:accounts].insert(

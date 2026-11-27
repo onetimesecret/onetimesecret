@@ -48,7 +48,7 @@
 #     - Closed row  → AccountClosed, Redis untouched (see #3916)
 #     - SQL ok, Redis raises → Rodauth fresh, Customer stale.
 #       Auth state (the important one) is correct; display of
-#       Customer#verified? will be wrong until next save.
+#       Customer#account_verified? will be wrong until next save.
 #       Detectable and fixable via `bin/ots customers sync-auth-accounts`,
 #       and the next call through this op that writes (a state change, or
 #       a provenance change that alters whether the account has mailbox
@@ -300,7 +300,7 @@ module Auth
       #   is Closed; verification only moves between Unverified and Verified
       #   (not raised when rodauth_already_synced: true)
       def call
-        state_changes      = @customer.verified? != @verified
+        state_changes      = @customer.account_verified? != @verified
         provenance_changes = @customer.verified_by.to_s != @verified_by.to_s && !mailbox_proof_reaffirmed?
 
         unless state_changes || provenance_changes || @new_address || @stamp_only
@@ -372,7 +372,7 @@ module Auth
       # the stored stamp is kept and the claim retry still runs.
       #
       # Reads Customer#mailbox_verified? for the stored side, which includes
-      # verified?, so a stale mailbox tag on an UNVERIFIED record (the
+      # account_verified?, so a stale mailbox tag on an UNVERIFIED record (the
       # pre-#4735 `customers create --no-verified` stamped 'cli_provision'
       # regardless) is not mistaken for proof; that call is a state change
       # and writes as before. A move from a mailbox-proof tag to a

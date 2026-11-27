@@ -548,7 +548,7 @@ module Auth
         Auth::AccountEmailVerification.values_for_row(
           sql_text(row[:email]),
           customer.email,
-          verified: row[:status_id] == AccountStatuses::VERIFIED && customer.verified?,
+          verified: row[:status_id] == AccountStatuses::VERIFIED && customer.account_verified?,
           verified_by: customer.verified_by,
           hold: customer.verification_hold,
         )

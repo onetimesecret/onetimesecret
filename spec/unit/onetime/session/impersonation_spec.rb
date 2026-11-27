@@ -30,7 +30,7 @@ RSpec.describe Onetime::SessionImpersonation do
     instance_double(
       Onetime::Customer,
       extid: 'ur_colonel', email: 'ops@example.com',
-      exists?: true, suspended?: false, verified?: true, mailbox_verified?: true,
+      exists?: true, suspended?: false, account_verified?: true, mailbox_verified?: true,
     )
   end
 
@@ -232,7 +232,7 @@ RSpec.describe Onetime::SessionImpersonation do
     end
 
     it 'ends the overlay when the principal is a colonel without mailbox proof' do
-      allow(colonel).to receive_messages(verified?: true, mailbox_verified?: false)
+      allow(colonel).to receive_messages(account_verified?: true, mailbox_verified?: false)
       allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(target)
 
       effective, = described_class.resolve(session, colonel)

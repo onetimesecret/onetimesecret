@@ -114,6 +114,13 @@ requirements. This ADR records the proposed architectural decision.
    columns does not itself establish that an IdP assertion proves mailbox
    control; that policy is tracked separately under
    [#4735](https://github.com/onetimesecret/onetimesecret/issues/4735).
+   For owner notifications, the project owner (Delano) decided on
+   2026-11-26, and confirmed on 2026-11-27, that an IdP-asserted address is
+   sufficient for delivering owner notifications and does not by itself
+   satisfy gates that require mailbox proof (`mailbox_verified?`). This
+   does not change trusted-email linking or tenant email-domain allowlists,
+   which decision 7 keeps. The broader IdP mailbox-proof policy stays with
+   #4735.
 7. **Do not widen access policy.**
    This change does not relax tenant allowlists, trusted-email linking,
    authenticated identity-linking (Connect) gates, or the recipient-email

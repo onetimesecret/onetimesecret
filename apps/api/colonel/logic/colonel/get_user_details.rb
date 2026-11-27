@@ -476,7 +476,7 @@ module ColonelAPI
               # and revealed on interaction via RevealEmail.vue.
               email: user.email,
               role: user.role,
-              verified: user.verified?,
+              verified: user.account_verified?,
               suspended: user.suspended?,
               suspended_at: user.suspended_at,
               suspended_by: user.suspended_by,
