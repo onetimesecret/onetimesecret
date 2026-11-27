@@ -7,9 +7,8 @@ require 'onetime/session/active_session_gate'
 
 module Auth::Config::Features
   # Remember me: the login form's checkbox makes THIS session last a fixed 30
-  # days from sign-in instead of the rolling 24 hours. The mechanism, and why
-  # it is not Rodauth's remember feature, is described in
-  # lib/onetime/session/remember_me.rb.
+  # days from sign-in instead of the rolling 24 hours. The mechanism is
+  # described in lib/onetime/session/remember_me.rb.
   #
   # ENV: AUTH_REMEMBER_ME_ENABLED (default: enabled, set to 'false' to disable).
   # Disabled, the `remember-me` parameter is ignored, and a session stamped
@@ -25,9 +24,13 @@ module Auth::Config::Features
   # choice held across the second factor from being stamped once the switch
   # is off.
   #
-  # Rodauth's :remember feature is NOT enabled. Before this, it was, and
-  # nothing ever called remember_login or load_memory, so the checkbox did
-  # nothing. account_remember_keys stays in the schema, and is still cleared
+  # Rodauth's :remember feature is NOT enabled. Its key is one per account,
+  # shared by every device that ticked the box, so revoking one device's
+  # session from the sessions page could not end that device's remembered
+  # login without ending the others', and every revocation path would have
+  # to learn to remove it. Before this, it was enabled, and nothing ever
+  # called remember_login or load_memory, so the checkbox did nothing.
+  # account_remember_keys stays in the schema, and is still cleared
   # on account deletion (operations/remove_authentication_data.rb).
   #
   # ## Which logins

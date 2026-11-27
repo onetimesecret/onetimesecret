@@ -163,8 +163,8 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
       start_impersonation
 
       expect(last_response.status).to eq(200), "start failed: #{last_response.body}"
-      # #4466: no new id at start or stop, by rule (lib/onetime/session/
-      # rotation.rb, "Which transitions renew the id"): any holder of the
+      # #4466: no new id at start or stop, by rule (session-consistency-
+      # rollout.md, "Session-id renewal by path"): any holder of the
       # colonel id can start, stop, or wait out an impersonation, so a new
       # id would defend nothing, and it would start a new snapshot epoch
       # (ADR-046).

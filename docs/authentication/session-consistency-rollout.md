@@ -253,8 +253,7 @@ the proof cannot be saved after the renewal, the answer is
 `503 reauth_not_recorded` with `session_rotated: true`, and `useReauth` makes
 the same auth-mutation refresh while still reporting the error.
 
-The full list, with the rule it follows, is in
-`lib/onetime/session/rotation.rb` ("Which transitions renew the id"). The rule:
+The table below is the full list. The rule it follows:
 renew the id when the session gains capability, not when capability stays the
 same or shrinks, or when whoever holds the id could already make the
 transition at will. "Spec" means a spec that asserts the new id; "None" means

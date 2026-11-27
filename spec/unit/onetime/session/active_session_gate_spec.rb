@@ -6,7 +6,8 @@
 # Rodauth's account_active_session_keys table in full auth mode.
 #
 # Terms (Rack session, active-session row, join key, revoke, refuse) are
-# defined in the gate's module doc. `session` below is the Rack session; the
+# defined in docs/architecture/terminology.md ("Session Terminology").
+# `session` below is the Rack session; the
 # rows inserted into the table are active-session rows.
 #
 # The table is real (in-memory SQLite with the production column shape) so

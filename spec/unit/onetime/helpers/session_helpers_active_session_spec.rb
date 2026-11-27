@@ -5,8 +5,8 @@
 # The controller-side half of full-mode active-session enforcement: once the
 # Rack session's active-session row is revoked (or cannot be checked),
 # SessionHelpers#authenticated? answers false the same way
-# BaseSessionAuthStrategy refuses the request. Terms are defined in the
-# gate's module doc. The gate's own
+# BaseSessionAuthStrategy refuses the request. Terms are defined in
+# docs/architecture/terminology.md ("Session Terminology"). The gate's own
 # decision table is spec/unit/onetime/session/active_session_gate_spec.rb;
 # what is pinned here is the wiring — the memo, and that login/logout forget
 # a verdict reached for the previous identity.

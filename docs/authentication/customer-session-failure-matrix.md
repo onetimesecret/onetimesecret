@@ -520,9 +520,7 @@ Recorded as a baseline so #4466 and #4467 start from observed behaviour, in
   earlier): simple-mode password sign-in and the colonel step-up now also
   start a new ID (`spec/integration/simple/login_session_rotation_spec.rb`,
   `spec/integration/full/colonel_elevation_session_rotation_spec.rb`). The
-  state of each establishment path is listed in
-  `lib/onetime/session/rotation.rb` ("Which transitions renew the id") and in
-  the rollout doc
+  state of each establishment path is listed in the rollout doc
   ([session-consistency-rollout.md](./session-consistency-rollout.md),
   "Session-id renewal by path").
 - **Remember-me continuation (#4467):** the baseline first pinned that
