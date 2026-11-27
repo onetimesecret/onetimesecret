@@ -325,7 +325,7 @@ module Onetime
     #
     # @return [Boolean] true if the entry was removed or absent, false on error
     def unregister_from_expiration_notifications
-      self.class.expiration_timeline.remove_element(identifier)
+      self.class.remove_from_expiration_timeline(identifier)
       true
     rescue StandardError => ex
       OT.le "[expiration-timeline] removal failed: #{ex.class} (receipt=#{shortid})"
@@ -577,26 +577,44 @@ module Onetime
       # @param seconds [Integer] Time window in seconds from now
       # @param offset [Integer, nil] entries to skip (paged read)
       # @param count [Integer, nil] page size (paged read)
+      # @param now [Float, nil] window start; a paged caller passes one value
+      #   for every page so the window does not move under its offset
       # @return [Array<String>] Receipt identifiers
-      def expiring_within(seconds, offset: nil, count: nil)
-        now  = Familia.now.to_f
-        opts = count ? { limit: [offset.to_i, count] } : {}
+      def expiring_within(seconds, offset: nil, count: nil, now: nil)
+        now ||= Familia.now.to_f
+        opts  = count ? { limit: [offset.to_i, count] } : {}
         expiration_timeline.rangebyscore(now, now + seconds, opts)
       end
 
+      # Both stored spellings of an identifier. Familia writes a String
+      # member JSON-quoted ("\"abc\""); older migration scripts wrote it raw,
+      # and `bin/ots migrations dedupe-instances --run` rewrites quoted
+      # members raw. Either may be on the timeline and in warnings_sent.
+      # @param receipt_id [String] Receipt identifier
+      # @return [Array<String>] [raw, quoted]
+      def stored_member_forms(receipt_id)
+        raw = receipt_id.to_s
+        [raw, Familia::JsonSerializer.dump(raw)]
+      end
+
       # Take one entry off the expiration timeline by identifier, without
-      # loading the receipt.
+      # loading the receipt. Removes both stored spellings (see
+      # stored_member_forms): ExpirationWarningJob's paged scan counts on a
+      # dropped entry being gone, and a removal that missed a raw member
+      # would leave it at the front of the window, read again on every page.
       # @param receipt_id [String] Receipt identifier
       # @return [Boolean] true when an entry was removed
       def remove_from_expiration_timeline(receipt_id)
-        expiration_timeline.remove_element(receipt_id)
+        expiration_timeline.dbclient.zrem(expiration_timeline.dbkey, stored_member_forms(receipt_id)).to_i.positive?
       end
 
-      # Check if a warning has already been sent for this receipt
+      # Check if a warning has already been sent for this receipt, in either
+      # stored spelling (see stored_member_forms).
       # @param receipt_id [String] Receipt identifier
       # @return [Boolean]
       def warning_sent?(receipt_id)
-        warnings_sent.member?(receipt_id)
+        client = warnings_sent.dbclient
+        stored_member_forms(receipt_id).any? { |form| client.sismember(warnings_sent.dbkey, form) }
       end
 
       # Mark that a warning has been sent for this receipt
