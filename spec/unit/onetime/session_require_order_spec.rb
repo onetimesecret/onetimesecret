@@ -7,7 +7,7 @@ require 'rbconfig'
 
 RSpec.describe Onetime::Session do
   def run_isolated_ruby(script, *)
-    Open3.capture2e(RbConfig.ruby, '-Ilib', '-e', script, *, chdir: Onetime::HOME)
+    Open3.capture2e(RbConfig.ruby, '-rbundler/setup', '-Ilib', '-e', script, *, chdir: Onetime::HOME)
   end
 
   it 'loads the namespace without the Rack store' do
