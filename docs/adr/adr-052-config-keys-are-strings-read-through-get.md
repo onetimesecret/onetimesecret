@@ -49,8 +49,13 @@ separate config object.
    dotted (`'site.admin.elevation.window'`), or an Array of Strings when a
    segment is a variable. Without a default the setting is required: a path
    that is not in the config raises `MissingPathError` with the path, and a
-   value an operator sets to nil reads as nil. With a default the setting
-   is optional. A positional default applies to missing keys and nil values.
+   nil in the loaded config reads as nil. A YAML null does not always
+   survive loading: `Config.after_load` merges the loaded config over
+   `Config::DEFAULTS` and treats nil there as unset, so a key that DEFAULTS
+   sets reads as its DEFAULTS value (a null
+   `site.secret_options.default_ttl` reads as 7 days). With a default the
+   setting is optional. A positional default applies to missing keys and
+   nil values.
    A block supplies a fallback only when a key is absent. The boot banner
    uses this distinction because an explicit nil disables a section there.
    `false` and `0` are values and are never replaced by the
