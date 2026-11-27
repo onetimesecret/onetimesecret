@@ -6,6 +6,7 @@ import LockoutAlert from '@/apps/session/components/LockoutAlert.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useAuthStore } from '@/shared/stores/authStore';
+import { isRememberMeEnabled } from '@/utils/features';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -30,6 +31,7 @@ const emailFromQuery = typeof route.query.email === 'string' ? route.query.email
 const email = ref(emailFromQuery);
 const password = ref('');
 const rememberMe = ref(false);
+const rememberMeOffered = isRememberMeEnabled();
 const showPassword = ref(false);
 
 const togglePasswordVisibility = () => {
@@ -155,8 +157,12 @@ const handleSubmit = async () => {
     </div>
 
     <!-- Remember me and forgot password -->
-    <div class="mt-3 flex items-center justify-between">
-      <div class="flex items-center">
+    <div
+      class="mt-3 flex items-center"
+      :class="rememberMeOffered ? 'justify-between' : 'justify-end'">
+      <div
+        v-if="rememberMeOffered"
+        class="flex items-center">
         <input
           id="remember-me"
           name="remember-me"

@@ -376,6 +376,9 @@ export const featuresSchema = z.object({
   email_auth: z.boolean().optional(),
   webauthn: z.boolean().optional(),
   active_sessions: z.boolean().optional(),
+  // "Remember me" on sign-in (AUTH_REMEMBER_ME_ENABLED). Only an explicit
+  // false hides the checkbox; older backends that omit it keep it.
+  remember_me: z.boolean().optional(),
   sso: z.union([z.boolean(), ssoConfigSchema]).optional(),
   // Legacy scalar projection retained for existing consumers.
   restrict_to: restrictToSchema.nullable().optional(),

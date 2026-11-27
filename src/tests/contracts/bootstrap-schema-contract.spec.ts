@@ -367,6 +367,11 @@ describe('Bootstrap Zod schema validation', () => {
       expect(result.success).toBe(true);
     });
 
+    it('keeps remember_me so the sign-in forms can hide the checkbox', () => {
+      expect(featuresSchema.parse({ remember_me: false }).remember_me).toBe(false);
+      expect(featuresSchema.parse({}).remember_me).toBeUndefined();
+    });
+
     it('preserves an explicit unavailable sign-in restriction', () => {
       const result = featuresSchema.safeParse({
         restrict_to: null,

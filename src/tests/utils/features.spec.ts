@@ -20,6 +20,7 @@ import {
   isFullAuthMode,
   isFullAuthModeOf,
   isLockoutEnabled,
+  isRememberMeEnabled,
   isMagicLinksEnabled,
   isOrganizationSwitcherEnabled,
   isOrgsAuditLogsEnabled,
@@ -171,6 +172,24 @@ describe('features utility', () => {
       const result = isMagicLinksEnabled();
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe('isRememberMeEnabled', () => {
+    it('hides the checkbox only when the backend turns the feature off', () => {
+      getBootstrapValueMock.mockReturnValue({ remember_me: false });
+      expect(isRememberMeEnabled()).toBe(false);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('offers it when enabled', () => {
+      getBootstrapValueMock.mockReturnValue({ remember_me: true });
+      expect(isRememberMeEnabled()).toBe(true);
+    });
+
+    it('offers it when an older backend omits the key', () => {
+      getBootstrapValueMock.mockReturnValue({});
+      expect(isRememberMeEnabled()).toBe(true);
     });
   });
 
