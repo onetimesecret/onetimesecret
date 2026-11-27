@@ -21,6 +21,12 @@
 # The same holds for a lane that no job names. A directory added under
 # tests/lanes/ runs nowhere until a job in ruby.yml lists it, so every lane
 # must be in a job there or in the list below of lanes that run elsewhere.
+#
+# Which job runs a lane decides when it runs, and its overlay decides what it
+# tests: a billing row without its overlay runs with billing off and passes,
+# and an auth lane moved into the every-change job costs its minutes on every
+# merge request. The table of jobs, lanes, overlays and services below is
+# that policy. A row in ruby.yml that differs from it fails here.
 set -uo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -97,6 +103,38 @@ gitlab_job() { # <file> <job>
   ' "$1"
 }
 
+# The entries of a job's own `script:` in ruby.yml.
+job_script() { # <job>
+  gitlab_job "$RUBY_JOBS" "$1" | awk '
+    $0 == "  script:" { on = 1; next }
+    on && /^    - / { print; next }
+    on { exit }
+  '
+}
+
+# The lanes ruby.yml runs, one line each: "<job> <lane> <overlay> <services>",
+# with "-" for no overlay and for no service beyond valkey and rabbitmq. A
+# lane is a `LANE:` under a job's `variables:` or a row of its
+# `parallel:matrix:`, where LANE_OVERLAY and LANE_EXTRA_SERVICES belong to
+# the row they follow.
+lane_rows() {
+  awk '
+    function flush(   n, i, names) {
+      if (lanes == "") return
+      gsub(/[][ ]/, "", lanes)
+      n = split(lanes, names, ",")
+      for (i = 1; i <= n; i++)
+        print job, names[i], (overlay == "" ? "-" : overlay), (services == "" ? "-" : services)
+      lanes = ""; overlay = ""; services = ""
+    }
+    /^[^ #]/ { flush(); job = $0; sub(/:$/, "", job); next }
+    /^    LANE: / || /^      - LANE: / { flush(); lanes = $0; sub(/^.*LANE: /, "", lanes); next }
+    /^        LANE_OVERLAY: / { overlay = $2; next }
+    /^        LANE_EXTRA_SERVICES: / { services = $2; next }
+    END { flush() }
+  ' "$RUBY_JOBS"
+}
+
 # GitHub's `/**` (any depth) is GitLab's `/**/*`.
 for_gitlab() { sed 's|/\*\*$|/**/*|'; }
 
@@ -157,6 +195,11 @@ for name in ci auth; do
   assert_contains "auth-lanes has a rule for ${name}" "changes: !reference [.changes, ${name}]" "$auth_rules"
 done
 assert_not_contains "no path selects the billing configurations" "changes:" "$nightly_rules"
+# The push rule is two lines. Without its second line the auth lanes would
+# run on every push to main and develop, whatever it changed.
+assert_eq "auth-lanes' push rule is limited to Ruby changes" \
+  "      changes: !reference [.changes, ruby]" \
+  "$(grep -A1 -F 'CI_PIPELINE_SOURCE == "push"' "$RULES" | tail -n 1)"
 # shellcheck disable=SC2016 # GitLab CI variables, matched as rules.yml writes them
 {
   assert_contains "auth-lanes reads the ci:auth label" \
@@ -178,16 +221,60 @@ protects "the frontend build runs in every pipeline that has a lane job that nee
 # A lane job `needs` frontend-build. When a lane job's rules select it and
 # frontend-build's do not, GitLab refuses to create the pipeline.
 build_job="$(gitlab_job "$FRONTEND_JOBS" frontend-build)"
-for name in ruby-lanes auth-lanes; do
+for name in ruby-lanes auth-lanes nightly-lanes; do
   assert_contains "frontend-build uses ${name}" "- !reference [.rules, ${name}]" "$build_job"
 done
+lane_template="$(gitlab_job "$RUBY_JOBS" .lane)"
+assert_contains "a lane job waits for frontend-build" "    - job: frontend-build" "$lane_template"
+# smoke-lane is also selected by the typescript list, which frontend-build is
+# not, so it must not inherit the template's needs.
+for job in smoke-lane rubocop; do
+  assert_contains "${job} waits on no job" "  needs: []" "$(gitlab_job "$RUBY_JOBS" "$job")"
+done
+assert_contains "frontend-build waits on no job" "  needs: []" "$build_job"
+
+protects "each job runs the lanes, overlays and services of its GitHub job"
+rows="$(lane_rows)"
+assert_eq "ruby.yml's jobs, lanes, overlays and extra services" "\
+smoke-lane smoke - -
+ruby-lanes unit - -
+ruby-lanes harness - -
+ruby-lanes billing - -
+ruby-lanes api - -
+ruby-lanes full-sqlite - -
+ruby-lanes disabled - -
+ruby-lanes strategies - -
+ruby-lanes full-pg - postgres
+ruby-lane-simple simple - -
+ruby-auth-lanes full-mfa - -
+ruby-auth-lanes full-saml-platform - -
+ruby-auth-lanes full-webauthn-verify - -
+ruby-auth-lanes full-pg-agnostic - postgres
+ruby-auth-browser browser - -
+ruby-billing-lanes billing-integration - -
+ruby-billing-lanes full-sqlite billing -
+ruby-billing-lanes full-pg billing postgres
+ruby-billing-lanes full-pg-agnostic billing postgres" "$rows"
+
+protects "a lane gets postgres exactly when its env names the test PostgreSQL port"
+# compose.test.yml publishes PostgreSQL on 2154, and the lane runner's
+# preflight requires every endpoint in a lane's env to answer.
+while read -r job lane overlay services; do
+  [ -n "$lane" ] || continue
+  expected=-
+  grep -q '127\.0\.0\.1:2154' "${LANES_DIR}/${lane}/env" 2> /dev/null && expected=postgres
+  assert_eq "${job}: ${lane} (overlay ${overlay}) extra services" "$expected" "$services"
+done <<< "$rows"
+assert_contains "the lane template starts the extra services" \
+  "    - bin/ci services up valkey rabbitmq \$LANE_EXTRA_SERVICES" "$lane_template"
+assert_contains "the lane template passes the overlay" \
+  "    - bin/ci lane \$LANE \$LANE_OVERLAY" "$lane_template"
 
 protects "every lane under tests/lanes/ runs in a GitLab job, or is listed here with where it runs"
 # selftest: started by the harness lane's specs, never as a job.
 # migrations-pg, migrations-sqlite: .github/workflows/migration-tests.yml.
 elsewhere=" selftest migrations-pg migrations-sqlite "
-job_lanes=" $(sed -nE 's/^ +(- )?LANE: \[?([^]]+)\]?$/\2/p' "$RUBY_JOBS" | tr ',' ' ' | tr -s ' \n' ' ')"
-assert_at_least "lanes named in ruby.yml extracted" 12 "$(printf '%s' "$job_lanes" | wc -w | tr -d ' ')" "lanes"
+job_lanes=" $(printf '%s\n' "$rows" | awk '{ print $2 }' | tr '\n' ' ')"
 for tasks in "$LANES_DIR"/*/tasks; do
   lane="$(basename "$(dirname "$tasks")")"
   case "$elsewhere" in *" ${lane} "*) continue ;; esac
@@ -197,6 +284,20 @@ for lane in $job_lanes; do
   exists=false
   [ -f "${LANES_DIR}/${lane}/tasks" ] && exists=true
   assert_eq "ruby.yml lane ${lane} is a lane under tests/lanes/" true "$exists"
+done
+
+protects "the steps a job adds to the lane template, and the jobs that write the bundle cache"
+assert_eq "ruby-lane-simple runs the fresh-schema check, then the lane" "\
+    - bash .github/scripts/check-api-v3-fresh-schemas.sh
+    - bin/ci lane \$LANE" "$(job_script ruby-lane-simple)"
+assert_eq "ruby-auth-browser installs the Playwright browsers, then runs the lane" "\
+    - pnpm exec playwright install --with-deps chromium firefox webkit
+    - bin/ci lane \$LANE" "$(job_script ruby-auth-browser)"
+# Lane jobs only read the cache. If neither of these wrote it, every lane job
+# would install the whole bundle on every run.
+assert_contains "the shared cache is read-only by default" "    policy: pull" "$(gitlab_job "$RUBY_JOBS" .ruby-job)"
+for job in rubocop smoke-lane; do
+  assert_contains "${job} writes the bundle cache" "    policy: pull-push" "$(gitlab_job "$RUBY_JOBS" "$job")"
 done
 
 finish

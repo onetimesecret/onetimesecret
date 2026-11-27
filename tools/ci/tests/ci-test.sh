@@ -3,8 +3,8 @@
 # tools/ci/tests/ci-test.sh
 #
 # bin/ci's dispatch, its refusals outside a GitLab CI job, and the commands
-# that can run against stand-ins: `docker`, `sysctl` and `bundle` stubs on
-# PATH, and a stub lane runner through BIN_CI_LANE_RUNNER.
+# that can run against stand-ins: `docker`, `sysctl`, `gem`, `bundle` and
+# `pnpm` stubs on PATH, and a stub lane runner through BIN_CI_LANE_RUNNER.
 #
 # WHAT THIS PROTECTS
 #
@@ -18,7 +18,9 @@
 # a billing row runs with billing off and passes, and without the second it
 # overwrites the results of the row it repeats. `bin/ci rubocop` must fail
 # on warnings and must not read the Ruby image's Bundler config, where the
-# gems `bin/ci prepare bundle` installed are not recorded.
+# gems `bin/ci prepare bundle` installed are not recorded. `bin/ci prepare`
+# with step names must run those steps only: the RuboCop job has no pnpm and
+# the frontend build restores no gems.
 #
 # Every bin/ci call here runs with GITLAB_CI unset unless the case sets it,
 # because this suite itself runs in a GitLab job (shell-tests), where a call
@@ -52,7 +54,7 @@ fi
 printf 'docker %s\n' "$*" >> "$STUB_CALLS"
 exit "${STUB_DOCKER_STATUS:-0}"
 STUB
-for name in sysctl dockerd apt-get mount; do
+for name in sysctl dockerd apt-get mount gem pnpm chmod; do
   cat > "${STUBS}/${name}" << STUB
 #!/usr/bin/env bash
 printf '${name} %s\n' "\$*" >> "\$STUB_CALLS"
@@ -73,6 +75,8 @@ printf 'bundle %s\n' "$*" >> "$STUB_CALLS"
 printf 'GEM_HOME=%s BUNDLE_APP_CONFIG=%s\n' "${GEM_HOME-unset}" "${BUNDLE_APP_CONFIG-unset}" >> "$STUB_CALLS"
 exit "${STUB_BUNDLE_STATUS:-0}"
 STUB
+# nproc: prepare's bundle step asks for the job count; macOS has no nproc.
+printf '#!/usr/bin/env bash\necho 2\n' > "${STUBS}/nproc"
 chmod +x "${STUBS}"/*
 
 # run <env assignments...> -- <bin/ci arguments...>: bin/ci with the stubs
@@ -124,13 +128,36 @@ run -- rubocop lib
 assert_eq "rubocop with an argument exits 64" 64 "$RC"
 
 protects "toolchain and prepare refuse to run outside a GitLab CI job"
-for command in toolchain prepare 'prepare bundle' 'prepare pnpm'; do
+for command in toolchain prepare 'prepare checkout' 'prepare bundle' 'prepare pnpm'; do
   # shellcheck disable=SC2086 # two words on purpose: the command and its step
   run -- $command
   assert_eq "${command} outside GitLab CI exits 1" 1 "$RC"
   assert_contains "${command} says why" "runs only in a GitLab CI job" "$OUT"
-  assert_eq "${command} reached no apt-get, mount or bundle" "" "$CALLED"
+  assert_eq "${command} reached no apt-get, mount, chmod or bundle" "" "$CALLED"
 done
+
+protects "prepare with step names runs those steps only, in the order given"
+# Only `bundle` and `pnpm` run here, against the stubs. `checkout` and `etc`
+# act on the real checkout this suite runs from (directory modes, etc/), and
+# so does `prepare` with no step; those run in a GitLab job only.
+run GITLAB_CI=true GEM_HOME=/usr/local/bundle BUNDLE_APP_CONFIG=/usr/local/bundle -- prepare bundle
+assert_eq "prepare bundle exits 0" 0 "$RC"
+assert_contains "prepare bundle installs the lockfile's Bundler" "gem install bundler -v " "$CALLED"
+assert_contains "prepare bundle sets deployment mode in the checkout" \
+  "bundle config set --local deployment true" "$CALLED"
+assert_contains "prepare bundle installs into vendor/bundle" \
+  "bundle config set --local path vendor/bundle" "$CALLED"
+assert_contains "prepare bundle installs the gems" "bundle install --jobs 2" "$CALLED"
+assert_contains "prepare bundle sees neither of the Ruby image's Bundler variables" \
+  "GEM_HOME=unset BUNDLE_APP_CONFIG=unset" "$CALLED"
+assert_not_contains "prepare bundle runs no pnpm" "pnpm" "$CALLED"
+assert_not_contains "prepare bundle changes no directory mode" "chmod" "$CALLED"
+run GITLAB_CI=true -- prepare pnpm
+assert_eq "prepare pnpm exits 0" 0 "$RC"
+assert_eq "prepare pnpm runs the frozen install and nothing else" "pnpm install --frozen-lockfile" "$CALLED"
+run GITLAB_CI=true -- prepare pnpm bundle
+assert_matches "prepare pnpm bundle runs pnpm before the bundle" \
+  '^pnpm install --frozen-lockfile.gem install bundler' "$(printf '%s' "$CALLED" | tr '\n' ' ')"
 
 protects "docker up does nothing when a daemon answers, and starts none outside a GitLab CI job"
 run STUB_DOCKER_INFO=ok -- docker up

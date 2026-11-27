@@ -4,10 +4,9 @@
 # §4.6): one job per pipeline, whose public/web/dist/ the Ruby lanes take as
 # an artifact. GitHub's build-assets job, with the same two steps.
 #
-# It runs whenever a job that needs it does, so its rules are the lane jobs'
-# rule sets together. The billing lanes need no rule of their own here: they
-# run in scheduled, manual and tag pipelines, where rules:changes is always
-# true (.gitlab/ci/rules.yml).
+# It runs whenever a job that needs it does, so its rules are the three rule
+# sets of the lane jobs together. A lane job selected in a pipeline that has
+# no frontend-build would make GitLab refuse to create the pipeline.
 frontend-build:
   extends: .ruby-job
   stage: build
@@ -18,6 +17,7 @@ frontend-build:
   rules:
     - !reference [.rules, ruby-lanes]
     - !reference [.rules, auth-lanes]
+    - !reference [.rules, nightly-lanes]
   script:
     - bin/ci toolchain
     - bin/ci prepare pnpm
