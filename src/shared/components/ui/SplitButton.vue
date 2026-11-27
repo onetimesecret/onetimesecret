@@ -6,6 +6,7 @@
   import { useI18n } from 'vue-i18n';
   import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
   import { useMagicKeys, whenever } from '@vueuse/core';
+  import { useMenuPlacement } from '@/shared/composables/useMenuPlacement';
 
   const { t } = useI18n();
 
@@ -34,6 +35,10 @@
   const buttonRef = ref<HTMLElement | null>(null);
   const submitButtonRef = ref<HTMLButtonElement | null>(null);
   const selectedAction = ref<ActionType>('create-link');
+  // Opens upward near the bottom so the mobile nav and footer don't cover it.
+  const toggleRef = ref<HTMLElement | null>(null);
+  const dropdownRef = ref<HTMLElement | null>(null);
+  const { placement } = useMenuPlacement(toggleRef, dropdownRef);
   const isContentEmpty = computed(() => !props.content.trim());
   const isMainButtonDisabled = computed(() => {
     // Disable the Create Link action when no content
@@ -240,6 +245,7 @@ ry="2" />
         '--tw-ring-opacity': '0.2',
         '--button-shadow-color': primaryColor || 'var(--color-brand-500)',
       }"
+      ref="toggleRef"
       @click="handleDropdownToggle"
       data-testid="split-button-dropdown-toggle"
       aria-label="Show more actions"
@@ -266,8 +272,10 @@ ry="2" />
     <div
       v-if="isDropdownOpen"
       id="split-button-dropdown"
-      :class="cornerClass"
-      class="absolute right-0 top-full z-10 mt-2 w-52
+      ref="dropdownRef"
+      :data-placement="placement"
+      :class="[cornerClass, placement === 'above' ? 'bottom-full mb-2' : 'top-full mt-2']"
+      class="absolute right-0 z-10 w-52
         bg-white/95 backdrop-blur-md
         shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.08)]
         border border-gray-200/50

@@ -9,6 +9,7 @@
    * and visual feedback for passphrase state.
    */
   import { computed, nextTick, ref } from 'vue';
+  import { useMenuPlacement, type ElementLike } from '@/shared/composables/useMenuPlacement';
   import { usePassphraseRules } from '@/shared/composables/usePassphraseRules';
   import { useI18n } from 'vue-i18n';
   import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue';
@@ -34,6 +35,10 @@
   // Local state
   const passphraseVisible = ref(false);
   const inputRef = ref<HTMLInputElement | null>(null);
+  // Opens upward near the bottom so the mobile nav and footer don't cover it.
+  const triggerRef = ref<ElementLike>(null);
+  const panelRef = ref<ElementLike>(null);
+  const { placement } = useMenuPlacement(triggerRef, panelRef);
 
   // Computed state
   const hasPassphrase = computed(() => !!props.modelValue);
@@ -128,6 +133,7 @@
     v-slot="{ open }"
     class="relative">
     <PopoverButton
+      ref="triggerRef"
       :disabled="disabled"
       class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs
         font-medium ring-1 ring-inset transition-all
@@ -163,7 +169,10 @@
       leave-from-class="transform opacity-100 scale-100"
       leave-to-class="transform opacity-0 scale-95">
       <PopoverPanel
-        class="absolute left-0 top-full z-[60] mt-1
+        ref="panelRef"
+        :data-placement="placement"
+        :class="placement === 'above' ? 'bottom-full mb-1' : 'top-full mt-1'"
+        class="absolute left-0 z-[60]
           w-72 max-w-[calc(100vw-2rem)]
           rounded-md bg-white p-3 shadow-lg ring-1 ring-black/5
           dark:bg-gray-800 dark:ring-gray-700"

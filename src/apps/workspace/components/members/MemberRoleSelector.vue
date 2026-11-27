@@ -9,7 +9,8 @@ import {
   ListboxOption,
   ListboxOptions,
 } from '@headlessui/vue';
-import { computed } from 'vue';
+import { useMenuPlacement, type ElementLike } from '@/shared/composables/useMenuPlacement';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -57,6 +58,11 @@ const roles = computed(() => {
 
 const selectedRole = computed(() => allRoles.find((r) => r.value === props.modelValue) ?? allRoles[2]);
 
+// Opens upward near the bottom so the mobile nav and footer don't cover it.
+const triggerRef = ref<ElementLike>(null);
+const menuRef = ref<ElementLike>(null);
+const { placement } = useMenuPlacement(triggerRef, menuRef);
+
 const handleSelect = (role: RoleOption) => {
   emit('update:modelValue', role.value);
 };
@@ -93,6 +99,7 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
       @update:model-value="handleSelect">
       <div class="relative">
         <ListboxButton
+          ref="triggerRef"
           class="relative w-full cursor-pointer rounded-md border border-gray-300 bg-white py-1.5 pl-3 pr-10 text-left text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:focus:border-brand-400 dark:focus:ring-brand-400">
           <span :class="getRoleBadgeClasses(modelValue)">
             {{ selectedRole.label }}
@@ -112,7 +119,10 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
           leave-from-class="opacity-100"
           leave-to-class="opacity-0">
           <ListboxOptions
-            class="absolute z-10 mt-1 max-h-60 w-full min-w-max overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700">
+            ref="menuRef"
+            :data-placement="placement"
+            :class="placement === 'above' ? 'bottom-full mb-1' : 'top-full mt-1'"
+            class="absolute z-10 max-h-60 w-full min-w-max overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700">
             <ListboxOption
               v-for="role in roles"
               :key="role.value"
