@@ -87,7 +87,7 @@ describe('sharing controls in the creation form', () => {
     expect(/passphraseMinimumLength(?!Required)/.test(hint)).toBe(!required);
   });
 
-  it('keeps the error banner below page menus and lifts the card while its menu is open', async () => {
+  it('keeps the error banner below page menus and never raises the card over it', async () => {
     const { render } = setup(organization('org'));
     render();
     await flushPromises();
@@ -96,10 +96,11 @@ describe('sharing controls in the creation form', () => {
     expect(banner.classes()).toContain('z-[5]');
     expect(banner.classes()).not.toContain('z-50');
     const toggle = wrapper.get('[data-testid="split-button-dropdown-toggle"]');
-    expect(toggle.attributes('aria-haspopup')).toBe('true');
     const card = toggle.element.closest('.backdrop-blur-sm')!;
-    expect(card.classList).toContain('relative');
-    expect(card.classList).toContain('has-[[aria-haspopup][aria-expanded=true]]:z-10');
+    // A card z-index (even one applied only while the menu is open) paints the
+    // card over the sticky banner, so the error shows through the fields.
+    const raised = () => [...card.classList].filter((name) => /(^|:)z-/.test(name));
+    expect(raised()).toEqual([]);
     await toggle.trigger('click');
     expect(toggle.attributes('aria-expanded')).toBe('true');
   });

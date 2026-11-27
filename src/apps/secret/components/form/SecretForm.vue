@@ -247,16 +247,14 @@
         corner token belongs on the controls inside (inputs, select, button),
         matching BaseSecretDisplay's fixed-card / branded-controls split.
 
-        backdrop-blur-sm makes this card a stacking context, so the SplitButton
-        menu (z-10) is ordered against the alert banner (z-[5]) by the card's
-        own z-index, not the menu's. The card rises above the banner only
-        while a popup inside it is open, so the banner still covers the card
-        when the page scrolls under it.
+        No z-index on this card: raising it while the Create Link menu is open
+        makes it paint over the sticky alert banner, so the error text shows
+        through the fields. The menu opens below its button, so a banner that
+        could cover the menu already covers the button.
       -->
       <div
         ref="div1"
-        class="relative overflow-visible rounded-lg border border-gray-200/50
-          has-[[aria-haspopup][aria-expanded=true]]:z-10
+        class="overflow-visible rounded-lg border border-gray-200/50
           bg-gradient-to-br from-white to-gray-50/30
           shadow-[0_8px_30px_rgb(0,0,0,0.12),0_2px_8px_rgb(0,0,0,0.08)]
           backdrop-blur-sm
