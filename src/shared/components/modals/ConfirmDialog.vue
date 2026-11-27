@@ -26,6 +26,7 @@ const emit = defineEmits<{
 }>();
 
 const isVisible = ref(true);
+const cancelButton = ref<HTMLButtonElement | null>(null);
 
 const confirm = () => {
   isVisible.value = false;
@@ -58,6 +59,7 @@ const { onBackdropMousedown, onBackdropClick } = useBackdropClose(cancel);
       @click="onBackdropClick">
       <FocusTrap
         :active="isVisible"
+        :initial-focus="() => cancelButton ?? false"
         :escape-deactivates="true"
         :click-outside-deactivates="false"
         :allow-outside-click="true"
@@ -78,6 +80,7 @@ const { onBackdropMousedown, onBackdropClick } = useBackdropClose(cancel);
 
           <div class="flex justify-end space-x-2">
             <button
+              ref="cancelButton"
               @click="cancel"
               data-testid="confirm-dialog-cancel"
               class="rounded px-4 py-2 text-gray-600 hover:bg-gray-100

@@ -11,7 +11,7 @@ vi.mock('focus-trap-vue', () => ({
   FocusTrap: {
     name: 'FocusTrap',
     template: '<div><slot /></div>',
-    props: ['active', 'escapeDeactivates', 'clickOutsideDeactivates', 'allowOutsideClick'],
+    props: ['active', 'initialFocus', 'escapeDeactivates', 'clickOutsideDeactivates', 'allowOutsideClick'],
     emits: ['deactivate'],
   },
 }));
@@ -64,6 +64,12 @@ describe('ConfirmDialog', () => {
     expect(dialog()!.getAttribute('aria-labelledby')).toBe('confirm-dialog-title');
     expect(document.getElementById('confirm-dialog-title')!.textContent).toContain('Title');
     expect(document.getElementById('confirm-dialog-message')!.textContent).toContain('Message');
+  });
+
+  it('gives the trap the Cancel button for initial focus', () => {
+    mountInCard();
+    const trap = wrapper.findComponent({ name: 'FocusTrap' });
+    expect(trap.props('initialFocus')()).toBe(dialog()!.querySelector('[data-testid="confirm-dialog-cancel"]'));
   });
 
   it('emits confirm and removes the overlay', async () => {
