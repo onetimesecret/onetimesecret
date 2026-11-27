@@ -3,27 +3,23 @@
 # frozen_string_literal: true
 
 # ============================================================================
-# Config Path Bug Tests (TDD Red Phase)
+# Config path tests
 #
-# These tests demonstrate that process_ttl reads secret_options from the
-# WRONG config path. It does:
+# secret_options is nested under 'site' in config, and process_ttl reads it
+# there:
 #
-#   OT.conf.fetch('secret_options', { hardcoded fallback })
+#   OT.conf.get('site.secret_options.default_ttl', 7.days)
+#   OT.conf.get('site.secret_options.ttl_options', [...])
 #
-# But secret_options is nested under 'site' in config. The correct path
-# (used by validate_passphrase in the same file) is:
-#
-#   OT.conf.dig('site', 'secret_options')
-#
-# As a result, process_ttl ALWAYS uses the hardcoded fallback values:
+# A read of a root-level 'secret_options' key finds nothing, so process_ttl
+# would use the hardcoded fallback values:
 #   default_ttl: 604800 (7 days)
 #   ttl_options: [60, 3600, 86400, 604800]
 #
-# Instead of the test config values (spec/config.test.yaml):
+# These tests check that it uses the test config values
+# (spec/config.test.yaml) instead:
 #   default_ttl: 43200 (12 hours)
 #   ttl_options: [1800, 43200, 604800]
-#
-# These tests should FAIL against the current code and PASS after the fix.
 # ============================================================================
 
 require_relative '../../../application'
@@ -153,8 +149,8 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
 
       expect(subject.ttl).to eq(43_200),
         "Expected default_ttl=43200 from config, got #{subject.ttl}. " \
-        "Bug: process_ttl reads OT.conf.fetch('secret_options') (root level) " \
-        "instead of OT.conf.dig('site', 'secret_options')"
+        "process_ttl did not read OT.conf.get('site.secret_options.default_ttl'); " \
+        "a root-level 'secret_options' read falls back to 604800"
     end
 
     it 'uses config default_ttl (43200) when TTL param is nil' do
@@ -1729,7 +1725,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         .and_return(double('BillingConfig', enabled?: enabled))
     end
 
-    # process_ttl reads its bounds from OT.conf.dig('site', 'secret_options').
+    # process_ttl reads its bounds from site.secret_options.ttl_options.
     # config.test.yaml maxes out at exactly 7 days, so the config clamp would
     # mask a missing anonymous cap. Raise the config max (stock deployments
     # ship 30 days) to test the cap in isolation.

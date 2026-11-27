@@ -137,7 +137,7 @@ module V1::Logic
         # Config resolution chain:
         #   1. OT::Config.after_load deep-merges DEFAULTS into loaded YAML
         #   2. YAML nil values are preserved as DEFAULTS (deep_merge skips nil)
-        #   3. This dig reads the merged result — DEFAULTS wins when YAML is nil
+        #   3. This get reads the merged result — DEFAULTS wins when YAML is nil
         #
         # Config.after_load guarantees default_ttl (Config::DEFAULTS); the
         # fallback covers a config built without it.

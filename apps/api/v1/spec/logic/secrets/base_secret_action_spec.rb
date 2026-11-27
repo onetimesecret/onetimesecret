@@ -131,27 +131,18 @@ RSpec.describe V1::Logic::Secrets::BaseSecretAction do
 end
 
 # ============================================================================
-# Config Path Bug Tests (TDD Red Phase)
+# Config path tests
 #
-# These tests demonstrate that process_ttl reads secret_options from the
-# WRONG config path. It does:
+# secret_options is nested under 'site' in config, and process_ttl reads
+# default_ttl there:
 #
-#   OT.conf.fetch('secret_options', { hardcoded fallback })
+#   OT.conf.get('site.secret_options.default_ttl', 7.days)
 #
-# But secret_options is nested under 'site' in config. The correct path
-# (used by validate_passphrase in the same file) is:
-#
-#   OT.conf.dig('site', 'secret_options')
-#
-# As a result, process_ttl ALWAYS uses the hardcoded fallback values:
-#   default_ttl: 604800 (7 days)
-#   ttl_options: [1800, 7200, 86400, 604800]
-#
-# Instead of the test config values (spec/config.test.yaml):
-#   default_ttl: 43200 (12 hours)
-#   ttl_options: [1800, 43200, 604800]
-#
-# These tests should FAIL against the current code and PASS after the fix.
+# A read of a root-level 'secret_options' key finds nothing, so process_ttl
+# would use the hardcoded fallback of 604800 (7 days). These tests check
+# that it uses the test config value (spec/config.test.yaml) of 43200
+# (12 hours) instead. V1 takes its TTL bounds from V1_MIN_TTL and
+# V1_MAX_TTL, not from ttl_options.
 # ============================================================================
 RSpec.describe 'V1 BaseSecretAction config path bug' do
   using Familia::Refinements::TimeLiterals
@@ -214,8 +205,8 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
 
       expect(subject.default_expiration).to eq(43_200),
         "Expected default_ttl=43200 from config, got #{subject.default_expiration}. " \
-        "Bug: process_ttl reads OT.conf.fetch('secret_options') (root level) " \
-        "instead of OT.conf.dig('site', 'secret_options')"
+        "process_ttl did not read OT.conf.get('site.secret_options.default_ttl'); " \
+        "a root-level 'secret_options' read falls back to 604800"
     end
 
     it 'reads ttl_options from site.secret_options in config, not the hardcoded fallback' do
