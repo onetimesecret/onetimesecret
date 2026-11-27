@@ -11,17 +11,15 @@ module V1::Logic
 
     # V1 Secret Creation Logic [#2615]
     #
-    # TTL bounds come from site.secret_options in config
-    # (OT.conf.get('site.secret_options.default_ttl')), not a top-level key.
-    # If the config key is missing, the hardcoded fallback applies:
-    #   ttl_options: [30.minutes, 2.hours, 1.day, 7.days]
-    #   default_ttl: 7.days
+    # default_ttl comes from site.secret_options in config
+    # (OT.conf.get('site.secret_options.default_ttl', 7.days)), not a
+    # top-level key; 7 days applies if the config has none. TTL bounds are
+    # V1_MIN_TTL and V1_MAX_TTL, not the config's ttl_options.
     #
     # In practice, the fallback rarely triggers because OT::Config.after_load
-    # deep-merges DEFAULTS into the loaded config. When the YAML sets a key
-    # to nil (e.g. `ttl_options: <%= nil %>`), deep_merge preserves the
-    # DEFAULTS value — so the effective max comes from Config::DEFAULTS
-    # (currently 30.days / 2,592,000s). See Config.deep_merge nil semantics.
+    # deep-merges DEFAULTS into the loaded config. When the YAML sets
+    # default_ttl to nil, deep_merge keeps the DEFAULTS value (7 days). See
+    # Config.deep_merge nil semantics.
     #
     # v0.23.x vs v0.24 behavioral differences (not bugs):
     #   TTL max:         v0.23 used plan.options[:ttl] (14 days for most plans)
