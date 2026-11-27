@@ -32,9 +32,10 @@ module Onetime::Secret::Features
       VERIFICATION_KINDS = %w[account_verification password_reset email_change].freeze
 
       # Is this secret account mechanics (a verification, password-reset or
-      # email-change link) rather than a secret someone shared? True for any
-      # kind in VERIFICATION_KINDS and for the boolean verification flag,
-      # which legacy verification secrets carry without a kind. Such a
+      # email-change link) rather than a secret someone shared? Every mint
+      # site sets the boolean verification flag and records a kind from
+      # VERIFICATION_KINDS beside it; legacy secrets carry the flag alone.
+      # Either one is enough, so a record with only one still counts. Such a
       # secret sends its owner no reveal notice
       # (#reveal_notice_snapshot) and no expiration warning
       # (Onetime::Jobs::Scheduled::ExpirationWarningJob). Both read this one
